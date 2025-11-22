@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Guia de Medidas - DMX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap');
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50%;
+            height: 4px;
+            background-color: #DC2626;
+        }
+
+        /* Mobile Menu Transition */
+        #mobile-menu {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Tabela Scroll Hint */
+        .table-container {
+            background: 
+                linear-gradient(to right, white 30%, rgba(255,255,255,0)),
+                linear-gradient(to right, rgba(255,255,255,0), white 70%) 0 100%,
+                radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.2), rgba(0,0,0,0)),
+                radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
+            background-repeat: no-repeat;
+            background-color: white;
+            background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+            background-position: 0 0, 100% 0, 0 0, 100% 0;
+            background-attachment: local, local, scroll, scroll;
+        }
+
+        /* Print Styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; color: black; }
+            .page-break { page-break-before: always; }
+            .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+            #mobile-menu-btn { display: none; }
+            header { position: static; padding: 10px; }
+            /* Forçar visualização completa na impressão */
+            .h-64, .h-80 { height: auto !important; } 
+            img { max-height: 300px; object-fit: contain; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 overflow-x-hidden">
+
+    <!-- Navbar / Header -->
+    <header class="bg-black text-white shadow-lg sticky top-0 z-50 no-print transition-all duration-300" id="main-header">
+        <!-- Layout Flexível: Botão Menu (Esq) - Logo (Centro) - Ações (Dir) -->
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center relative h-24">
+            
+            <!-- Lado Esquerdo: Botão Menu Mobile ou Nav Desktop -->
+            <div class="flex items-center">
+                <button id="mobile-menu-btn" class="lg:hidden z-50 p-2 text-white focus:outline-none hover:bg-white/10 rounded-full transition" aria-label="Abrir Menu">
+                    <i data-lucide="menu" class="w-8 h-8"></i>
+                </button>
+                
+                <!-- Desktop Nav (Escondido no mobile) -->
+                <nav class="hidden lg:flex gap-6 font-bold text-xs tracking-wider text-gray-300">
+                    <a href="#intro" class="hover:text-red-500 transition py-2">INÍCIO</a>
+                    <a href="#peso" class="hover:text-red-500 transition py-2">PESO</a>
+                    <a href="#medidas" class="hover:text-red-500 transition py-2">MEDIDAS</a>
+                    <a href="#tabela" class="hover:text-red-500 transition py-2">TABELA</a>
+                </nav>
+            </div>
+
+            <!-- Centro: Logo DMX Centralizada e Maior -->
+            <a href="#" class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group">
+                <img src="https://i.imgur.com/z1DuC77.png" alt="Logo DMX" class="h-16 md:h-28 w-auto object-contain group-hover:scale-105 transition duration-300">
+            </a>
+
+            <!-- Lado Direito: Botão Imprimir -->
+            <div class="flex items-center">
+                <button onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-2 rounded-full font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/30" aria-label="Imprimir">
+                    <i data-lucide="printer" class="w-5 h-5"></i> <span class="hidden md:inline">IMPRIMIR</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Fullscreen Menu -->
+    <div id="mobile-menu" class="fixed inset-0 bg-zinc-900 z-40 transform translate-x-full flex flex-col justify-center items-center text-center no-print">
+        <nav class="flex flex-col gap-8 text-2xl font-black text-white tracking-tighter">
+            <a href="#intro" class="mobile-link hover:text-red-500 transition">INÍCIO</a>
+            <a href="#peso" class="mobile-link hover:text-red-500 transition">PESO</a>
+            <a href="#medidas" class="mobile-link hover:text-red-500 transition">MEDIDAS</a>
+            <a href="#tabela" class="mobile-link hover:text-red-500 transition">TABELA</a>
+        </nav>
+        <button onclick="window.print()" class="mt-12 bg-red-600 text-white px-8 py-3 rounded-full font-bold text-lg shadow-xl flex items-center gap-2 mobile-link">
+            <i data-lucide="printer" class="w-5 h-5"></i> IMPRIMIR GUIA
+        </button>
+    </div>
+
+    <!-- Hero / Cover Section -->
+    <section id="intro" class="relative bg-zinc-900 text-white py-16 md:py-24 overflow-hidden">
+        <div class="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay"></div>
+        <div class="container mx-auto px-4 relative z-10 text-center">
+            <h2 class="text-red-500 font-bold tracking-[0.2em] mb-3 text-xs md:text-base uppercase animate-fade-in-up">DMX Performance & Fit</h2>
+            <h1 class="text-4xl md:text-7xl font-black mb-4 leading-tight tracking-tight">
+                GUIA DE <br class="md:hidden"><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-800">MEDIDAS</span>
+            </h1>
+            <p class="text-base md:text-xl text-gray-300 max-w-2xl mx-auto font-light px-4 leading-relaxed">
+                O passo a passo completo para você avaliar a sua evolução e transformar seu corpo.
+            </p>
+            <div class="mt-8 flex justify-center gap-2 md:gap-4">
+                <div class="w-12 md:w-16 h-1 bg-red-600 rounded-full"></div>
+                <div class="w-3 md:w-4 h-1 bg-red-600 rounded-full"></div>
+                <div class="w-12 md:w-16 h-1 bg-red-600 rounded-full"></div>
+            </div>
+            <div class="mt-10 animate-bounce">
+                <a href="#peso" class="text-gray-400 hover:text-white transition">
+                    <i data-lucide="chevron-down" class="w-8 h-8 mx-auto"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Peso Corporal Section -->
+    <section id="peso" class="py-10 md:py-20 container mx-auto px-4 md:px-6">
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
+            <div class="w-full lg:w-1/2">
+                <h2 class="text-2xl md:text-3xl font-bold mb-6 section-title">PESO CORPORAL</h2>
+                <p class="mb-6 text-gray-600 leading-relaxed text-sm md:text-base text-justify">
+                    A balança não é o melhor método para avaliar seus resultados porque ela apenas mede o peso total, e não diferencia entre massa magra (músculos, ossos, órgãos) e massa gorda (gordura corporal). Entretanto, é interessante ter conhecimento do seu peso para calcular suas necessidades nutricionais.
+                </p>
+                
+                <div class="bg-red-50 border-l-4 border-red-600 p-5 md:p-6 rounded-r-xl mb-8 shadow-sm">
+                    <h3 class="font-bold text-red-800 mb-4 flex items-center text-sm md:text-base">
+                        <i data-lucide="alert-circle" class="w-5 h-5 mr-2"></i> Fatores que influenciam o peso:
+                    </h3>
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs md:text-sm text-gray-700">
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Água ingerida recentemente</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Alimentos ingeridos</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Quantidade de sal (sódio)</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Consumo de carboidratos</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Período menstrual</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Medicamentos (corticoides)</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Volume de fezes/urina</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Roupas pesadas</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Horário da pesagem</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Balanças descalibradas</li>
+                    </ul>
+                </div>
+
+                <h3 class="font-bold text-base md:text-lg mb-3 text-zinc-800">Como diminuir erros:</h3>
+                <div class="bg-white rounded-lg shadow-md p-4 md:p-0 md:shadow-none">
+                    <ul class="space-y-3 text-gray-700 text-sm md:text-base">
+                        <li class="flex items-start">
+                            <span class="bg-zinc-900 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 text-xs mt-0.5 flex-shrink-0 shadow-md">1</span>
+                            Faça a pesagem sempre no mesmo dia da semana.
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-zinc-900 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 text-xs mt-0.5 flex-shrink-0 shadow-md">2</span>
+                            Use sempre a mesma balança.
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-zinc-900 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 text-xs mt-0.5 flex-shrink-0 shadow-md">3</span>
+                            Pese pela manhã, em jejum, após ir ao banheiro, com mínimo de roupa.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="w-full lg:w-1/2 bg-white p-6 md:p-8 shadow-2xl rounded-2xl border-t-4 border-red-600 transform md:rotate-1 hover:rotate-0 transition duration-500">
+                <div class="text-center mb-8">
+                    <div class="inline-block p-4 rounded-full bg-red-50 text-red-600 mb-4 ring-4 ring-red-50">
+                        <i data-lucide="activity" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Protocolo de Avaliação</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-red-200 transition">
+                        <div class="text-3xl font-black text-gray-200 mr-4">01</div>
+                        <div>
+                            <h4 class="font-bold text-sm md:text-base">Circunferências</h4>
+                            <p class="text-xs md:text-sm text-gray-500">Uso de fita métrica para medir perímetros.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-red-200 transition">
+                        <div class="text-3xl font-black text-gray-200 mr-4">02</div>
+                        <div>
+                            <h4 class="font-bold text-sm md:text-base">Fotos Evolutivas</h4>
+                            <p class="text-xs md:text-sm text-gray-500">Comparativo visual mensal.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-red-50 rounded-xl border border-red-100 text-xs md:text-sm text-red-800 italic text-center">
+                        "A melhor maneira de avaliar a composição corporal é com um profissional qualificado."
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instruções de Medidas -->
+    <section id="medidas" class="bg-zinc-100 py-12 md:py-20 page-break">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-10">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2 section-title text-zinc-800 inline-block">COMO MEDIR</h2>
+                
+                <div class="bg-white inline-block mt-6 mb-2 px-4 py-2 rounded-full shadow-sm border border-gray-200">
+                    <p class="text-gray-700 text-xs md:text-sm font-bold flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4 text-red-500"></i>
+                        Os exemplos servem para homens e mulheres.
+                    </p>
+                </div>
+                
+                <p class="text-gray-500 text-sm mt-2">Siga as instruções detalhadas abaixo.</p>
+            </div>
+
+            <!-- Grid de Cards de Medidas -->
+            <!-- Mobile: Grid 1 coluna, Tablet: 2 colunas, Desktop: 3 colunas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 print-grid mb-12">
+                
+                <!-- 1. Antebraço -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                        <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/9j5tS6G.png" loading="lazy" alt="Medida Antebraço" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Superior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">1. Antebraço</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência do antebraço.</p>
+                    </div>
+                </div>
+
+                <!-- 2. Braço Relaxado -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/JXNNlV0.png" loading="lazy" alt="Medida Braço Relaxado" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Superior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">2. Braço Relaxado</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência do braço relaxado.</p>
+                    </div>
+                </div>
+
+                <!-- 3. Braço Contraído -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/oEN8KqT.png" loading="lazy" alt="Medida Braço Contraído" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Superior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">3. Braço Contraído</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência do braço contraído.</p>
+                    </div>
+                </div>
+
+                <!-- 4. Ombro -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/ZR5a1Fg.png" loading="lazy" alt="Medida Ombro" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-zinc-200 text-zinc-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Tronco</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">4. Ombro</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Passe a fita métrica ao redor do corpo entre os pontos mais largos de cada ombro. É recomendável pedir ajuda a uma outra pessoa para tirar essa medida.</p>
+                    </div>
+                </div>
+
+                <!-- 5. Tórax -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/GVMiOPF.png" loading="lazy" alt="Medida Tórax" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-zinc-200 text-zinc-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Tronco</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">5. Tórax</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">
+                            Passe a fita métrica por debaixo das axilas, envolvendo a parte mais larga do seu tórax. Em homens, a fita deve ser posicionada na linha dos mamilos. Em mulheres, a fita deve ser posicionada 2 dedos acima da linha dos mamilos.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 6. Cintura -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/YcFu0nE.png" loading="lazy" alt="Medida Cintura" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-zinc-200 text-zinc-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Tronco</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">6. Cintura</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Passe a fita métrica na região entre a última costela e o osso ilíaco (aquele do quadril), geralmente ficando um ou dois dedos acima do umbigo.</p>
+                    </div>
+                </div>
+
+                <!-- 7. Abdômen -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/eVdePfT.png" loading="lazy" alt="Medida Abdômen" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-zinc-200 text-zinc-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Tronco</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">7. Abdômen</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Passe a fita métrica horizontalmente por cima do seu umbigo.</p>
+                    </div>
+                </div>
+
+                <!-- 8. Quadril -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/eYceyFN.png" loading="lazy" alt="Medida Quadril" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Inferior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">8. Quadril</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Geralmente localizado no meio do glúteo.</p>
+                    </div>
+                </div>
+
+                <!-- 9. Coxa -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/4SO5yjE.png" loading="lazy" alt="Medida Coxa" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Inferior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">9. Coxa</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência da coxa.</p>
+                    </div>
+                </div>
+
+                <!-- 10. Panturrilha -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/HarZ9G3.png" loading="lazy" alt="Medida Panturrilha" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Inferior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">10. Panturrilha</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência da panturrilha.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Instruções Gerais: Cards lado a lado no desktop, empilhados no mobile -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <!-- O que Fazer -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-green-500">
+                    <h3 class="font-bold text-lg md:text-xl mb-6 text-center text-green-700 flex items-center justify-center gap-2">
+                        <i data-lucide="thumbs-up" class="w-5 h-5"></i> O que fazer?
+                    </h3>
+                    <ul class="space-y-4 text-gray-700 text-sm md:text-base">
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Posicione a fita métrica sempre na região de <strong>maior circunferência</strong> da parte que pretende medir;</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Fique o mais <strong>relaxado(a) e imóvel possível</strong> para assegurar a precisão dos resultados;</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Meça <strong>ambos os lados do corpo</strong> para verificar a simetria e proporcionalidade entre as partes;</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Mantenha registro das medições para acompanhar seu progresso e saber quais músculos estão evoluindo e quais precisarão de maior trabalho.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- O que NÃO Fazer -->
+                <div class="bg-zinc-800 text-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-red-600">
+                    <h3 class="font-bold text-lg md:text-xl mb-6 text-center flex items-center justify-center text-red-500 gap-2">
+                        <i data-lucide="thumbs-down" class="w-5 h-5"></i> O que NÃO fazer?
+                    </h3>
+                    <ul class="space-y-4 text-gray-300 text-sm md:text-base">
+                        <li class="flex items-start">
+                            <i data-lucide="x-circle" class="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Evite se exercitar antes de realizar as medições, pois isso pode comprometer a precisão dos resultados devido ao inchaço muscular;</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="x-circle" class="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Não aperte e nem afrouxe a fita demasiadamente. Isso causará imprecisão na medição. Apenas deixe rente ao corpo de forma firme e confortável.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabela de Registro -->
+    <section id="tabela" class="py-12 md:py-20 container mx-auto px-4 page-break">
+        <div class="text-center mb-8 md:mb-10">
+            <h2 class="text-2xl md:text-3xl font-bold section-title text-zinc-800">REGISTRO</h2>
+            <p class="text-gray-500 mt-2 text-sm md:text-base">Arraste para o lado para ver mais meses <i data-lucide="arrow-right" class="inline w-4 h-4 ml-1 md:hidden"></i></p>
+        </div>
+
+        <!-- Table Container com Scroll Indicator Visual -->
+        <div class="overflow-x-auto table-container rounded-lg shadow-lg border border-gray-100">
+            <table class="w-full border-collapse bg-white text-xs md:text-sm text-center min-w-[600px]">
+                <thead>
+                    <tr class="bg-zinc-900 text-white uppercase text-[10px] md:text-xs tracking-wider">
+                        <th class="p-3 md:p-4 text-left w-1/4 sticky left-0 bg-zinc-900 z-10">Medida (cm)</th>
+                        <th class="p-3 md:p-4 border-l border-zinc-700 w-[18%]">Mês 1</th>
+                        <th class="p-3 md:p-4 border-l border-zinc-700 w-[18%]">Mês 2</th>
+                        <th class="p-3 md:p-4 border-l border-zinc-700 w-[18%]">Mês 3</th>
+                        <th class="p-3 md:p-4 border-l border-zinc-700 w-[18%]">Mês 4</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr class="bg-red-50 font-bold text-red-800"><td class="p-3 md:p-4 text-left sticky left-0 bg-red-50">Peso (kg)</td><td class="border-l border-red-100"><div class="h-6 md:h-8 w-full bg-white/50 rounded border border-red-200"></div></td><td class="border-l border-red-100"><div class="h-6 md:h-8 w-full bg-white/50 rounded border border-red-200"></div></td><td class="border-l border-red-100"><div class="h-6 md:h-8 w-full bg-white/50 rounded border border-red-200"></div></td><td class="border-l border-red-100"><div class="h-6 md:h-8 w-full bg-white/50 rounded border border-red-200"></div></td></tr>
+                    
+                    <!-- Braços -->
+                    <tr class="bg-gray-100"><td colspan="5" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100">Braços</td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Antebraço (E/D)</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Braço Relax. (E/D)</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Braço Contr. (E/D)</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td></tr>
+
+                    <!-- Tronco -->
+                    <tr class="bg-gray-100"><td colspan="5" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100">Tronco</td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Ombro</td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Tórax</td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Cintura</td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Abdômen</td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td></tr>
+
+                    <!-- Inferiores -->
+                    <tr class="bg-gray-100"><td colspan="5" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100">Inferiores</td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Quadril</td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td><td class="border-l px-2"><div class="h-6 w-full border-b border-gray-200"></div></td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Coxa (E/D)</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td></tr>
+                    <tr><td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Panturrilha (E/D)</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td><td class="border-l text-gray-300 text-lg">/</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Fotos Section -->
+    <section class="bg-zinc-900 text-white py-16 md:py-24">
+        <div class="container mx-auto px-4 md:px-6">
+            <!-- Parte Superior: Título e Dicas -->
+            <div class="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 mb-12">
+                <!-- Coluna Esquerda: Título -->
+                <div class="w-full lg:w-1/3 text-center lg:text-right flex flex-col items-center lg:items-end">
+                    <h2 class="text-3xl md:text-5xl font-black text-red-600 mb-2 tracking-tighter">FOTOS</h2>
+                    <h3 class="text-xl md:text-3xl font-bold mb-4 text-white">EVOLUTIVAS</h3>
+                    <p class="text-gray-400 text-sm md:text-base max-w-xs lg:max-w-none">Acompanhe visualmente o que os números não mostram.</p>
+                </div>
+
+                <!-- Coluna Direita: Grid de Dicas -->
+                <div class="w-full lg:w-2/3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left">
+                        <i data-lucide="camera" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
+                        <h4 class="font-bold mb-2 text-lg">Posição</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">De frente, costas e perfis. Mantenha a distância.</p>
+                    </div>
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left">
+                        <i data-lucide="sun" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
+                        <h4 class="font-bold mb-2 text-lg">Luz</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">Luz natural de frente. Evite sombras fortes.</p>
+                    </div>
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left">
+                        <i data-lucide="calendar" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
+                        <h4 class="font-bold mb-2 text-lg">Frequência</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">A cada 30 dias, preferencialmente em jejum.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parte Inferior: Imagem Grande Centralizada -->
+            <div class="flex justify-center w-full">
+                <div class="relative w-full max-w-6xl rounded-lg overflow-hidden border-4 border-red-600 shadow-2xl">
+                    <img src="https://i.imgur.com/1aSuKzZ.png" loading="lazy" alt="Exemplo Foto Evolutiva" class="w-full h-auto object-cover">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white text-center py-12 md:py-20 border-t-4 border-red-800">
+        <div class="container mx-auto px-4">
+            
+            <!-- Frase Motivacional -->
+            <p class="text-base md:text-2xl text-gray-300 mb-8 font-light max-w-3xl mx-auto italic leading-relaxed">
+                "Seu corpo acompanha aquilo que sua mente acredita.<br class="hidden md:block"> <span class="text-red-600 font-bold block md:inline mt-2 md:mt-0">@diegomacielx</span> te ajuda a acreditar mais"
+            </p>
+
+            <!-- Botão Instagram -->
+            <a href="https://www.instagram.com/diegomacielx/" target="_blank" class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-10 rounded-full transition-all transform hover:scale-105 hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] mb-16 no-print text-sm md:text-base">
+                <i data-lucide="instagram" class="w-5 h-5 mr-2"></i>
+                ACOMPANHE NO INSTAGRAM
+            </a>
+
+            <div class="font-black text-4xl md:text-8xl tracking-tighter text-zinc-800 mb-8 select-none">
+                #VEMPROTIME
+            </div>
+            
+            <div class="flex justify-center items-center gap-2 mb-6">
+                <img src="https://i.imgur.com/z1DuC77.png" alt="Logo DMX" class="h-12 md:h-16 w-auto object-contain opacity-50 hover:opacity-100 transition">
+            </div>
+            <p class="text-gray-600 text-xs md:text-sm">Todos os direitos reservados. DMX Performance & Fit.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // Mobile Menu Logic
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        const links = document.querySelectorAll('.mobile-link');
+        let isMenuOpen = false;
+
+        btn.addEventListener('click', () => {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                menu.classList.remove('translate-x-full');
+                btn.innerHTML = '<i data-lucide="x" class="w-8 h-8"></i>';
+                lucide.createIcons();
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            } else {
+                menu.classList.add('translate-x-full');
+                btn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
+                lucide.createIcons();
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Close menu when clicking a link
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                isMenuOpen = false;
+                menu.classList.add('translate-x-full');
+                btn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
+                lucide.createIcons();
+                document.body.style.overflow = 'auto';
+            });
+        });
+    </script>
+</body>
+</html>
