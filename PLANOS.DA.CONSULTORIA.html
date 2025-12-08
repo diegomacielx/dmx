@@ -11,8 +11,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         :root {
             --color-primary: #0A0A0A; /* Preto Profundo */
-            --color-secondary: #ff0000; /* Vermelho Vibrante */
-            --color-accent: #dc2626; /* Vermelho para destaque */
+            --color-secondary: #059669; /* Verde Esmeralda Vibrante */
+            --color-accent: #10b981; /* Verde para destaque */
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -30,27 +30,33 @@
             align-items: center;
             text-align: center;
         }
-        /* Estilo para garantir que o contêiner do logo tenha um tamanho definido */
         .logo-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Removendo margin-bottom para aumentar a separação visual */
-            /* margin-bottom: 1rem; */ 
         }
         .logo-image {
-            /* Estilo para a imagem da logo: tamanho aumentado e borda removida */
             height: 120px;
             width: 120px;
             border-radius: 9999px;
             margin-bottom: 0.75rem;
             object-fit: cover;
-            /* Efeito de sombra vermelha sutil para destacar no fundo preto */
-            filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5));
+            /* Efeito de sombra verde sutil para destacar no fundo preto */
+            filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.5));
+        }
+        /* Estilo para a aba ativa */
+        .tab-active {
+            border-color: var(--color-secondary);
+            color: var(--color-secondary);
+            background-color: #262626; /* Fundo escuro sutil para aba ativa */
+        }
+        .tab-inactive {
+            border-color: #3f3f46; /* cinza escuro */
+            color: #d4d4d4; /* cinza claro */
         }
     </style>
 </head>
-<body class="text-white"> <!-- Cor padrão do texto na página inteira (fundo preto) -->
+<body class="text-white">
 
     <!-- Seção do Cabeçalho e Herói -->
     <header class="bg-black text-white shadow-lg">
@@ -58,16 +64,11 @@
             
             <!-- Logo e Nome da Marca -->
             <div class="logo-container">
-                <!-- LOGO INTEGRADA -->
                 <img src="https://i.imgur.com/rLLYQ3Z.png" alt="Logo DMX Performance & Fit" class="logo-image mx-auto">
-                
-                <!-- Título com tamanho reduzido e COR BRANCA (ALTERADO) -->
                 <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white">
                     DMX PERFORMANCE & FIT
                 </h1>
             </div>
-
-            <!-- A frase "Seu sucesso começa com um plano." foi removida daqui -->
             
         </div>
     </header>
@@ -75,43 +76,213 @@
     <!-- Seção Principal de Planos -->
     <main class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         
-        <!-- Frase de impacto movida para aqui, logo acima dos planos -->
+        <!-- Frase de impacto -->
         <div class="text-center mb-10">
-             <p class="text-2xl sm:text-3xl font-bold text-red-500">
+             <p class="text-2xl sm:text-3xl font-bold text-emerald-500">
                 Seu sucesso começa com um plano.
             </p>
         </div>
         
-        <!-- Container de Cards (Grid Responsivo) -->
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <!-- Navegação por Abas (Tabs) -->
+        <nav class="flex justify-center border-b border-gray-700 mb-12">
+            <!-- Botão Treino e Dieta (Ativo por padrão) -->
+            <button id="tab-completo" 
+                    class="py-3 px-6 text-lg font-semibold border-b-4 tab-active transition duration-300"
+                    onclick="switchTab('completo')">
+                Treino e Dieta
+            </button>
+            
+            <!-- Botão Treino (Inativo por padrão) -->
+            <button id="tab-treino" 
+                    class="py-3 px-6 text-lg font-semibold border-b-4 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white transition duration-300"
+                    onclick="switchTab('treino')">
+                Somente Treino
+            </button>
+        </nav>
 
-            <!-- PLANOS TRIMESTRAL TREINO (R$540) -->
-            <div class="bg-card rounded-xl p-6 flex flex-col transition duration-300 hover:scale-[1.03] hover:shadow-xl">
+
+        <!-- CONTEÚDO DOS PLANOS: TREINO E DIETA (Visível por padrão) -->
+        <div id="content-completo" class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            
+            <!-- PLANO TRIMESTRAL TREINO E DIETA (R$780) - POPULAR -->
+            <div class="bg-card rounded-xl p-6 flex flex-col border-2 border-emerald-500 transition duration-300 hover:scale-[1.03] hover:shadow-xl">
                 <div class="mb-4 flex-grow">
-                    <!-- Título superior removido -->
-                    <h3 class="text-2xl font-bold mb-4 text-gray-900">PLANO TRIMESTRAL TREINO - DMX</h3>
+                    <!-- Destaque para o plano mais popular -->
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-500">MAIS POPULAR</span> 
+                    <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO TRIMESTRAL TREINO E DIETA - DMX</h3>
                     <!-- Negrito total e ajuste de margem -->
-                    <p class="text-lg text-gray-600 mb-1 font-bold">3 meses por apenas:</p>
-                    <p class="text-4xl font-extrabold text-gray-900">R$540</p>
-                    <!-- NOVO: Valor Mensal (R$540 / 3 = R$180) -->
-                    <p class="text-lg font-semibold text-gray-500 mt-1 mb-2">ou R$180/mês</p>
-                    <!-- Linha de economia removida -->
+                    <p class="text-lg text-emerald-700 mb-1 font-bold">3 meses por apenas:</p>
+                    <p class="text-4xl font-extrabold text-emerald-700">R$780</p>
+                    <!-- NOVO: Valor Mensal (R$780 / 3 = R$260) -->
+                    <p class="text-lg font-semibold text-emerald-500 mt-1 mb-2">ou R$260/mês</p>
                 </div>
                 <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Protocolo de treino e cardio por aplicativo
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Protocolo de treino, cardio e dieta por aplicativo
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Acompanhamento diário (segunda a sábado)
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Atualização do protocolo a cada&nbsp;<strong class="font-bold text-emerald-500">8 semanas</strong>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Guia de medidas para acompanhamento
+                    </li>
+                </ul>
+                <a href="https://www.asaas.com/c/5akfsf1xwrdjh1bc" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300">
+                    CONTRATAR AGORA
+                </a>
+            </div>
+
+            <!-- PLANOS QUADRIMESTRAL TREINO E DIETA (R$1000) -->
+            <div class="bg-card rounded-xl p-6 flex flex-col border-2 border-emerald-500 transition duration-300 hover:scale-[1.03] hover:shadow-xl">
+                <div class="mb-4 flex-grow">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-500">FOCO TOTAL</span>
+                    <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO QUADRIMESTRAL TREINO E DIETA - DMX</h3>
+                    <!-- Negrito total e ajuste de margem -->
+                    <p class="text-lg text-emerald-700 mb-1 font-bold">4 meses por apenas:</p>
+                    <p class="text-4xl font-extrabold text-emerald-700">R$1000</p>
+                    <!-- NOVO: Valor Mensal (R$1000 / 4 = R$250) -->
+                    <p class="text-lg font-semibold text-emerald-500 mt-1 mb-2">ou R$250/mês</p>
+                </div>
+                <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Protocolo de treino, cardio e dieta por aplicativo
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Acompanhamento diário (segunda a sábado)
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Atualização do protocolo a cada&nbsp;<strong class="font-bold text-emerald-500">8 semanas</strong>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Guia de medidas para acompanhamento
+                    </li>
+                </ul>
+                <a href="https://www.asaas.com/c/yq1qqvhr9ja3j5be" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300">
+                    CONTRATAR AGORA
+                </a>
+            </div>
+
+            <!-- PLANOS SEMESTRAL TREINO E DIETA (R$1380) -->
+            <div class="bg-card rounded-xl p-6 flex flex-col border-2 border-emerald-500 transition duration-300 hover:scale-[1.03] hover:shadow-xl">
+                <div class="mb-4 flex-grow">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-500">RESULTADO PERMANENTE</span>
+                    <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO SEMESTRAL TREINO E DIETA - DMX</h3>
+                    <!-- Negrito total e ajuste de margem -->
+                    <p class="text-lg text-emerald-700 mb-1 font-bold">6 meses por apenas:</p>
+                    <p class="text-4xl font-extrabold text-emerald-700">R$1380</p>
+                    <!-- NOVO: Valor Mensal (R$1380 / 6 = R$230) -->
+                    <p class="text-lg font-semibold text-emerald-500 mt-1 mb-2">ou R$230/mês</p>
+                </div>
+                <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Protocolo de treino, cardio e dieta por aplicativo
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Acompanhamento diário (segunda a sábado)
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Atualização do protocolo a cada&nbsp;<strong class="font-bold text-emerald-500">8 semanas</strong>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Super página de cardios personalizada
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Guia de medidas para acompanhamento
+                    </li>
+                </ul>
+                <a href="https://www.asaas.com/c/4v58jkcmame8lhs1" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300">
+                    CONTRATAR AGORA
+                </a>
+            </div>
+
+            <!-- PLANOS ANUAL TREINO E DIETA (R$2400) - VIP -->
+            <div class="bg-card rounded-xl p-6 flex flex-col border-2 border-emerald-500 transition duration-300 hover:scale-[1.03] hover:shadow-xl">
+                <div class="mb-4 flex-grow">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-500">DMX | PLANO VIP</span>
+                    <!-- Negrito total e ajuste de margem -->
+                    <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO ANUAL TREINO E DIETA - DMX</h3>
+                    <p class="text-lg text-emerald-700 mb-1 font-bold">12 meses por apenas:</p>
+                    <p class="text-4xl font-extrabold text-emerald-700">R$2400</p>
+                    <!-- NOVO: Valor Mensal (R$2400 / 12 = R$200) -->
+                    <p class="text-lg font-semibold text-emerald-500 mt-1 mb-2">ou R$200/mês</p>
+                </div>
+                <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Protocolo de treino, cardio e dieta por aplicativo
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Acompanhamento diário (segunda a sábado)
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Atualização do protocolo a cada&nbsp;<strong class="font-bold text-emerald-500">8 semanas</strong>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <strong class="text-emerald-500">4 calls anuais (consultoria direta)</strong>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Super página de cardios personalizada
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Guia de medidas para acompanhamento
+                    </li>
+                </ul>
+                <a href="https://www.asaas.com/c/4tvzdn3858977mee" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300">
+                    CONTRATAR AGORA
+                </a>
+            </div>
+
+        </div>
+
+        <!-- CONTEÚDO DOS PLANOS: SOMENTE TREINO (Oculto por padrão) -->
+        <div id="content-treino" class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 hidden">
+            
+            <!-- PLANOS TRIMESTRAL TREINO (R$540) -->
+            <div class="bg-card rounded-xl p-6 flex flex-col transition duration-300 hover:scale-[1.03] hover:shadow-xl">
+                <div class="mb-4 flex-grow">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-900">PLANO TRIMESTRAL TREINO - DMX</h3>
+                    <!-- Negrito total e ajuste de margem -->
+                    <p class="text-lg text-emerald-700 mb-1 font-bold">3 meses por apenas:</p>
+                    <p class="text-4xl font-extrabold text-emerald-700">R$540</p>
+                    <!-- NOVO: Valor Mensal (R$540 / 3 = R$180) -->
+                    <p class="text-lg font-semibold text-emerald-500 mt-1 mb-2">ou R$180/mês</p>
+                </div>
+                <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Protocolo de treino e cardio por aplicativo
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Acompanhamento diário (segunda a sábado)
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Atualização do protocolo a cada&nbsp;<strong class="font-bold">8 semanas</strong>
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Guia de medidas para acompanhamento
                     </li>
                     <li class="flex items-center text-gray-400">
@@ -119,43 +290,7 @@
                         Acompanhamento nutricional
                     </li>
                 </ul>
-                <a href="https://www.asaas.com/c/ufojky9uc7e566lp" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-red-500">
-                    CONTRATAR AGORA
-                </a>
-            </div>
-
-            <!-- PLANOS TRIMESTRAL TREINO E DIETA (R$780) -->
-            <div class="bg-card rounded-xl p-6 flex flex-col border-2 border-red-500 transition duration-300 hover:scale-[1.03] hover:shadow-xl">
-                <div class="mb-4 flex-grow">
-                    <!-- Destaque para o plano mais popular -->
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">MAIS POPULAR</span> 
-                    <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO TRIMESTRAL TREINO E DIETA - DMX</h3>
-                    <!-- Negrito total e ajuste de margem -->
-                    <p class="text-lg text-red-700 mb-1 font-bold">3 meses por apenas:</p>
-                    <p class="text-4xl font-extrabold text-red-700">R$780</p>
-                     <!-- NOVO: Valor Mensal (R$780 / 3 = R$260) -->
-                    <p class="text-lg font-semibold text-red-500 mt-1 mb-2">ou R$260/mês</p>
-                    <!-- Linha de economia removida -->
-                </div>
-                <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Protocolo de treino, cardio e dieta por aplicativo
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Acompanhamento diário (segunda a sábado)
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Atualização do protocolo a cada&nbsp;<strong class="font-bold text-red-500">8 semanas</strong>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Guia de medidas para acompanhamento
-                    </li>
-                </ul>
-                <a href="https://www.asaas.com/c/5akfsf1xwrdjh1bc" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300">
+                <a href="https://www.asaas.com/c/ufojky9uc7e566lp" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-emerald-500">
                     CONTRATAR AGORA
                 </a>
             </div>
@@ -163,30 +298,28 @@
             <!-- PLANOS QUADRIMESTRAL TREINO (R$680) -->
             <div class="bg-card rounded-xl p-6 flex flex-col transition duration-300 hover:scale-[1.03] hover:shadow-xl">
                 <div class="mb-4 flex-grow">
-                    <!-- Título superior removido -->
                     <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO QUADRIMESTRAL TREINO - DMX</h3>
                     <!-- Negrito total e ajuste de margem -->
-                    <p class="text-lg text-gray-600 mb-1 font-bold">4 meses por apenas:</p>
-                    <p class="text-4xl font-extrabold text-gray-900">R$680</p>
+                    <p class="text-lg text-emerald-700 mb-1 font-bold">4 meses por apenas:</p>
+                    <p class="text-4xl font-extrabold text-emerald-700">R$680</p>
                      <!-- NOVO: Valor Mensal (R$680 / 4 = R$170) -->
-                    <p class="text-lg font-semibold text-gray-500 mt-1 mb-2">ou R$170/mês</p>
-                    <!-- Linha de economia removida -->
+                    <p class="text-lg font-semibold text-emerald-500 mt-1 mb-2">ou R$170/mês</p>
                 </div>
                 <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Protocolo de treino e cardio por aplicativo
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Acompanhamento diário (segunda a sábado)
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Atualização do protocolo a cada&nbsp;<strong class="font-bold">8 semanas</strong>
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Guia de medidas para acompanhamento
                     </li>
                     <li class="flex items-center text-gray-400">
@@ -194,42 +327,7 @@
                         Acompanhamento nutricional
                     </li>
                 </ul>
-                <a href="https://www.asaas.com/c/y1qr0fuc64xj3r80" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-red-500">
-                    CONTRATAR AGORA
-                </a>
-            </div>
-
-            <!-- PLANOS QUADRIMESTRAL TREINO E DIETA (R$1000) -->
-            <div class="bg-card rounded-xl p-6 flex flex-col border-2 border-red-500 transition duration-300 hover:scale-[1.03] hover:shadow-xl">
-                <div class="mb-4 flex-grow">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">FOCO TOTAL</span>
-                    <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO QUADRIMESTRAL TREINO E DIETA - DMX</h3>
-                    <!-- Negrito total e ajuste de margem -->
-                    <p class="text-lg text-red-700 mb-1 font-bold">4 meses por apenas:</p>
-                    <p class="text-4xl font-extrabold text-red-700">R$1000</p>
-                    <!-- NOVO: Valor Mensal (R$1000 / 4 = R$250) -->
-                    <p class="text-lg font-semibold text-red-500 mt-1 mb-2">ou R$250/mês</p>
-                    <!-- Linha de economia removida -->
-                </div>
-                <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Protocolo de treino, cardio e dieta por aplicativo
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Acompanhamento diário (segunda a sábado)
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Atualização do protocolo a cada&nbsp;<strong class="font-bold text-red-500">8 semanas</strong>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Guia de medidas para acompanhamento
-                    </li>
-                </ul>
-                <a href="https://www.asaas.com/c/yq1qqvhr9ja3j5be" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300">
+                <a href="https://www.asaas.com/c/y1qr0fuc64xj3r80" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-emerald-500">
                     CONTRATAR AGORA
                 </a>
             </div>
@@ -237,34 +335,32 @@
             <!-- PLANOS SEMESTRAL TREINO (R$960) -->
             <div class="bg-card rounded-xl p-6 flex flex-col transition duration-300 hover:scale-[1.03] hover:shadow-xl">
                 <div class="mb-4 flex-grow">
-                    <!-- Título superior removido -->
                     <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO SEMESTRAL TREINO - DMX</h3>
                     <!-- Negrito total e ajuste de margem -->
-                    <p class="text-lg text-gray-600 mb-1 font-bold">6 meses por apenas:</p>
-                    <p class="text-4xl font-extrabold text-gray-900">R$960</p>
+                    <p class="text-lg text-emerald-700 mb-1 font-bold">6 meses por apenas:</p>
+                    <p class="text-4xl font-extrabold text-emerald-700">R$960</p>
                     <!-- NOVO: Valor Mensal (R$960 / 6 = R$160) -->
-                    <p class="text-lg font-semibold text-gray-500 mt-1 mb-2">ou R$160/mês</p>
-                    <!-- Linha de economia removida -->
+                    <p class="text-lg font-semibold text-emerald-500 mt-1 mb-2">ou R$160/mês</p>
                 </div>
                 <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Protocolo de treino e cardio por aplicativo
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Acompanhamento diário (segunda a sábado)
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Atualização do protocolo a cada&nbsp;<strong class="font-bold">8 semanas</strong>
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Super página de cardios personalizada
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Guia de medidas para acompanhamento
                     </li>
                     <li class="flex items-center text-gray-400">
@@ -272,136 +368,53 @@
                         Acompanhamento nutricional
                     </li>
                 </ul>
-                <a href="https://www.asaas.com/c/clc9fs3sega3qt14" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-red-500">
+                <a href="https://www.asaas.com/c/clc9fs3sega3qt14" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-emerald-500">
                     CONTRATAR AGORA
                 </a>
             </div>
 
-            <!-- PLANOS SEMESTRAL TREINO E DIETA (R$1380) -->
-            <div class="bg-card rounded-xl p-6 flex flex-col border-2 border-red-500 transition duration-300 hover:scale-[1.03] hover:shadow-xl">
-                <div class="mb-4 flex-grow">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">RESULTADO PERMANENTE</span>
-                    <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO SEMESTRAL TREINO E DIETA - DMX</h3>
-                    <!-- Negrito total e ajuste de margem -->
-                    <p class="text-lg text-red-700 mb-1 font-bold">6 meses por apenas:</p>
-                    <p class="text-4xl font-extrabold text-red-700">R$1380</p>
-                    <!-- NOVO: Valor Mensal (R$1380 / 6 = R$230) -->
-                    <p class="text-lg font-semibold text-red-500 mt-1 mb-2">ou R$230/mês</p>
-                    <!-- Linha de economia removida -->
-                </div>
-                <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Protocolo de treino, cardio e dieta por aplicativo
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Acompanhamento diário (segunda a sábado)
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Atualização do protocolo a cada&nbsp;<strong class="font-bold text-red-500">8 semanas</strong>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Super página de cardios personalizada
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Guia de medidas para acompanhamento
-                    </li>
-                </ul>
-                <a href="https://www.asaas.com/c/4v58jkcmame8lhs1" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300">
-                    CONTRATAR AGORA
-                </a>
-            </div>
-
-            <!-- PLANOS ANUAL TREINO (R$1800) -->
+            <!-- PLANOS ANUAL TREINO (R$1800) - VIP -->
             <div class="bg-card rounded-xl p-6 flex flex-col transition duration-300 hover:scale-[1.03] hover:shadow-xl">
                 <div class="mb-4 flex-grow">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">DMX | PLANO VIP</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-500">DMX | PLANO VIP</span>
                     <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO ANUAL TREINO - DMX</h3>
                     <!-- Negrito total e ajuste de margem -->
-                    <p class="text-lg text-gray-600 mb-1 font-bold">12 meses por apenas:</p>
-                    <p class="text-4xl font-extrabold text-gray-900">R$1800</p>
+                    <p class="text-lg text-emerald-700 mb-1 font-bold">12 meses por apenas:</p>
+                    <p class="text-4xl font-extrabold text-emerald-700">R$1800</p>
                     <!-- NOVO: Valor Mensal (R$1800 / 12 = R$150) -->
-                    <p class="text-lg font-semibold text-gray-500 mt-1 mb-2">ou R$150/mês</p>
-                    <!-- Linha de economia removida -->
+                    <p class="text-lg font-semibold text-emerald-500 mt-1 mb-2">ou R$150/mês</p>
                 </div>
                 <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Protocolo de treino e cardio por aplicativo
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Acompanhamento diário (segunda a sábado)
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                        Atualização do protocolo a cada&nbsp;<strong class="font-bold">8 semanas</strong>
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Super página de cardios personalizada
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Guia de medidas para acompanhamento
                     </li>
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <strong class="text-red-500">4 calls anuais (consultoria direta)</strong>
+                        <svg class="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <strong class="text-emerald-500">4 calls anuais (consultoria direta)</strong>
                     </li>
                     <li class="flex items-center text-gray-400">
                          <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         Acompanhamento nutricional
                     </li>
                 </ul>
-                <a href="https://www.asaas.com/c/kq6gm8spwieszi0j" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-red-500">
-                    CONTRATAR AGORA
-                </a>
-            </div>
-
-            <!-- PLANOS ANUAL TREINO E DIETA (R$2400) -->
-            <div class="bg-card rounded-xl p-6 flex flex-col border-2 border-red-500 transition duration-300 hover:scale-[1.03] hover:shadow-xl">
-                <div class="mb-4 flex-grow">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">DMX | PLANO VIP</span>
-                    <!-- Negrito total e ajuste de margem -->
-                    <h3 class="text-2xl font-bold mt-1 mb-4 text-gray-900">PLANO ANUAL TREINO E DIETA - DMX</h3>
-                    <p class="text-lg text-red-700 mb-1 font-bold">12 meses por apenas:</p>
-                    <p class="text-4xl font-extrabold text-red-700">R$2400</p>
-                    <!-- NOVO: Valor Mensal (R$2400 / 12 = R$200) -->
-                    <p class="text-lg font-semibold text-red-500 mt-1 mb-2">ou R$200/mês</p>
-                    <!-- Linha de economia removida -->
-                </div>
-                <ul class="flex-grow space-y-3 text-sm text-gray-700 mb-6">
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Protocolo de treino, cardio e dieta por aplicativo
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Acompanhamento diário (segunda a sábado)
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Atualização do protocolo a cada&nbsp;<strong class="font-bold text-red-500">8 semanas</strong>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <strong class="text-red-500">4 calls anuais (consultoria direta)</strong>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Super página de cardios personalizada
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Guia de medidas para acompanhamento
-                    </li>
-                </ul>
-                <a href="https://www.asaas.com/c/4tvzdn3858977mee" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300">
+                <a href="https://www.asaas.com/c/kq6gm8spwieszi0j" target="_blank" class="cta-button mt-auto w-full py-3 px-4 rounded-lg text-white font-semibold bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-emerald-500">
                     CONTRATAR AGORA
                 </a>
             </div>
@@ -416,12 +429,51 @@
             <h3 class="text-xl font-semibold mb-4">Pronto para começar sua transformação?</h3>
             <p class="text-gray-400 mb-6">Clique no plano desejado ou fale conosco para mais detalhes!</p>
             <!-- BOTÃO AGORA APONTA PARA O PLANO TRIMESTRAL COMPLETO -->
-            <a href="https://www.asaas.com/c/5akfsf1xwrdjh1bc" target="_blank" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 shadow-md transition">
+            <a href="https://www.asaas.com/c/5akfsf1xwrdjh1bc" target="_blank" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition">
                 Contratar plano trimestral completo (mais popular)
             </a>
             <p class="mt-8 text-sm text-gray-500">© DMX PERFORMANCE & FIT. Todos os direitos reservados.</p>
         </div>
     </footer>
 
+    <!-- Script JavaScript para funcionalidade de Abas -->
+    <script>
+        function switchTab(activeTab) {
+            const tabs = {
+                'treino': { 
+                    button: document.getElementById('tab-treino'), 
+                    content: document.getElementById('content-treino') 
+                },
+                'completo': { 
+                    button: document.getElementById('tab-completo'), 
+                    content: document.getElementById('content-completo') 
+                }
+            };
+
+            for (const key in tabs) {
+                const is_active = (key === activeTab);
+                
+                // Toggle Content Visibility
+                tabs[key].content.classList.toggle('hidden', !is_active);
+
+                // Toggle Button Styling
+                if (is_active) {
+                    // Aba ativa: Verde
+                    tabs[key].button.classList.add('tab-active', 'border-emerald-500');
+                    tabs[key].button.classList.remove('tab-inactive', 'border-gray-700', 'text-gray-400', 'hover:border-gray-500', 'hover:text-white');
+                } else {
+                    // Aba inativa: Cinza
+                    tabs[key].button.classList.remove('tab-active', 'border-emerald-500');
+                    tabs[key].button.classList.add('tab-inactive', 'border-gray-700', 'text-gray-400', 'hover:border-gray-500', 'hover:text-white');
+                }
+            }
+        }
+        
+        // Garante que o estado inicial (Treino e Dieta) está correto ao carregar a página
+        window.onload = () => {
+             // O estado inicial já foi definido no HTML e CSS, mas o switchTab garante a consistência
+             switchTab('completo'); 
+        };
+    </script>
 </body>
 </html>
