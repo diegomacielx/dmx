@@ -375,7 +375,7 @@
                         <div className="flex items-center gap-4 self-start lg:self-center">
                             <img src={window.CUSTOM_LOGO_URL} className="h-12 w-12 sm:h-16 sm:w-16 object-contain" alt="DMX" />
                             <div className="flex flex-col">
-                                <h1 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter leading-none">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
+                                <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
                             </div>
                         </div>
 
@@ -415,9 +415,9 @@
                         ) : (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
                                 {filteredExercises.map((ex, index) => {
-                                    // Determina a imagem final baseada no link do YouTube
+                                    // Puxa a capa em QUALIDADE MÁXIMA (maxresdefault)
                                     const ytId = getYouTubeId(ex.youtubeUrl);
-                                    const finalImage = ex.thumbnail || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400");
+                                    const finalImage = ex.thumbnail || (ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400");
 
                                     return (
                                         <div key={ex.firestoreId} className="group relative bg-zinc-950 rounded-[2.5rem] border border-white/5 overflow-hidden flex flex-col transition-all hover:border-red-600/50 hover:-translate-y-2 animate-fade-in" style={{ animationDelay: `${index * 30}ms` }}>
@@ -426,7 +426,12 @@
                                                     src={finalImage} 
                                                     className="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110" 
                                                     onError={(e) => { 
-                                                        e.target.src = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400";
+                                                        // Se falhar o 4K (maxresdefault), tenta a qualidade padrão antes de dar erro definitivo
+                                                        if (ytId && e.target.src.includes('maxresdefault.jpg')) {
+                                                            e.target.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                                                        } else {
+                                                            e.target.src = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400";
+                                                        }
                                                     }}
                                                     alt={`Capa do exercício ${ex.name}`}
                                                 />
