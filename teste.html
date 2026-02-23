@@ -156,6 +156,13 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
+        // Função universal para garantir que salva e lê na mesma pasta, em qualquer ambiente.
+        const getDbPath = () => {
+            return typeof __app_id !== 'undefined' 
+                ? ['artifacts', window.app_id || 'dmx-exercicios-cloud', 'public', 'data', 'exercises'] 
+                : ['exercises'];
+        };
+
         const Icon = ({ name, className = "w-5 h-5" }) => {
             const icons = {
                 search: <path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM21 21l-4.35-4.35" />,
@@ -215,7 +222,10 @@
                         try {
                             if (window.initial_token) await window.fb.signInWithCustomToken(window.fb.auth, window.initial_token);
                             else await window.fb.signInAnonymously(window.fb.auth);
-                        } catch (e) { console.error("Auth error:", e); }
+                        } catch (e) { 
+                            console.error("Auth error:", e);
+                            setToastMessage("Erro de Conexão (Login)");
+                        }
                     };
                     performAuth();
                     const unsubscribe = window.fb.onAuthStateChanged(window.fb.auth, (u) => { if (u) setUser(u); });
@@ -223,32 +233,44 @@
                 }
             }, []);
 
+            // Leitura dos dados 100% blindada
             useEffect(() => {
                 if (!user || !window.fb || !window.fb.isValid) return;
-                const path = typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises'];
+                const path = getDbPath();
                 const collectionRef = window.fb.collection(window.fb.db, ...path);
+                
                 return window.fb.onSnapshot(collectionRef, (snap) => {
                     const data = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
-                    data.sort((a, b) => (a.id || '').localeCompare(b.id || '', undefined, {numeric: true}));
+                    // Ordenação imune a itens sem ID
+                    data.sort((a, b) => (String(a.id || '')).localeCompare(String(b.id || ''), undefined, {numeric: true}));
                     setExercises(data);
                     setLoading(false);
-                }, (err) => { console.error("Firestore error:", err); setLoading(false); });
+                }, (err) => { 
+                    console.error("Firestore error:", err);
+                    setToastMessage("Erro no Firebase: Sem permissão de leitura.");
+                    setLoading(false); 
+                });
             }, [user]);
 
             const scroll = (dir) => {
                 if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === 'left' ? -250 : 250, behavior: 'smooth' });
             };
 
+            // Filtro de busca blindado contra erros e dados incompletos
             const filteredExercises = useMemo(() => {
                 return exercises.filter(ex => {
                     const s = searchTerm.toLowerCase();
-                    const matchesSearch = (ex.id?.toLowerCase().includes(s)) || (ex.name?.toLowerCase().includes(s)) || 
-                                          (Array.isArray(ex.keywords) && ex.keywords.some(k => k.toLowerCase().includes(s))) ||
-                                          (Array.isArray(ex.muscleGroups) && ex.muscleGroups.some(m => m.toLowerCase().includes(s)));
+                    const safeId = ex.id ? String(ex.id).toLowerCase() : '';
+                    const safeName = ex.name ? String(ex.name).toLowerCase() : '';
+                    
+                    const matchesSearch = safeId.includes(s) || safeName.includes(s) || 
+                                          (Array.isArray(ex.keywords) && ex.keywords.some(k => k && String(k).toLowerCase().includes(s))) ||
+                                          (Array.isArray(ex.muscleGroups) && ex.muscleGroups.some(m => m && String(m).toLowerCase().includes(s)));
                     return (activeCategory === 'Todos' || ex.category === activeCategory) && matchesSearch;
                 });
             }, [searchTerm, activeCategory, exercises]);
 
+            // Salvamento c/ Tratamento Rigoroso de Erros
             const handleSave = async (e) => {
                 e.preventDefault();
                 if (!user) return;
@@ -256,13 +278,20 @@
                     const muscleArray = typeof form.muscleGroups === 'string' ? form.muscleGroups.split(',').map(m => m.trim()).filter(m => m !== "") : form.muscleGroups;
                     const keywordArray = typeof form.keywords === 'string' ? form.keywords.split(',').map(k => k.trim()).filter(k => k !== "") : form.keywords;
                     const data = { ...form, muscleGroups: muscleArray, keywords: keywordArray, updatedAt: new Date().toISOString() };
-                    const path = typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises'];
-                    if (editingId) await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, editingId), data);
-                    else await window.fb.addDoc(window.fb.collection(window.fb.db, ...path), { ...data, createdAt: new Date().toISOString() });
+                    const path = getDbPath();
+                    
+                    if (editingId) {
+                        await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, editingId), data);
+                    } else {
+                        await window.fb.addDoc(window.fb.collection(window.fb.db, ...path), { ...data, createdAt: new Date().toISOString() });
+                    }
                     
                     setShowAdminPanel(false); setEditingId(null); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' });
-                    showToast("Dados salvos com sucesso!");
-                } catch (e) { alert("Erro ao salvar."); }
+                    showToast("Dados salvos no Firebase!");
+                } catch (e) { 
+                    console.error("Save error:", e);
+                    alert("Erro ao gravar no Firebase! O servidor negou. Verifique se as Regras de Segurança estão no Modo de Teste.");
+                }
             };
 
             const handleBatchImport = async () => {
@@ -273,12 +302,11 @@
                     if (!Array.isArray(dataArray)) throw new Error("JSON deve ser um Array de objetos");
 
                     const batch = window.fb.writeBatch(window.fb.db);
-                    const path = typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises'];
+                    const path = getDbPath();
                     const collRef = window.fb.collection(window.fb.db, ...path);
                     
                     dataArray.forEach(item => {
                         const docRef = window.fb.doc(collRef);
-                        // Processamento seguro para Arrays
                         const muscleArray = item.muscleGroups ? (typeof item.muscleGroups === 'string' ? item.muscleGroups.split(',').map(m => m.trim()).filter(m => m !== "") : (Array.isArray(item.muscleGroups) ? item.muscleGroups : [])) : [];
                         const keywordArray = item.keywords ? (typeof item.keywords === 'string' ? item.keywords.split(',').map(k => k.trim()).filter(k => k !== "") : (Array.isArray(item.keywords) ? item.keywords : [])) : [];
 
@@ -295,10 +323,10 @@
                     setShowAdminPanel(false);
                     setBatchInput('');
                     setAdminTab('single');
-                    showToast(`Sincronizado lote de ${dataArray.length} exercícios!`);
+                    showToast(`Lote de ${dataArray.length} exercícios salvo!`);
                 } catch (e) { 
-                    console.error(e);
-                    alert("Erro no JSON: Verifique a formatação do seu lote."); 
+                    console.error("Batch error:", e);
+                    alert("Erro no JSON ou Permissão negada pelo servidor."); 
                 } finally { 
                     setSyncing(false); 
                 }
@@ -416,7 +444,7 @@
                                                         setAdminTab('single');
                                                         setShowAdminPanel(true); 
                                                     }} className="p-3 bg-white text-black rounded-2xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Icon name="pencil" className="w-5 h-5" /></button>
-                                                    <button onClick={async () => { if(confirm("Excluir exercício?")) await window.fb.deleteDoc(window.fb.doc(window.fb.db, ...(typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises']), ex.firestoreId)) }} className="p-3 bg-zinc-900 text-white rounded-2xl shadow-xl hover:bg-red-600 transition-all"><Icon name="trash" className="w-5 h-5" /></button>
+                                                    <button onClick={async () => { if(confirm("Excluir exercício?")) { const path = getDbPath(); await window.fb.deleteDoc(window.fb.doc(window.fb.db, ...path, ex.firestoreId)); } }} className="p-3 bg-zinc-900 text-white rounded-2xl shadow-xl hover:bg-red-600 transition-all"><Icon name="trash" className="w-5 h-5" /></button>
                                                 </div>
                                             )}
                                         </div>
