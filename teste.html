@@ -1,363 +1,492 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { 
-  Search, Youtube, Copy, Dumbbell, CheckCircle2, 
-  Plus, X, Trash2, Loader2, Save, Database, 
-  Zap, Edit2, Download, FileJson 
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca DMX - Oficial</title>
+    
+    <!-- Bibliotecas Essenciais -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-// Configurações do Firebase
-const firebaseConfig = JSON.parse(__firebase_config);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'dmx-exercicios-cloud';
-const CUSTOM_LOGO_URL = "https://i.imgur.com/rLLYQ3Z.png"; 
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const App = () => {
-  const [user, setUser] = useState(null);
-  const [exercises, setExercises] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Todos');
-  const [copiedId, setCopiedId] = useState(null);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [adminTab, setAdminTab] = useState('single');
-  const [batchInput, setBatchInput] = useState('');
-  const [isAdmin, setIsAdmin] = useState(true);
-  const [editingId, setEditingId] = useState(null);
-
-  const [form, setForm] = useState({
-    id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: ''
-  });
-
-  const categories = [
-    'Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 
-    'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core'
-  ];
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('admin') === 'dmx2026') setIsAdmin(true);
-  }, []);
-
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body { 
+            background-color: #000000; 
+            color: #ffffff; 
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
         }
-      } catch (error) { console.error("Erro auth:", error); }
-    };
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, setUser);
-    return () => unsubscribe();
-  }, []);
 
-  useEffect(() => {
-    if (!user) return;
-    const ref = collection(db, 'artifacts', appId, 'public', 'data', 'exercises');
-    return onSnapshot(ref, (snap) => {
-      setExercises(snap.docs.map(d => ({ firestoreId: d.id, ...d.data() })));
-      setLoading(false);
-    }, (err) => {
-      console.error("Erro Firestore:", err);
-      setLoading(false);
-    });
-  }, [user]);
-
-  const filteredExercises = useMemo(() => {
-    return exercises.filter(ex => {
-      const s = searchTerm.toLowerCase();
-      const matchesSearch = 
-        ex.id?.toLowerCase().includes(s) || 
-        ex.name?.toLowerCase().includes(s) ||
-        (Array.isArray(ex.keywords) && ex.keywords.some(k => k.toLowerCase().includes(s)));
-      const matchesCat = activeCategory === 'Todos' || ex.category === activeCategory;
-      return matchesSearch && matchesCat;
-    });
-  }, [searchTerm, activeCategory, exercises]);
-
-  const handleOpenCreate = () => {
-    setEditingId(null);
-    setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' });
-    setAdminTab('single');
-    setShowAdminPanel(true);
-  };
-
-  const handleOpenEdit = (ex) => {
-    setEditingId(ex.firestoreId);
-    setForm({
-      id: ex.id || '',
-      name: ex.name || '',
-      category: ex.category || 'Quadríceps',
-      muscleGroups: Array.isArray(ex.muscleGroups) ? ex.muscleGroups.join(', ') : '',
-      youtubeUrl: ex.youtubeUrl || '',
-      thumbnail: ex.thumbnail || '',
-      keywords: Array.isArray(ex.keywords) ? ex.keywords.join(', ') : ''
-    });
-    setAdminTab('single');
-    setShowAdminPanel(true);
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    try {
-      const dataToSave = {
-        ...form,
-        muscleGroups: form.muscleGroups.split(',').map(m => m.trim()).filter(m => m !== ""),
-        keywords: form.keywords.split(',').map(k => k.trim()).filter(k => k !== ""),
-        updatedAt: new Date().toISOString()
-      };
-
-      if (editingId) {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'exercises', editingId);
-        await updateDoc(docRef, dataToSave);
-      } else {
-        const ref = collection(db, 'artifacts', appId, 'public', 'data', 'exercises');
-        await addDoc(ref, { ...dataToSave, createdAt: new Date().toISOString() });
-      }
-
-      setShowAdminPanel(false);
-      setEditingId(null);
-    } catch (error) { console.error("Erro ao salvar:", error); }
-  };
-
-  const exportData = () => {
-    const dataStr = JSON.stringify(exercises, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `backup_dmx_${new Date().toISOString().split('T')[0]}.json`;
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-  };
-
-  const handleBatchImport = async () => {
-    if (!batchInput.trim()) return;
-    setSyncing(true);
-    try {
-      const data = JSON.parse(batchInput);
-      const batch = writeBatch(db);
-      const ref = collection(db, 'artifacts', appId, 'public', 'data', 'exercises');
-
-      data.forEach(item => {
-        const docRef = doc(ref);
-        batch.set(docRef, {
-          ...item,
-          muscleGroups: Array.isArray(item.muscleGroups) ? item.muscleGroups : item.muscleGroups?.split(',').map(m => m.trim()) || [],
-          keywords: Array.isArray(item.keywords) ? item.keywords : item.keywords?.split(',').map(k => k.trim()) || [],
-          createdAt: new Date().toISOString()
-        });
-      });
-
-      await batch.commit();
-      setBatchInput('');
-      setShowAdminPanel(false);
-    } catch (error) {
-      alert("Erro de formato no JSON.");
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const copy = (url, id) => {
-    const textField = document.createElement('textarea');
-    textField.innerText = url;
-    document.body.appendChild(textField);
-    textField.select();
-    document.execCommand('copy');
-    textField.remove();
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  return (
-    <div className="min-h-screen bg-[#000000] text-white p-2 sm:p-4 font-sans selection:bg-red-600 selection:text-white">
-      <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-      `}</style>
 
-      {/* Header Compactado */}
-      <header className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4 mb-6 pt-2">
-        <div className="flex items-center gap-3 self-start lg:self-center">
-          <img src={CUSTOM_LOGO_URL} className="h-10 w-10 sm:h-14 sm:w-14 object-contain" alt="DMX Logo" />
-          <div className="flex flex-col">
-            <h1 className="text-xl sm:text-2xl font-black italic uppercase tracking-tighter leading-none">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
-            <span className="text-[8px] font-bold text-gray-500 tracking-[0.3em] uppercase mt-1">Performance Cloud</span>
-          </div>
-        </div>
+        input, select, textarea {
+            background: #111111 !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important;
+            outline: none !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2) !important;
+        }
+        
+        .category-scroll-container {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 10px 15px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
 
-        <div className="flex flex-col sm:flex-row w-full lg:flex-1 lg:max-w-2xl gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-            <input 
-              type="text" 
-              placeholder="Buscar exercício..." 
-              className="w-full pl-10 pr-4 py-3 bg-[#111] border border-white/5 rounded-xl outline-none focus:border-red-600 transition-all text-xs sm:text-sm placeholder:text-gray-600" 
-              value={searchTerm} 
-              onChange={e => setSearchTerm(e.target.value)} 
-            />
-          </div>
+        .category-btn {
+            flex: 0 0 auto !important;
+            white-space: nowrap;
+        }
 
-          {isAdmin && (
-            <button onClick={handleOpenCreate} className="bg-red-600 px-4 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:bg-red-700 transition-all text-[10px] uppercase tracking-widest whitespace-nowrap">
-              <Database className="w-4 h-4" /> GESTÃO
-            </button>
-          )}
-        </div>
-      </header>
+        .nav-arrow {
+            background: rgba(30, 30, 30, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .nav-arrow:hover { background: #dc2626; border-color: #dc2626; }
+        .nav-arrow:active { transform: scale(0.9); }
 
-      {/* Categorias Suaves */}
-      <div className="max-w-7xl mx-auto mb-6">
-        <div className="flex gap-2 overflow-x-auto py-1 no-scrollbar scroll-smooth">
-          {categories.map(cat => (
-            <button 
-              key={cat} 
-              onClick={() => setActiveCategory(cat)} 
-              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap border ${
-                activeCategory === cat 
-                ? 'bg-red-600 border-red-600 text-white shadow-md' 
-                : 'bg-[#0a0a0a] border-white/5 text-gray-400 hover:border-red-600/50 hover:text-white'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
+        /* Estilo do Tooltip Customizado */
+        .tooltip-container {
+            position: relative;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            width: 120px;
+            background-color: #1a1a1a;
+            color: #fff;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 5px;
+            position: absolute;
+            z-index: 50;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
 
-      {/* Grid Principal Adaptativo */}
-      <main className="max-w-7xl mx-auto">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-4" />
-            <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">Carregando Atlas...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-5">
-            {filteredExercises.map((ex, index) => (
-              <div 
-                key={ex.firestoreId} 
-                className="group relative bg-[#0a0a0a] rounded-[1.5rem] sm:rounded-[2.5rem] border border-white/5 overflow-hidden flex flex-col transition-all hover:border-red-600/50 animate-fade-in"
-                style={{ animationDelay: `${index * 30}ms` }}
-              >
-                <div className="aspect-[9/16] bg-zinc-900 relative overflow-hidden">
-                  <img 
-                    src={ex.thumbnail || `https://i.ytimg.com/vi/${ex.youtubeUrl.includes('v=') ? ex.youtubeUrl.split('v=')[1].split('&')[0] : (ex.youtubeUrl.split('/').pop())}/hqdefault.jpg`} 
-                    className="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-all duration-500" 
-                    onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400"; }} 
-                    alt={ex.name}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-transparent to-transparent" />
-                  
-                  <div className="absolute top-3 left-3 sm:top-5 sm:left-5">
-                    <div className="bg-red-600 text-white text-[8px] sm:text-[10px] font-black px-2 py-0.5 rounded sm:rounded-lg uppercase italic border border-white/10 shadow-lg shadow-red-600/20">
-                      #{ex.id}
+        /* Toast Message Animation */
+        .toast-enter { transform: translateY(-100%); opacity: 0; }
+        .toast-active { transform: translateY(0); opacity: 1; transition: all 0.3s ease; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const isPreview = typeof __firebase_config !== 'undefined';
+        const firebaseConfig = isPreview ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyCB6L2IdpXnVhYcFsbpZvhLJAdRMVRJyHM",
+            authDomain: "biblioteca-dmx.firebaseapp.com",
+            projectId: "biblioteca-dmx",
+            storageBucket: "biblioteca-dmx.firebasestorage.app",
+            messagingSenderId: "571660956624",
+            appId: "1:571660956624:web:fc3d6e3fe402be7f70bfd5"
+        };
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dmx-exercicios-cloud';
+        const CUSTOM_LOGO_URL = "https://i.imgur.com/rLLYQ3Z.png";
+
+        let app, auth, db;
+        const isValid = firebaseConfig.apiKey && firebaseConfig.apiKey !== "SUA_API_KEY";
+
+        if (isValid || isPreview) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        }
+
+        window.fb = { 
+            db, auth, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, 
+            writeBatch, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
+            isValid: (isValid || isPreview) 
+        };
+        window.app_id = appId;
+        window.CUSTOM_LOGO_URL = CUSTOM_LOGO_URL;
+        window.initial_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    </script>
+
+    <!-- App Logic -->
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        const Icon = ({ name, className = "w-5 h-5" }) => {
+            const icons = {
+                search: <path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM21 21l-4.35-4.35" />,
+                plus: <path d="M12 5v14M5 12h14" />,
+                pluscircle: <g><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></g>,
+                pencil: <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />,
+                trash: <g><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></g>,
+                youtube: <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 0 0-1.94 2C1 8.14 1 12 1 12s0 3.86.46 5.58a2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.42a2.78 2.78 0 0 0 1.94-2C23 15.86 23 12 23 12s0-3.86-.46-5.58zM9.75 15.02V8.98L15.2 12l-5.45 3.02z" />,
+                copy: <g><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></g>,
+                check: <polyline points="20 6 9 17 4 12" />,
+                x: <g><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></g>,
+                left: <polyline points="15 18 9 12 15 6" />,
+                right: <polyline points="9 18 15 12 9 6" />,
+                loader: <g><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" /></g>,
+                save: <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8" />,
+                circlecheck: <g><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></g>
+            };
+
+            return (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ pointerEvents: 'none' }}>
+                    {icons[name.toLowerCase()] || icons.plus}
+                </svg>
+            );
+        };
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [exercises, setExercises] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [activeCategory, setActiveCategory] = useState('Todos');
+            const [copiedId, setCopiedId] = useState(null);
+            const [toastMessage, setToastMessage] = useState(null);
+            
+            // Estados para Gestão/Admin
+            const [showAdminPanel, setShowAdminPanel] = useState(false);
+            const [isAdmin, setIsAdmin] = useState(true);
+            const [editingId, setEditingId] = useState(null);
+            const [adminTab, setAdminTab] = useState('single'); // 'single' ou 'batch'
+            const [batchInput, setBatchInput] = useState('');
+            const [syncing, setSyncing] = useState(false);
+
+            const [form, setForm] = useState({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' });
+            
+            const scrollRef = useRef(null);
+            const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core'];
+
+            useEffect(() => {
+                if (window.fb && window.fb.isValid) {
+                    const performAuth = async () => {
+                        try {
+                            if (window.initial_token) await window.fb.signInWithCustomToken(window.fb.auth, window.initial_token);
+                            else await window.fb.signInAnonymously(window.fb.auth);
+                        } catch (e) { console.error("Auth error:", e); }
+                    };
+                    performAuth();
+                    const unsubscribe = window.fb.onAuthStateChanged(window.fb.auth, (u) => { if (u) setUser(u); });
+                    return () => unsubscribe();
+                }
+            }, []);
+
+            useEffect(() => {
+                if (!user || !window.fb || !window.fb.isValid) return;
+                const path = typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises'];
+                const collectionRef = window.fb.collection(window.fb.db, ...path);
+                return window.fb.onSnapshot(collectionRef, (snap) => {
+                    const data = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+                    data.sort((a, b) => (a.id || '').localeCompare(b.id || '', undefined, {numeric: true}));
+                    setExercises(data);
+                    setLoading(false);
+                }, (err) => { console.error("Firestore error:", err); setLoading(false); });
+            }, [user]);
+
+            const scroll = (dir) => {
+                if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === 'left' ? -250 : 250, behavior: 'smooth' });
+            };
+
+            const filteredExercises = useMemo(() => {
+                return exercises.filter(ex => {
+                    const s = searchTerm.toLowerCase();
+                    const matchesSearch = (ex.id?.toLowerCase().includes(s)) || (ex.name?.toLowerCase().includes(s)) || 
+                                          (Array.isArray(ex.keywords) && ex.keywords.some(k => k.toLowerCase().includes(s))) ||
+                                          (Array.isArray(ex.muscleGroups) && ex.muscleGroups.some(m => m.toLowerCase().includes(s)));
+                    return (activeCategory === 'Todos' || ex.category === activeCategory) && matchesSearch;
+                });
+            }, [searchTerm, activeCategory, exercises]);
+
+            const handleSave = async (e) => {
+                e.preventDefault();
+                if (!user) return;
+                try {
+                    const muscleArray = typeof form.muscleGroups === 'string' ? form.muscleGroups.split(',').map(m => m.trim()).filter(m => m !== "") : form.muscleGroups;
+                    const keywordArray = typeof form.keywords === 'string' ? form.keywords.split(',').map(k => k.trim()).filter(k => k !== "") : form.keywords;
+                    const data = { ...form, muscleGroups: muscleArray, keywords: keywordArray, updatedAt: new Date().toISOString() };
+                    const path = typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises'];
+                    if (editingId) await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, editingId), data);
+                    else await window.fb.addDoc(window.fb.collection(window.fb.db, ...path), { ...data, createdAt: new Date().toISOString() });
+                    
+                    setShowAdminPanel(false); setEditingId(null); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' });
+                    showToast("Dados salvos com sucesso!");
+                } catch (e) { alert("Erro ao salvar."); }
+            };
+
+            const handleBatchImport = async () => {
+                if (!batchInput.trim()) return;
+                setSyncing(true);
+                try {
+                    const dataArray = JSON.parse(batchInput);
+                    if (!Array.isArray(dataArray)) throw new Error("JSON deve ser um Array de objetos");
+
+                    const batch = window.fb.writeBatch(window.fb.db);
+                    const path = typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises'];
+                    const collRef = window.fb.collection(window.fb.db, ...path);
+                    
+                    dataArray.forEach(item => {
+                        const docRef = window.fb.doc(collRef);
+                        // Processamento seguro para Arrays
+                        const muscleArray = item.muscleGroups ? (typeof item.muscleGroups === 'string' ? item.muscleGroups.split(',').map(m => m.trim()).filter(m => m !== "") : (Array.isArray(item.muscleGroups) ? item.muscleGroups : [])) : [];
+                        const keywordArray = item.keywords ? (typeof item.keywords === 'string' ? item.keywords.split(',').map(k => k.trim()).filter(k => k !== "") : (Array.isArray(item.keywords) ? item.keywords : [])) : [];
+
+                        batch.set(docRef, { 
+                            ...item, 
+                            muscleGroups: muscleArray, 
+                            keywords: keywordArray, 
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        });
+                    });
+
+                    await batch.commit();
+                    setShowAdminPanel(false);
+                    setBatchInput('');
+                    setAdminTab('single');
+                    showToast(`Sincronizado lote de ${dataArray.length} exercícios!`);
+                } catch (e) { 
+                    console.error(e);
+                    alert("Erro no JSON: Verifique a formatação do seu lote."); 
+                } finally { 
+                    setSyncing(false); 
+                }
+            };
+
+            const copyLink = (url, firestoreId) => {
+                try {
+                    const el = document.createElement('textarea');
+                    el.value = url;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    setCopiedId(firestoreId);
+                    showToast("URL copiada com sucesso!");
+                    setTimeout(() => setCopiedId(null), 2000);
+                } catch (e) { console.error("Copy error:", e); }
+            };
+
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(null), 3000);
+            };
+
+            if (!window.fb || !window.fb.isValid) return <div className="min-h-screen bg-black flex items-center justify-center p-10 text-center text-red-600 font-bold">CONFIGURAÇÃO DO FIREBASE PENDENTE</div>;
+
+            return (
+                <div className="min-h-screen p-3 sm:p-6 flex flex-col">
+                    {/* Toast Notification */}
+                    {toastMessage && (
+                        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[200] bg-red-600 text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl animate-fade-in flex items-center gap-2">
+                            <Icon name="circlecheck" className="w-4 h-4" /> {toastMessage}
+                        </div>
+                    )}
+
+                    {/* Header Principal */}
+                    <header className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-6 mb-10 pt-2">
+                        <div className="flex items-center gap-4 self-start lg:self-center">
+                            <img src={window.CUSTOM_LOGO_URL} className="h-12 w-12 sm:h-16 sm:w-16 object-contain" alt="DMX" />
+                            <div className="flex flex-col">
+                                <h1 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter leading-none">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row w-full lg:flex-1 lg:max-w-2xl gap-4">
+                            <div className="relative flex-1">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"><Icon name="search" /></span>
+                                <input type="text" placeholder="ID, Exercício ou Músculo..." className="w-full pl-12 pr-4 py-4 rounded-2xl text-sm shadow-xl" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                            </div>
+                            <button onClick={() => { setEditingId(null); setAdminTab('single'); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' }); setShowAdminPanel(true); }} className="bg-red-600 px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 text-xs uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-600/20">
+                                <Icon name="pluscircle" className="w-5 h-5" /> NOVO REGISTRO
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Categorias */}
+                    <div className="max-w-7xl mx-auto w-full mb-10 flex items-center gap-2">
+                        <button className="nav-arrow" onClick={() => scroll('left')}><Icon name="left" className="w-4 h-4" /></button>
+                        <div ref={scrollRef} className="category-scroll-container no-scrollbar">
+                            {categories.map(cat => (
+                                <button key={cat} onClick={() => setActiveCategory(cat)} className={`category-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${activeCategory === cat ? 'bg-red-600 border-red-600 text-white shadow-lg' : 'bg-zinc-900 border-white/5 text-zinc-500 hover:text-white'}`}>
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                        <button className="nav-arrow" onClick={() => scroll('right')}><Icon name="right" className="w-4 h-4" /></button>
                     </div>
-                  </div>
 
-                  <div className="absolute bottom-3 left-3 right-3 sm:bottom-5 sm:left-5 sm:right-5">
-                    <p className="text-[7px] sm:text-[9px] font-black text-red-600 uppercase tracking-widest mb-0.5 italic opacity-80">{ex.category}</p>
-                    <h3 className="font-bold text-[10px] sm:text-sm leading-tight uppercase italic text-white line-clamp-2">{ex.name}</h3>
-                  </div>
+                    {/* Grelha Principal */}
+                    <main className="max-w-7xl mx-auto w-full flex-1">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-40 opacity-30">
+                                <Icon name="loader" className="w-12 h-12 animate-spin text-red-600 mb-4" />
+                                <p className="text-[10px] font-black uppercase tracking-widest mt-2">Conectando ao Banco...</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+                                {filteredExercises.map((ex, index) => (
+                                    <div key={ex.firestoreId} className="group relative bg-zinc-950 rounded-[2.5rem] border border-white/5 overflow-hidden flex flex-col transition-all hover:border-red-600/50 hover:-translate-y-2 animate-fade-in" style={{ animationDelay: `${index * 30}ms` }}>
+                                        <div className="aspect-[9/16] bg-zinc-900 relative overflow-hidden">
+                                            {/* Regra da Capa DUPLA: Tenta o .jpg, se falhar, tenta o .jpeg via evento de erro */}
+                                            <img 
+                                                src={ex.thumbnail || `capas/${ex.id}.jpg`} 
+                                                className="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110" 
+                                                onError={(e) => { 
+                                                    if (e.target.getAttribute('data-tried-jpeg') !== 'true') {
+                                                        e.target.setAttribute('data-tried-jpeg', 'true');
+                                                        e.target.src = `capas/${ex.id}.jpeg`;
+                                                    } else {
+                                                        e.target.src = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400";
+                                                    }
+                                                }}
+                                                alt={`Capa do exercício ${ex.name}`}
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+                                            <div className="absolute top-5 left-5 bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase italic border border-white/10 shadow-lg shadow-red-600/30">#{ex.id}</div>
+                                            
+                                            <div className="absolute bottom-5 left-5 right-5">
+                                                <p className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-1 italic opacity-80">{ex.category}</p>
+                                                <h3 className="font-bold text-sm leading-tight uppercase italic text-white line-clamp-2 mb-3">{ex.name}</h3>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {Array.isArray(ex.muscleGroups) && ex.muscleGroups.map((m, i) => (
+                                                        <span key={i} className="text-[7px] bg-white/10 text-zinc-400 px-2 py-0.5 rounded uppercase font-black border border-white/5">{m}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
 
-                  {isAdmin && (
-                    <div className="absolute top-3 right-3 sm:top-5 sm:right-5 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                      <button onClick={() => handleOpenEdit(ex)} className="p-2 bg-white/10 hover:bg-white text-white hover:text-black rounded-lg backdrop-blur-md transition-all shadow-xl">
-                        <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                      <button onClick={() => {if(confirm("Excluir?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exercises', ex.firestoreId))}} className="p-2 bg-red-600/20 hover:bg-red-600 text-white rounded-lg backdrop-blur-md transition-all shadow-xl">
-                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-2 sm:p-4 grid grid-cols-4 gap-1.5 bg-[#0a0a0a]">
-                  <a href={ex.youtubeUrl} target="_blank" rel="noopener noreferrer" className="col-span-3 bg-white text-black py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl flex items-center justify-center gap-1.5 font-black text-[8px] sm:text-[10px] hover:bg-red-600 hover:text-white transition-all uppercase italic">
-                    <Youtube className="w-3 h-3 sm:w-4 sm:h-4" /> VÍDEO
-                  </a>
-                  <button onClick={() => copy(ex.youtubeUrl, ex.firestoreId)} className={`rounded-xl sm:rounded-2xl flex items-center justify-center border transition-all ${copiedId === ex.firestoreId ? 'bg-green-600 border-green-500 text-white' : 'bg-[#111] border-white/10 text-gray-500 hover:border-red-600'}`}>
-                    {copiedId === ex.firestoreId ? <CheckCircle2 className="w-3 h-3 sm:w-5 sm:h-5" /> : <Copy className="w-3 h-3 sm:w-5 sm:h-5" />}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
+                                            <div className="absolute top-5 right-5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
+                                                <button onClick={() => { 
+                                                    setForm({...ex, muscleGroups: Array.isArray(ex.muscleGroups) ? ex.muscleGroups.join(', ') : '', keywords: Array.isArray(ex.keywords) ? ex.keywords.join(', ') : ''}); 
+                                                    setEditingId(ex.firestoreId); 
+                                                    setAdminTab('single');
+                                                    setShowAdminPanel(true); 
+                                                }} className="p-3 bg-white text-black rounded-2xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Icon name="pencil" className="w-5 h-5" /></button>
+                                                <button onClick={async () => { if(confirm("Excluir exercício?")) await window.fb.deleteDoc(window.fb.doc(window.fb.db, ...(typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises']), ex.firestoreId)) }} className="p-3 bg-zinc-900 text-white rounded-2xl shadow-xl hover:bg-red-600 transition-all"><Icon name="trash" className="w-5 h-5" /></button>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 grid grid-cols-4 gap-2 bg-zinc-950">
+                                            <a href={ex.youtubeUrl} target="_blank" className="col-span-3 bg-white text-black py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-[10px] hover:bg-red-600 hover:text-white transition-all uppercase italic shadow-lg active:scale-95">
+                                                <Icon name="youtube" className="w-4 h-4" /> VÍDEO
+                                            </a>
+                                            <div className="tooltip-container">
+                                                <button onClick={() => copyLink(ex.youtubeUrl, ex.firestoreId)} className={`w-full h-full rounded-2xl flex items-center justify-center border transition-all active:scale-95 ${copiedId === ex.firestoreId ? 'bg-green-600 border-green-500 text-white' : 'bg-zinc-900 border-white/10 text-zinc-500 hover:text-white hover:border-red-600'}`}>
+                                                    <Icon name={copiedId === ex.firestoreId ? "check" : "copy"} className="w-5 h-5" />
+                                                </button>
+                                                <span className="tooltip-text">copiar url do vídeo</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </main>
 
-      {/* Painel Administrativo Adaptável */}
-      {showAdminPanel && isAdmin && (
-        <div className="fixed inset-0 bg-black/98 backdrop-blur-xl z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-          <div className="bg-[#0a0a0a] w-full max-w-2xl rounded-[2rem] sm:rounded-[3.5rem] border border-white/5 p-6 sm:p-10 shadow-3xl relative my-auto">
-            <div className="flex justify-between items-center mb-6 sm:mb-10">
-              <div className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar">
-                <button onClick={() => !editingId && setAdminTab('single')} className={`text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all pb-2 whitespace-nowrap ${adminTab === 'single' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-600'}`}>
-                  {editingId ? 'Editar Dados' : 'Novo Registro'}
-                </button>
-                {!editingId && (
-                  <button onClick={() => setAdminTab('batch')} className={`text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all pb-2 whitespace-nowrap ${adminTab === 'batch' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-600'}`}>Importação JSON</button>
-                )}
-              </div>
-              <button onClick={() => setShowAdminPanel(false)} className="p-2 bg-white/5 hover:bg-red-600 text-white rounded-lg transition-all"><X className="w-4 h-4" /></button>
-            </div>
+                    {/* Modal Administrativo com Abas (Cadastro Único / Importar Lote) */}
+                    {showAdminPanel && (
+                        <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[100] flex items-center justify-center p-4 overflow-y-auto">
+                            <div className="bg-zinc-950 w-full max-w-2xl rounded-[3.5rem] border border-white/5 p-8 sm:p-12 shadow-3xl relative my-auto animate-fade-in">
+                                <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                                    <div className="flex gap-6">
+                                        <button onClick={() => !editingId && setAdminTab('single')} className={`text-xs font-black uppercase tracking-widest pb-3 border-b-2 transition-all ${adminTab === 'single' ? 'text-red-600 border-red-600' : 'text-zinc-600 border-transparent hover:text-white'}`}>
+                                            {editingId ? 'EDITAR REGISTRO' : 'CADASTRO ÚNICO'}
+                                        </button>
+                                        {!editingId && (
+                                            <button onClick={() => setAdminTab('batch')} className={`text-xs font-black uppercase tracking-widest pb-3 border-b-2 transition-all ${adminTab === 'batch' ? 'text-red-600 border-red-600' : 'text-zinc-600 border-transparent hover:text-white'}`}>
+                                                IMPORTAR LOTE
+                                            </button>
+                                        )}
+                                    </div>
+                                    <button onClick={() => {setShowAdminPanel(false); setEditingId(null); setAdminTab('single');}} className="p-3 bg-white/5 hover:bg-red-600 text-white rounded-2xl transition-all -mt-4"><Icon name="x" className="w-5 h-5" /></button>
+                                </div>
 
-            {adminTab === 'single' ? (
-              <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="space-y-1">
-                   <label className="text-[8px] font-black uppercase text-gray-600 ml-2 tracking-widest">ID</label>
-                   <input required className="w-full bg-white/5 p-3 sm:p-4 rounded-xl border border-white/10 outline-none focus:border-red-600 text-xs" value={form.id} onChange={e => setForm({...form, id: e.target.value})} />
+                                {adminTab === 'single' ? (
+                                    <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">ID Único</label><input required placeholder="Ex: 0045" className="w-full p-4 rounded-2xl text-sm" value={form.id} onChange={e => setForm({...form, id: e.target.value})} /></div>
+                                        <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">Nome</label><input required placeholder="Supino Reto" className="w-full p-4 rounded-2xl text-sm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} /></div>
+                                        <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">Categoria Filtro</label><select className="w-full p-4 rounded-2xl text-sm appearance-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>{categories.slice(1).map(c => <option key={c} value={c} className="bg-black">{c}</option>)}</select></div>
+                                        <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">YouTube URL</label><input required placeholder="URL completa" className="w-full p-4 rounded-2xl text-sm" value={form.youtubeUrl} onChange={e => setForm({...form, youtubeUrl: e.target.value})} /></div>
+                                        <div className="sm:col-span-2 space-y-1">
+                                            <label className="text-[9px] font-black uppercase text-red-600 ml-2 tracking-widest">Músculos Trabalhados (Separe por vírgula)</label>
+                                            <input placeholder="Peitoral Maior, Tríceps, Deltoide Anterior" className="w-full p-4 rounded-2xl text-sm border-red-900/30" value={form.muscleGroups} onChange={e => setForm({...form, muscleGroups: e.target.value})} />
+                                        </div>
+                                        <div className="sm:col-span-2 space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">Link da Capa (Opcional, prioridade: pastas locais)</label><input placeholder="Deixe em branco para usar capas/{id}.jpg automaticamente" className="w-full p-4 rounded-2xl text-sm" value={form.thumbnail} onChange={e => setForm({...form, thumbnail: e.target.value})} /></div>
+                                        <div className="sm:col-span-2 space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">Tags / Keywords</label><textarea placeholder="Perna, Quadríceps..." className="w-full p-4 rounded-2xl text-sm min-h-[100px]" value={form.keywords} onChange={e => setForm({...form, keywords: e.target.value})} /></div>
+                                        <button type="submit" className="sm:col-span-2 bg-red-600 py-5 rounded-3xl font-black uppercase tracking-[0.3em] text-xs shadow-2xl shadow-red-600/40 hover:bg-red-700 transition-all flex items-center justify-center gap-2">
+                                            <Icon name="save" className="w-5 h-5" /> SALVAR NO ATLAS
+                                        </button>
+                                    </form>
+                                ) : (
+                                    <div className="flex flex-col gap-6 animate-fade-in">
+                                        <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">
+                                            Cole abaixo o seu Array JSON. O sistema irá converter automaticamente as strings de <b>muscleGroups</b> e <b>keywords</b> em Arrays de busca e enviar para a nuvem via processo em lote (Batch).
+                                        </p>
+                                        <textarea 
+                                            placeholder='[&#10;  {&#10;    "id": "0150",&#10;    "name": "Agachamento Livre",&#10;    "category": "Quadríceps",&#10;    "youtubeUrl": "https://youtube.com/...",&#10;    "muscleGroups": "Quadríceps, Glúteos, Core",&#10;    "keywords": "perna, squat, livre"&#10;  }&#10;]' 
+                                            className="w-full bg-[#050505] p-6 rounded-3xl border border-white/5 min-h-[250px] text-[11px] font-mono text-zinc-300 outline-none focus:border-red-600/30" 
+                                            value={batchInput} 
+                                            onChange={e => setBatchInput(e.target.value)} 
+                                        />
+                                        <button onClick={handleBatchImport} disabled={syncing} className="bg-red-600 py-5 rounded-3xl font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 text-xs shadow-xl shadow-red-600/30 hover:bg-red-700 transition-all disabled:opacity-50">
+                                            {syncing ? <Icon name="loader" className="animate-spin w-5 h-5" /> : <Icon name="save" className="w-5 h-5" />} 
+                                            {syncing ? 'SINCRONIZANDO LOTE...' : 'EXECUTAR IMPORTAÇÃO EM MASSA'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
-                <div className="space-y-1">
-                   <label className="text-[8px] font-black uppercase text-gray-600 ml-2 tracking-widest">Nome</label>
-                   <input required className="w-full bg-white/5 p-3 sm:p-4 rounded-xl border border-white/10 outline-none focus:border-red-600 text-xs" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-                </div>
-                <div className="space-y-1">
-                   <label className="text-[8px] font-black uppercase text-gray-600 ml-2 tracking-widest">Categoria</label>
-                   <select className="w-full bg-white/5 p-3 sm:p-4 rounded-xl border border-white/10 outline-none focus:border-red-600 text-xs appearance-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
-                     {categories.slice(1).map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
-                   </select>
-                </div>
-                <div className="space-y-1">
-                   <label className="text-[8px] font-black uppercase text-gray-600 ml-2 tracking-widest">YouTube</label>
-                   <input required className="w-full bg-white/5 p-3 sm:p-4 rounded-xl border border-white/10 outline-none focus:border-red-600 text-xs" value={form.youtubeUrl} onChange={e => setForm({...form, youtubeUrl: e.target.value})} />
-                </div>
-                <div className="sm:col-span-2 space-y-1">
-                   <label className="text-[8px] font-black uppercase text-gray-600 ml-2 tracking-widest">Keywords (p/ busca)</label>
-                   <textarea className="w-full bg-white/5 p-3 sm:p-4 rounded-xl border border-white/10 outline-none focus:border-red-600 min-h-[60px] text-xs" value={form.keywords} onChange={e => setForm({...form, keywords: e.target.value})} />
-                </div>
-                <button type="submit" className="sm:col-span-2 bg-red-600 py-4 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-red-700 text-[10px] mt-2">
-                  {editingId ? 'SALVAR ALTERAÇÕES' : 'SALVAR NO ATLAS'}
-                </button>
-              </form>
-            ) : (
-              <div className="flex flex-col gap-4">
-                <button onClick={exportData} className="flex items-center justify-center gap-2 text-[10px] font-black text-white hover:text-red-600 transition-colors uppercase border border-white/10 p-3 rounded-xl">
-                  <Download className="w-4 h-4" /> Exportar Backup
-                </button>
-                <textarea placeholder='Cole o JSON aqui...' className="w-full bg-black p-4 rounded-2xl border border-white/10 min-h-[150px] text-[10px] font-mono text-zinc-400 outline-none" value={batchInput} onChange={e => setBatchInput(e.target.value)} />
-                <button onClick={handleBatchImport} disabled={syncing} className="bg-red-600 py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 text-[10px]">
-                  {syncing ? <Loader2 className="animate-spin w-4 h-4" /> : <Zap className="w-4 h-4" />}
-                  IMPORTAR AGORA
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+            );
+        };
 
-export default App;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
