@@ -77,29 +77,29 @@
         .nav-arrow:hover { background: #dc2626; border-color: #dc2626; }
         .nav-arrow:active { transform: scale(0.9); }
 
-        /* Estilo do Tooltip Customizado */
+        /* Estilo do Tooltip Customizado - Corrigido para não cortar o texto */
         .tooltip-container {
             position: relative;
         }
         .tooltip-text {
             visibility: hidden;
-            width: 120px;
+            width: max-content; /* Adapta ao tamanho do texto */
             background-color: #1a1a1a;
             color: #fff;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 8px;
-            padding: 5px;
+            padding: 6px 10px;
             position: absolute;
             z-index: 50;
             bottom: 125%;
-            left: 50%;
-            margin-left: -60px;
+            right: 0; /* Alinha pela direita para não vazar o card */
             opacity: 0;
             transition: opacity 0.3s;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
+            white-space: nowrap; /* Impede a quebra de linha indesejada */
         }
         .tooltip-container:hover .tooltip-text {
             visibility: visible;
@@ -192,7 +192,7 @@
             
             // Estados para Gestão/Admin
             const [showAdminPanel, setShowAdminPanel] = useState(false);
-            const [isAdmin, setIsAdmin] = useState(true);
+            const [isAdmin, setIsAdmin] = useState(false);
             const [editingId, setEditingId] = useState(null);
             const [adminTab, setAdminTab] = useState('single'); // 'single' ou 'batch'
             const [batchInput, setBatchInput] = useState('');
@@ -202,6 +202,12 @@
             
             const scrollRef = useRef(null);
             const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core'];
+
+            // Porta Secreta para liberar o modo Admin
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('admin') === 'dmx2026') setIsAdmin(true);
+            }, []);
 
             useEffect(() => {
                 if (window.fb && window.fb.isValid) {
@@ -342,9 +348,11 @@
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"><Icon name="search" /></span>
                                 <input type="text" placeholder="ID, Exercício ou Músculo..." className="w-full pl-12 pr-4 py-4 rounded-2xl text-sm shadow-xl" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                             </div>
-                            <button onClick={() => { setEditingId(null); setAdminTab('single'); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' }); setShowAdminPanel(true); }} className="bg-red-600 px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 text-xs uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-600/20">
-                                <Icon name="pluscircle" className="w-5 h-5" /> NOVO REGISTRO
-                            </button>
+                            {isAdmin && (
+                                <button onClick={() => { setEditingId(null); setAdminTab('single'); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' }); setShowAdminPanel(true); }} className="bg-red-600 px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 text-xs uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-600/20">
+                                    <Icon name="pluscircle" className="w-5 h-5" /> NOVO REGISTRO
+                                </button>
+                            )}
                         </div>
                     </header>
 
@@ -400,15 +408,17 @@
                                                 </div>
                                             </div>
 
-                                            <div className="absolute top-5 right-5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-                                                <button onClick={() => { 
-                                                    setForm({...ex, muscleGroups: Array.isArray(ex.muscleGroups) ? ex.muscleGroups.join(', ') : '', keywords: Array.isArray(ex.keywords) ? ex.keywords.join(', ') : ''}); 
-                                                    setEditingId(ex.firestoreId); 
-                                                    setAdminTab('single');
-                                                    setShowAdminPanel(true); 
-                                                }} className="p-3 bg-white text-black rounded-2xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Icon name="pencil" className="w-5 h-5" /></button>
-                                                <button onClick={async () => { if(confirm("Excluir exercício?")) await window.fb.deleteDoc(window.fb.doc(window.fb.db, ...(typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises']), ex.firestoreId)) }} className="p-3 bg-zinc-900 text-white rounded-2xl shadow-xl hover:bg-red-600 transition-all"><Icon name="trash" className="w-5 h-5" /></button>
-                                            </div>
+                                            {isAdmin && (
+                                                <div className="absolute top-5 right-5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
+                                                    <button onClick={() => { 
+                                                        setForm({...ex, muscleGroups: Array.isArray(ex.muscleGroups) ? ex.muscleGroups.join(', ') : '', keywords: Array.isArray(ex.keywords) ? ex.keywords.join(', ') : ''}); 
+                                                        setEditingId(ex.firestoreId); 
+                                                        setAdminTab('single');
+                                                        setShowAdminPanel(true); 
+                                                    }} className="p-3 bg-white text-black rounded-2xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Icon name="pencil" className="w-5 h-5" /></button>
+                                                    <button onClick={async () => { if(confirm("Excluir exercício?")) await window.fb.deleteDoc(window.fb.doc(window.fb.db, ...(typeof __app_id !== 'undefined' ? ['artifacts', window.app_id, 'public', 'data', 'exercises'] : ['exercises']), ex.firestoreId)) }} className="p-3 bg-zinc-900 text-white rounded-2xl shadow-xl hover:bg-red-600 transition-all"><Icon name="trash" className="w-5 h-5" /></button>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="p-4 grid grid-cols-4 gap-2 bg-zinc-950">
                                             <a href={ex.youtubeUrl} target="_blank" className="col-span-3 bg-white text-black py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-[10px] hover:bg-red-600 hover:text-white transition-all uppercase italic shadow-lg active:scale-95">
