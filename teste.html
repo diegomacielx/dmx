@@ -278,17 +278,26 @@
                 });
             }, [searchTerm, activeCategory, exercises]);
 
-            // Salvamento c/ Tratamento Rigoroso de Erros E VERIFICAÇÃO DE DUPLICADOS
+            // Salvamento c/ Tratamento Rigoroso de Erros E VERIFICAÇÃO DE DUPLICADOS (ID E NOME)
             const handleSave = async (e) => {
                 e.preventDefault();
                 if (!user) return;
 
-                // VERIFICAÇÃO DE ID DUPLICADO
+                // 1. VERIFICAÇÃO DE ID DUPLICADO
                 const targetId = String(form.id).trim();
-                const isDuplicate = exercises.some(ex => String(ex.id) === targetId && ex.firestoreId !== editingId);
+                const isDuplicateId = exercises.some(ex => String(ex.id) === targetId && ex.firestoreId !== editingId);
 
-                if (isDuplicate) {
+                if (isDuplicateId) {
                     alert(`❌ ERRO: O ID "${targetId}" já está a ser utilizado por outro exercício!\n\nPor favor, escolha um ID diferente para evitar conflitos.`);
+                    return; // Bloqueia o salvamento
+                }
+
+                // 2. VERIFICAÇÃO DE NOME DUPLICADO
+                const targetName = String(form.name).trim().toLowerCase();
+                const isDuplicateName = exercises.some(ex => String(ex.name).trim().toLowerCase() === targetName && ex.firestoreId !== editingId);
+
+                if (isDuplicateName) {
+                    alert(`❌ ERRO: Já existe um exercício com o nome exato "${form.name.trim()}"!\n\nPara evitar confusão, se este for um novo exercício parecido, adicione uma variação ao nome (ex: "${form.name.trim()} - Máquina").`);
                     return; // Bloqueia o salvamento
                 }
 
@@ -312,7 +321,7 @@
                 }
             };
 
-            // Importação em Lote c/ VERIFICAÇÃO DE DUPLICADOS
+            // Importação em Lote c/ VERIFICAÇÃO DE DUPLICADOS (ID E NOME)
             const handleBatchImport = async () => {
                 if (!batchInput.trim()) return;
                 setSyncing(true);
@@ -331,12 +340,22 @@
                         return;
                     }
 
-                    // 3. Verificar se algum dos IDs novos já existe na base de dados (Conflito)
+                    // 3. Verificar se algum dos IDs novos já existe na base de dados (Conflito de ID)
                     const existingIds = exercises.map(ex => String(ex.id));
                     const duplicatedWithDb = newIds.filter(id => existingIds.includes(id));
                     
                     if (duplicatedWithDb.length > 0) {
                         alert(`❌ ERRO DE CONFLITO NO LOTE:\nOs seguintes IDs já existem na sua base de dados:\n\n${duplicatedWithDb.join(', ')}\n\nA importação foi bloqueada para proteger os seus dados. Mude estes IDs no seu JSON e tente novamente.`);
+                        setSyncing(false);
+                        return;
+                    }
+
+                    // 4. Verificar se algum dos Nomes novos já existe na base de dados (Conflito de Nomes)
+                    const existingNames = exercises.map(ex => String(ex.name).trim().toLowerCase());
+                    const duplicatedNamesWithDb = dataArray.filter(item => existingNames.includes(String(item.name || '').trim().toLowerCase())).map(item => item.name);
+
+                    if (duplicatedNamesWithDb.length > 0) {
+                        alert(`❌ ERRO DE NOME DUPLICADO NO LOTE:\nOs seguintes exercícios já existem com este exato nome na base de dados:\n\n${duplicatedNamesWithDb.join(', ')}\n\nModifique os nomes no seu JSON (adicione variações) e tente novamente.`);
                         setSyncing(false);
                         return;
                     }
