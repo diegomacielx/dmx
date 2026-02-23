@@ -278,10 +278,20 @@
                 });
             }, [searchTerm, activeCategory, exercises]);
 
-            // Salvamento c/ Tratamento Rigoroso de Erros
+            // Salvamento c/ Tratamento Rigoroso de Erros E VERIFICAÇÃO DE DUPLICADOS
             const handleSave = async (e) => {
                 e.preventDefault();
                 if (!user) return;
+
+                // VERIFICAÇÃO DE ID DUPLICADO
+                const targetId = String(form.id).trim();
+                const isDuplicate = exercises.some(ex => String(ex.id) === targetId && ex.firestoreId !== editingId);
+
+                if (isDuplicate) {
+                    alert(`❌ ERRO: O ID "${targetId}" já está a ser utilizado por outro exercício!\n\nPor favor, escolha um ID diferente para evitar conflitos.`);
+                    return; // Bloqueia o salvamento
+                }
+
                 try {
                     const muscleArray = typeof form.muscleGroups === 'string' ? form.muscleGroups.split(',').map(m => m.trim()).filter(m => m !== "") : form.muscleGroups;
                     const keywordArray = typeof form.keywords === 'string' ? form.keywords.split(',').map(k => k.trim()).filter(k => k !== "") : form.keywords;
@@ -302,6 +312,7 @@
                 }
             };
 
+            // Importação em Lote c/ VERIFICAÇÃO DE DUPLICADOS
             const handleBatchImport = async () => {
                 if (!batchInput.trim()) return;
                 setSyncing(true);
@@ -309,6 +320,28 @@
                     const dataArray = JSON.parse(batchInput);
                     if (!Array.isArray(dataArray)) throw new Error("JSON deve ser um Array de objetos");
 
+                    // 1. Extrair os IDs que o utilizador está a tentar importar
+                    const newIds = dataArray.map(item => String(item.id || '')).filter(id => id !== '');
+                    
+                    // 2. Verificar se o utilizador colou IDs repetidos dentro do próprio texto
+                    const duplicatesInBatch = newIds.filter((item, index) => newIds.indexOf(item) !== index);
+                    if (duplicatesInBatch.length > 0) {
+                        alert(`❌ ERRO NO TEXTO (JSON):\nExistem IDs repetidos no texto que colou:\n\nIDs Duplicados: ${[...new Set(duplicatesInBatch)].join(', ')}\n\nPor favor, corrija o texto antes de importar.`);
+                        setSyncing(false);
+                        return;
+                    }
+
+                    // 3. Verificar se algum dos IDs novos já existe na base de dados (Conflito)
+                    const existingIds = exercises.map(ex => String(ex.id));
+                    const duplicatedWithDb = newIds.filter(id => existingIds.includes(id));
+                    
+                    if (duplicatedWithDb.length > 0) {
+                        alert(`❌ ERRO DE CONFLITO NO LOTE:\nOs seguintes IDs já existem na sua base de dados:\n\n${duplicatedWithDb.join(', ')}\n\nA importação foi bloqueada para proteger os seus dados. Mude estes IDs no seu JSON e tente novamente.`);
+                        setSyncing(false);
+                        return;
+                    }
+
+                    // Se passou pelos testes de segurança, procede com a gravação
                     const batch = window.fb.writeBatch(window.fb.db);
                     const path = getDbPath();
                     const collRef = window.fb.collection(window.fb.db, ...path);
@@ -331,7 +364,7 @@
                     setShowAdminPanel(false);
                     setBatchInput('');
                     setAdminTab('single');
-                    showToast(`Lote de ${dataArray.length} exercícios salvo!`);
+                    showToast(`Lote de ${dataArray.length} exercícios salvo com sucesso!`);
                 } catch (e) { 
                     console.error("Batch error:", e);
                     alert("Erro no JSON ou Permissão negada pelo servidor."); 
