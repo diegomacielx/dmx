@@ -65,7 +65,7 @@
             color: white;
             width: 36px;
             height: 36px;
-            border-radius: 50%;
+            border-radius: 50%; /* Garante o formato perfeitamente redondo */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -216,7 +216,8 @@
             const [form, setForm] = useState({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' });
             
             const scrollRef = useRef(null);
-            const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core'];
+            // Categorias com a pasta Combinações no final
+            const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core', 'Combinações'];
 
             // Porta Secreta para liberar o modo Admin
             useEffect(() => {
@@ -264,27 +265,53 @@
                 if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === 'left' ? -250 : 250, behavior: 'smooth' });
             };
 
-            // Filtro de busca blindado contra erros e dados incompletos
+            // Filtro de Busca Avançado (Multi-Termos e Combinações)
             const filteredExercises = useMemo(() => {
+                if (!searchTerm.trim()) {
+                    return exercises.filter(ex => activeCategory === 'Todos' || ex.category === activeCategory);
+                }
+
+                const rawSearch = searchTerm.toLowerCase();
+                const searchParts = rawSearch.split(/[\s+&]+|\band\b/i).filter(Boolean);
+
                 return exercises.filter(ex => {
-                    const s = searchTerm.toLowerCase();
                     const safeId = ex.id ? String(ex.id).toLowerCase() : '';
                     const safeName = ex.name ? String(ex.name).toLowerCase() : '';
+                    const keywords = Array.isArray(ex.keywords) ? ex.keywords.map(k => String(k).toLowerCase()) : [];
+                    const muscles = Array.isArray(ex.muscleGroups) ? ex.muscleGroups.map(m => String(m).toLowerCase()) : [];
                     
-                    const matchesSearch = safeId.includes(s) || safeName.includes(s) || 
-                                          (Array.isArray(ex.keywords) && ex.keywords.some(k => k && String(k).toLowerCase().includes(s))) ||
-                                          (Array.isArray(ex.muscleGroups) && ex.muscleGroups.some(m => m && String(m).toLowerCase().includes(s)));
+                    const matchesSearch = searchParts.every(part => {
+                        return safeId.includes(part) ||
+                               safeName.includes(part) ||
+                               keywords.some(k => k.includes(part)) ||
+                               muscles.some(m => m.includes(part));
+                    });
+
                     return (activeCategory === 'Todos' || ex.category === activeCategory) && matchesSearch;
                 });
             }, [searchTerm, activeCategory, exercises]);
 
-            // Salvamento c/ Tratamento Rigoroso de Erros E VERIFICAÇÃO DE DUPLICADOS (ID E NOME)
+            // Salvamento c/ Tratamento Rigoroso de Erros, Auto-ID E VERIFICAÇÃO DE DUPLICADOS
             const handleSave = async (e) => {
                 e.preventDefault();
                 if (!user) return;
 
+                let targetId = String(form.id).trim();
+
+                // Geração automática de ID caso o usuário tenha deixado em branco
+                if (!targetId && !editingId) {
+                    const existingIds = exercises.map(ex => parseInt(ex.id, 10)).filter(id => !isNaN(id));
+                    existingIds.sort((a, b) => a - b);
+                    
+                    let nextAvailableId = 1;
+                    for (let i = 0; i < existingIds.length; i++) {
+                        if (existingIds[i] === nextAvailableId) nextAvailableId++;
+                        else if (existingIds[i] > nextAvailableId) break;
+                    }
+                    targetId = String(nextAvailableId).padStart(4, '0');
+                }
+
                 // 1. VERIFICAÇÃO DE ID DUPLICADO
-                const targetId = String(form.id).trim();
                 const isDuplicateId = exercises.some(ex => String(ex.id) === targetId && ex.firestoreId !== editingId);
 
                 if (isDuplicateId) {
@@ -304,7 +331,7 @@
                 try {
                     const muscleArray = typeof form.muscleGroups === 'string' ? form.muscleGroups.split(',').map(m => m.trim()).filter(m => m !== "") : form.muscleGroups;
                     const keywordArray = typeof form.keywords === 'string' ? form.keywords.split(',').map(k => k.trim()).filter(k => k !== "") : form.keywords;
-                    const data = { ...form, muscleGroups: muscleArray, keywords: keywordArray, updatedAt: new Date().toISOString() };
+                    const data = { ...form, id: targetId, muscleGroups: muscleArray, keywords: keywordArray, updatedAt: new Date().toISOString() };
                     const path = getDbPath();
                     
                     if (editingId) {
@@ -434,7 +461,7 @@
                         <div className="flex flex-col sm:flex-row w-full lg:flex-1 lg:max-w-2xl gap-4">
                             <div className="relative flex-1">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"><Icon name="search" /></span>
-                                <input type="text" placeholder="ID, Exercício ou Músculo..." className="w-full pl-12 pr-4 py-4 rounded-2xl text-sm shadow-xl" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                <input type="text" placeholder="Busca por Nome, ID, Músculo ou Combinações (ex: Supino + Testa)..." className="w-full pl-12 pr-4 py-4 rounded-2xl text-sm shadow-xl" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                             </div>
                             {isAdmin && (
                                 <button onClick={() => { setEditingId(null); setAdminTab('single'); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' }); setShowAdminPanel(true); }} className="bg-red-600 px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 text-xs uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-600/20">
@@ -446,7 +473,7 @@
 
                     {/* Categorias */}
                     <div className="max-w-7xl mx-auto w-full mb-10 flex items-center gap-2">
-                        <button className="nav-arrow" onClick={() => scroll('left')}><Icon name="left" className="w-4 h-4" /></button>
+                        <button className="hidden sm:flex nav-arrow shrink-0" onClick={() => scroll('left')}><Icon name="left" className="w-4 h-4" /></button>
                         <div ref={scrollRef} className="category-scroll-container no-scrollbar">
                             {categories.map(cat => (
                                 <button key={cat} onClick={() => setActiveCategory(cat)} className={`category-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${activeCategory === cat ? 'bg-red-600 border-red-600 text-white shadow-lg' : 'bg-zinc-900 border-white/5 text-zinc-500 hover:text-white'}`}>
@@ -454,7 +481,7 @@
                                 </button>
                             ))}
                         </div>
-                        <button className="nav-arrow" onClick={() => scroll('right')}><Icon name="right" className="w-4 h-4" /></button>
+                        <button className="hidden sm:flex nav-arrow shrink-0" onClick={() => scroll('right')}><Icon name="right" className="w-4 h-4" /></button>
                     </div>
 
                     {/* Grelha Principal */}
@@ -476,6 +503,7 @@
                                             <div className="aspect-[9/16] bg-zinc-900 relative overflow-hidden">
                                                 <img 
                                                     src={finalImage} 
+                                                    loading="lazy"
                                                     className="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110" 
                                                     onError={(e) => { 
                                                         // Se falhar o 4K (maxresdefault), tenta a qualidade padrão antes de dar erro definitivo
@@ -550,7 +578,7 @@
 
                                 {adminTab === 'single' ? (
                                     <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">ID Único</label><input required placeholder="Ex: 0045" className="w-full p-4 rounded-2xl text-sm" value={form.id} onChange={e => setForm({...form, id: e.target.value})} /></div>
+                                        <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">ID Único (Opcional)</label><input placeholder="Ex: 0045 (ou deixe em branco)" className="w-full p-4 rounded-2xl text-sm" value={form.id} onChange={e => setForm({...form, id: e.target.value})} /></div>
                                         <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">Nome</label><input required placeholder="Supino Reto" className="w-full p-4 rounded-2xl text-sm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} /></div>
                                         <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">Categoria Filtro</label><select className="w-full p-4 rounded-2xl text-sm appearance-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>{categories.slice(1).map(c => <option key={c} value={c} className="bg-black">{c}</option>)}</select></div>
                                         <div className="space-y-1"><label className="text-[9px] font-black uppercase text-zinc-600 ml-2">YouTube URL</label><input required placeholder="URL completa" className="w-full p-4 rounded-2xl text-sm" value={form.youtubeUrl} onChange={e => setForm({...form, youtubeUrl: e.target.value})} /></div>
