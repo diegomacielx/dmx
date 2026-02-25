@@ -520,7 +520,10 @@
                                                 
                                                 <div className="absolute bottom-5 left-5 right-5">
                                                     <p className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-1 italic opacity-80">{ex.category}</p>
-                                                    <h3 className="font-bold text-sm leading-tight uppercase italic text-white line-clamp-2 mb-3">{ex.name}</h3>
+                                                    
+                                                    {/* SOLUÇÃO ADICIONADA: O atributo "title" fará aparecer um balãozinho nativo do navegador caso o nome seja muito longo */}
+                                                    <h3 className="font-bold text-sm leading-tight uppercase italic text-white line-clamp-2 mb-3" title={ex.name}>{ex.name}</h3>
+                                                    
                                                     <div className="flex flex-wrap gap-1">
                                                         {Array.isArray(ex.muscleGroups) && ex.muscleGroups.map((m, i) => (
                                                             <span key={i} className="text-[7px] bg-white/10 text-zinc-400 px-2 py-0.5 rounded uppercase font-black border border-white/5">{m}</span>
