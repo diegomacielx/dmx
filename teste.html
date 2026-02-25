@@ -523,10 +523,10 @@
                                                 <div className="absolute bottom-5 left-5 right-5">
                                                     <p className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-1 italic opacity-80">{ex.category}</p>
                                                     
-                                                    {/* SOLUÇÃO MOBILE ADICIONADA: Clicar no título retira o corte e mostra o texto completo */}
+                                                    {/* SOLUÇÃO HÍBRIDA ADICIONADA: O atributo "title" mostra o nome exato no PC, e o "onClick" permite expandir com um toque no celular */}
                                                     <h3 
                                                         className={`font-bold text-sm leading-tight uppercase italic text-white mb-3 cursor-pointer active:opacity-70 transition-all ${expandedTitleId === ex.firestoreId ? '' : 'line-clamp-2'}`} 
-                                                        title="Toque para ver o nome completo"
+                                                        title={ex.name}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setExpandedTitleId(expandedTitleId === ex.firestoreId ? null : ex.firestoreId);
