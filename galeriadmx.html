@@ -114,11 +114,11 @@
 <body>
     <div id="root"></div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK Atualizado com Auth de Email -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const isPreview = typeof __firebase_config !== 'undefined';
         const firebaseConfig = isPreview ? JSON.parse(__firebase_config) : {
@@ -144,7 +144,7 @@
 
         window.fb = { 
             db, auth, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, 
-            writeBatch, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
+            writeBatch, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
             isValid: (isValid || isPreview) 
         };
         window.app_id = appId;
@@ -186,7 +186,8 @@
                 right: <polyline points="9 18 15 12 9 6" />,
                 loader: <g><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" /></g>,
                 save: <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8" />,
-                circlecheck: <g><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></g>
+                circlecheck: <g><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></g>,
+                logout: <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
             };
 
             return (
@@ -197,6 +198,13 @@
         };
 
         const App = () => {
+            // Novos Estados para Autenticação
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [authLoading, setAuthLoading] = useState(true);
+            const [loginEmail, setLoginEmail] = useState('');
+            const [loginPassword, setLoginPassword] = useState('');
+
+            // Estados Originais
             const [user, setUser] = useState(null);
             const [exercises, setExercises] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -221,32 +229,31 @@
             const scrollRef = useRef(null);
             const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core', 'Combinações'];
 
-            // Porta Secreta para liberar o modo Admin
-            useEffect(() => {
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('admin') === 'dmx2026') setIsAdmin(true);
-            }, []);
-
+            // Listener de Autenticação Modificado
             useEffect(() => {
                 if (window.fb && window.fb.isValid) {
-                    const performAuth = async () => {
-                        try {
-                            if (window.initial_token) await window.fb.signInWithCustomToken(window.fb.auth, window.initial_token);
-                            else await window.fb.signInAnonymously(window.fb.auth);
-                        } catch (e) { 
-                            console.error("Auth error:", e);
-                            setToastMessage("Erro de Conexão (Login)");
+                    const unsubscribe = window.fb.onAuthStateChanged(window.fb.auth, (u) => {
+                        if (u) {
+                            setIsLoggedIn(true);
+                            setUser(u);
+                            // Porta Secreta para liberar o modo Admin
+                            const params = new URLSearchParams(window.location.search);
+                            if (params.get('admin') === 'dmx2026') setIsAdmin(true);
+                        } else {
+                            setIsLoggedIn(false);
+                            setUser(null);
                         }
-                    };
-                    performAuth();
-                    const unsubscribe = window.fb.onAuthStateChanged(window.fb.auth, (u) => { if (u) setUser(u); });
+                        setAuthLoading(false);
+                    });
                     return () => unsubscribe();
+                } else {
+                    setAuthLoading(false);
                 }
             }, []);
 
-            // Leitura dos dados 100% blindada
+            // Leitura dos dados 100% blindada (Somente após login)
             useEffect(() => {
-                if (!user || !window.fb || !window.fb.isValid) return;
+                if (!isLoggedIn || !window.fb || !window.fb.isValid) return;
                 const path = getDbPath();
                 const collectionRef = window.fb.collection(window.fb.db, ...path);
                 
@@ -261,7 +268,24 @@
                     setToastMessage("Erro no Firebase: Sem permissão de leitura.");
                     setLoading(false); 
                 });
-            }, [user]);
+            }, [isLoggedIn]);
+
+            // Funções de Login / Logout
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                try {
+                    await window.fb.signInWithEmailAndPassword(window.fb.auth, loginEmail, loginPassword);
+                    showToast("Bem-vindo à Biblioteca DMX!");
+                } catch (error) {
+                    alert("E-mail ou senha incorretos.");
+                }
+            };
+
+            const handleLogout = async () => {
+                if (confirm("Deseja encerrar sua sessão?")) {
+                    await window.fb.signOut(window.fb.auth);
+                }
+            };
 
             const scroll = (dir) => {
                 if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === 'left' ? -250 : 250, behavior: 'smooth' });
@@ -442,6 +466,63 @@
 
             if (!window.fb || !window.fb.isValid) return <div className="min-h-screen bg-black flex items-center justify-center p-10 text-center text-red-600 font-bold">CONFIGURAÇÃO DO FIREBASE PENDENTE</div>;
 
+            // RENDERIZAÇÃO: TELA DE CARREGAMENTO INICIAL
+            if (authLoading) {
+                return (
+                    <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+                        <Icon name="loader" className="w-12 h-12 animate-spin text-red-600 opacity-50 mb-4" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Conectando ao servidor...</p>
+                    </div>
+                );
+            }
+
+            // RENDERIZAÇÃO: TELA DE LOGIN (ACESSO RESTRITO) COM TEXTOS ALTERADOS
+            if (!isLoggedIn) {
+                return (
+                    <div className="min-h-screen bg-black flex items-center justify-center p-6">
+                        <div className="bg-zinc-950 p-8 sm:p-12 rounded-[3.5rem] border border-white/5 w-full max-w-md text-center shadow-2xl animate-fade-in">
+                            <img src={window.CUSTOM_LOGO_URL} className="h-20 mx-auto mb-6 drop-shadow-lg" alt="DMX Logo" />
+                            <h2 className="text-xl font-black uppercase italic mb-8 tracking-tighter">
+                                BIBLIOTECA DMX - <span className="text-red-600">ACESSO RESTRITO</span>
+                            </h2>
+                            
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <div className="text-left space-y-1">
+                                    <label className="text-[9px] font-black uppercase text-zinc-600 ml-4 tracking-widest">E-mail</label>
+                                    <input 
+                                        required
+                                        type="email" 
+                                        placeholder="Seu e-mail de acesso" 
+                                        className="w-full p-4 rounded-2xl text-sm" 
+                                        onChange={(e) => setLoginEmail(e.target.value)} 
+                                    />
+                                </div>
+                                <div className="text-left space-y-1">
+                                    <label className="text-[9px] font-black uppercase text-zinc-600 ml-4 tracking-widest">Senha</label>
+                                    <input 
+                                        required
+                                        type="password" 
+                                        placeholder="••••••••" 
+                                        className="w-full p-4 rounded-2xl text-sm" 
+                                        onChange={(e) => setLoginPassword(e.target.value)} 
+                                    />
+                                </div>
+                                <button type="submit" className="w-full bg-red-600 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95 mt-4">
+                                    ACESSAR A BIBLIOTECA
+                                </button>
+                            </form>
+                            
+                            <div className="mt-10 p-4 bg-white/5 rounded-2xl border border-white/5">
+                                <p className="text-[9px] text-zinc-500 uppercase font-black leading-relaxed tracking-widest">
+                                    Este ambiente é exclusivo para compradores
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // RENDERIZAÇÃO: BIBLIOTECA COMPLETA (USUÁRIO LOGADO)
             return (
                 <div className="min-h-screen p-3 sm:p-6 flex flex-col">
                     {/* Toast Notification */}
@@ -457,6 +538,9 @@
                             <img src={window.CUSTOM_LOGO_URL} className="h-12 w-12 sm:h-16 sm:w-16 object-contain" alt="DMX" />
                             <div className="flex flex-col">
                                 <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
+                                <button onClick={handleLogout} className="text-[9px] text-zinc-500 uppercase font-black flex items-center gap-1 hover:text-red-600 transition-colors mt-1">
+                                    <Icon name="logout" className="w-3 h-3" /> Encerrar Sessão
+                                </button>
                             </div>
                         </div>
 
@@ -573,7 +657,7 @@
                     </main>
 
                     {/* Modal Administrativo com Abas (Cadastro Único / Importar Lote) */}
-                    {showAdminPanel && (
+                    {showAdminPanel && isAdmin && (
                         <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[100] flex items-center justify-center p-4 overflow-y-auto">
                             <div className="bg-zinc-950 w-full max-w-2xl rounded-[3.5rem] border border-white/5 p-8 sm:p-12 shadow-3xl relative my-auto animate-fade-in">
                                 <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
