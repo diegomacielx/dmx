@@ -205,6 +205,9 @@
             const [copiedId, setCopiedId] = useState(null);
             const [toastMessage, setToastMessage] = useState(null);
             
+            // Estado para controlar a expansão do nome do exercício no mobile
+            const [expandedTitleId, setExpandedTitleId] = useState(null);
+            
             // Estados para Gestão/Admin
             const [showAdminPanel, setShowAdminPanel] = useState(false);
             const [isAdmin, setIsAdmin] = useState(false);
@@ -216,7 +219,6 @@
             const [form, setForm] = useState({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' });
             
             const scrollRef = useRef(null);
-            // Categorias com a pasta Combinações no final
             const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core', 'Combinações'];
 
             // Porta Secreta para liberar o modo Admin
@@ -521,8 +523,17 @@
                                                 <div className="absolute bottom-5 left-5 right-5">
                                                     <p className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-1 italic opacity-80">{ex.category}</p>
                                                     
-                                                    {/* SOLUÇÃO ADICIONADA: O atributo "title" fará aparecer um balãozinho nativo do navegador caso o nome seja muito longo */}
-                                                    <h3 className="font-bold text-sm leading-tight uppercase italic text-white line-clamp-2 mb-3" title={ex.name}>{ex.name}</h3>
+                                                    {/* SOLUÇÃO MOBILE ADICIONADA: Clicar no título retira o corte e mostra o texto completo */}
+                                                    <h3 
+                                                        className={`font-bold text-sm leading-tight uppercase italic text-white mb-3 cursor-pointer active:opacity-70 transition-all ${expandedTitleId === ex.firestoreId ? '' : 'line-clamp-2'}`} 
+                                                        title="Toque para ver o nome completo"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setExpandedTitleId(expandedTitleId === ex.firestoreId ? null : ex.firestoreId);
+                                                        }}
+                                                    >
+                                                        {ex.name}
+                                                    </h3>
                                                     
                                                     <div className="flex flex-wrap gap-1">
                                                         {Array.isArray(ex.muscleGroups) && ex.muscleGroups.map((m, i) => (
