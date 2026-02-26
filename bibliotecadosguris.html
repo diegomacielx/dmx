@@ -537,12 +537,14 @@
 
             // RENDERIZAÇÃO: BIBLIOTECA COMPLETA (USUÁRIO LOGADO)
             return (
-                <div className="min-h-screen p-3 sm:p-6 flex flex-col">
-                    {/* Toast Notification - Alteração 2: Centralizado no Mobile, Topo no PC */}
+                <div className="min-h-screen p-3 sm:p-6 flex flex-col relative">
+                    {/* Toast Notification - 100% BLINDADO E CENTRALIZADO NO MOBILE, TOPO NO PC */}
                     {toastMessage && (
-                        <div className="fixed top-1/2 sm:top-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:translate-y-0 z-[9999] bg-red-600 text-white px-6 sm:px-6 py-4 sm:py-3 rounded-2xl font-black uppercase text-[11px] sm:text-[10px] tracking-widest shadow-[0_0_40px_rgba(220,38,38,0.6)] sm:shadow-2xl animate-fade-in flex items-center justify-center gap-3 w-max max-w-[90vw] text-center border border-red-500/50 sm:border-none">
-                            <Icon name="circlecheck" className="w-5 h-5 sm:w-4 sm:h-4 shrink-0" /> 
-                            <span>{toastMessage}</span>
+                        <div className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center sm:items-start sm:pt-5">
+                            <div className="pointer-events-auto bg-red-600 text-white px-5 py-3 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-[0_0_30px_rgba(220,38,38,0.6)] sm:shadow-2xl animate-fade-in flex items-center justify-center gap-2 max-w-[85vw] text-center border border-red-500/50 sm:border-none">
+                                <Icon name="circlecheck" className="w-4 h-4 shrink-0" /> 
+                                <span>{toastMessage}</span>
+                            </div>
                         </div>
                     )}
 
