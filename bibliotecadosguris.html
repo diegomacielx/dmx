@@ -120,8 +120,8 @@
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const isPreview = typeof __firebase_config !== 'undefined';
-        const firebaseConfig = isPreview ? JSON.parse(__firebase_config) : {
+        // REMOVIDA A TRAVA DE PREVIEW - Agora aponta diretamente para o seu Firebase Real
+        const firebaseConfig = {
             apiKey: "AIzaSyCB6L2IdpXnVhYcFsbpZvhLJAdRMVRJyHM",
             authDomain: "biblioteca-dmx.firebaseapp.com",
             projectId: "biblioteca-dmx",
@@ -130,13 +130,13 @@
             appId: "1:571660956624:web:fc3d6e3fe402be7f70bfd5"
         };
         
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dmx-exercicios-cloud';
+        const appId = 'dmx-exercicios-cloud';
         const CUSTOM_LOGO_URL = "https://i.imgur.com/rLLYQ3Z.png";
 
         let app, auth, db;
         const isValid = firebaseConfig.apiKey && firebaseConfig.apiKey !== "SUA_API_KEY";
 
-        if (isValid || isPreview) {
+        if (isValid) {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
@@ -145,11 +145,10 @@
         window.fb = { 
             db, auth, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, 
             writeBatch, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
-            isValid: (isValid || isPreview) 
+            isValid: isValid 
         };
         window.app_id = appId;
         window.CUSTOM_LOGO_URL = CUSTOM_LOGO_URL;
-        window.initial_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
     </script>
 
     <!-- App Logic -->
@@ -158,9 +157,7 @@
 
         // Função universal para garantir que salva e lê na mesma pasta, em qualquer ambiente.
         const getDbPath = () => {
-            return typeof __app_id !== 'undefined' 
-                ? ['artifacts', window.app_id || 'dmx-exercicios-cloud', 'public', 'data', 'exercises'] 
-                : ['exercises'];
+            return ['artifacts', window.app_id, 'public', 'data', 'exercises'];
         };
 
         // Função para extrair o ID do vídeo do YouTube a partir de qualquer tipo de link
@@ -227,7 +224,9 @@
             const [form, setForm] = useState({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' });
             
             const scrollRef = useRef(null);
-            const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core', 'Combinações'];
+            
+            // Alteração 1: Categoria 'Combinações' Removida
+            const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core'];
 
             // Listener de Autenticação Modificado
             useEffect(() => {
@@ -476,7 +475,7 @@
                 );
             }
 
-            // RENDERIZAÇÃO: TELA DE LOGIN (ACESSO RESTRITO) COM TEXTOS ALTERADOS
+            // RENDERIZAÇÃO: TELA DE LOGIN (ACESSO RESTRITO)
             if (!isLoggedIn) {
                 return (
                     <div className="min-h-screen bg-black flex items-center justify-center p-6">
@@ -525,10 +524,11 @@
             // RENDERIZAÇÃO: BIBLIOTECA COMPLETA (USUÁRIO LOGADO)
             return (
                 <div className="min-h-screen p-3 sm:p-6 flex flex-col">
-                    {/* Toast Notification */}
+                    {/* Toast Notification - Alteração 2: Centralizado no Mobile, Topo no PC */}
                     {toastMessage && (
-                        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[200] bg-red-600 text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl animate-fade-in flex items-center gap-2">
-                            <Icon name="circlecheck" className="w-4 h-4" /> {toastMessage}
+                        <div className="fixed top-1/2 sm:top-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:translate-y-0 z-[9999] bg-red-600 text-white px-6 sm:px-6 py-4 sm:py-3 rounded-2xl font-black uppercase text-[11px] sm:text-[10px] tracking-widest shadow-[0_0_40px_rgba(220,38,38,0.6)] sm:shadow-2xl animate-fade-in flex items-center justify-center gap-3 w-max max-w-[90vw] text-center border border-red-500/50 sm:border-none">
+                            <Icon name="circlecheck" className="w-5 h-5 sm:w-4 sm:h-4 shrink-0" /> 
+                            <span>{toastMessage}</span>
                         </div>
                     )}
 
