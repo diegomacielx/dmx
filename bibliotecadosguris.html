@@ -211,8 +211,15 @@
             const [user, setUser] = useState(null);
             const [exercises, setExercises] = useState([]);
             const [loading, setLoading] = useState(true);
-            const [searchTerm, setSearchTerm] = useState('');
-            const [activeCategory, setActiveCategory] = useState('Todos');
+            
+            // IMPLEMENTAÇÃO DE MEMÓRIA (Local Storage) - Super leve e imediato
+            const [searchTerm, setSearchTerm] = useState(() => {
+                return localStorage.getItem('dmx_search') || '';
+            });
+            const [activeCategory, setActiveCategory] = useState(() => {
+                return localStorage.getItem('dmx_category') || 'Todos';
+            });
+            
             const [copiedId, setCopiedId] = useState(null);
             const [toastMessage, setToastMessage] = useState(null);
             
@@ -232,6 +239,15 @@
             const scrollRef = useRef(null);
             
             const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core'];
+
+            // Salva a busca e a categoria na memória sempre que elas mudarem
+            useEffect(() => {
+                localStorage.setItem('dmx_search', searchTerm);
+            }, [searchTerm]);
+
+            useEffect(() => {
+                localStorage.setItem('dmx_category', activeCategory);
+            }, [activeCategory]);
 
             // Listener de Autenticação Modificado
             useEffect(() => {
