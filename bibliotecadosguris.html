@@ -118,7 +118,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         // RESTAURADO O SISTEMA INTELIGENTE DE CONFIGURAÇÃO (Funciona no GitHub e no Teste)
         const isPreview = typeof __firebase_config !== 'undefined';
@@ -146,6 +146,7 @@
         window.fb = { 
             db, auth, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, 
             writeBatch, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
+            sendPasswordResetEmail,
             isValid: (isValid || isPreview)
         };
         window.app_id = appId;
@@ -206,6 +207,7 @@
             const [loginEmail, setLoginEmail] = useState('');
             const [loginPassword, setLoginPassword] = useState('');
             const [showPassword, setShowPassword] = useState(false);
+            const [authMode, setAuthMode] = useState('login'); // 'login' | 'forgot'
 
             // Estados Originais
             const [user, setUser] = useState(null);
@@ -298,6 +300,21 @@
                     showToast("Bem-vindo à Biblioteca DMX!");
                 } catch (error) {
                     alert("E-mail ou senha incorretos.");
+                }
+            };
+
+            const handleResetPassword = async (e) => {
+                e.preventDefault();
+                if (!loginEmail) {
+                    alert("Por favor, digite seu e-mail no campo acima para redefinir a senha.");
+                    return;
+                }
+                try {
+                    await window.fb.sendPasswordResetEmail(window.fb.auth, loginEmail);
+                    showToast("E-mail de recuperação enviado!");
+                    setAuthMode('login');
+                } catch (error) {
+                    alert("Erro ao tentar enviar e-mail. Verifique se o endereço está correto.");
                 }
             };
 
@@ -500,13 +517,15 @@
             if (!isLoggedIn) {
                 return (
                     <div className="min-h-screen bg-black flex items-center justify-center p-6">
-                        <div className="bg-zinc-950 p-8 sm:p-12 rounded-[3.5rem] border border-white/5 w-full max-w-md text-center shadow-2xl animate-fade-in">
-                            <img src={window.CUSTOM_LOGO_URL} className="h-20 mx-auto mb-6 drop-shadow-lg" alt="DMX Logo" />
-                            <h2 className="text-xl font-black uppercase italic mb-8 tracking-tighter">
-                                BIBLIOTECA DMX - <span className="text-red-600">ACESSO RESTRITO</span>
+                        <div className="bg-zinc-950 p-8 sm:p-12 rounded-[3.5rem] border border-white/5 w-full max-w-md text-center shadow-2xl animate-fade-in relative overflow-hidden">
+                            <img src={window.CUSTOM_LOGO_URL} className="h-20 mx-auto mb-6 drop-shadow-lg relative z-10" alt="DMX Logo" />
+                            <h2 className="text-xl font-black uppercase italic mb-8 tracking-tighter relative z-10">
+                                BIBLIOTECA DMX - <span className="text-red-600">
+                                    {authMode === 'login' ? 'ACESSO RESTRITO' : 'RECUPERAR SENHA'}
+                                </span>
                             </h2>
                             
-                            <form onSubmit={handleLogin} className="space-y-4">
+                            <form onSubmit={authMode === 'login' ? handleLogin : handleResetPassword} className="space-y-4 relative z-10">
                                 <div className="text-left space-y-1">
                                     <label className="text-[9px] font-black uppercase text-zinc-600 ml-4 tracking-widest">E-mail</label>
                                     <input 
@@ -514,34 +533,52 @@
                                         type="email" 
                                         placeholder="Seu e-mail de acesso" 
                                         className="w-full p-4 rounded-2xl text-sm" 
+                                        value={loginEmail}
                                         onChange={(e) => setLoginEmail(e.target.value)} 
                                     />
                                 </div>
-                                <div className="text-left space-y-1 relative">
-                                    <label className="text-[9px] font-black uppercase text-zinc-600 ml-4 tracking-widest">Senha</label>
-                                    <div className="relative">
-                                        <input 
-                                            required
-                                            type={showPassword ? "text" : "password"} 
-                                            placeholder="••••••••" 
-                                            className="w-full p-4 pr-12 rounded-2xl text-sm" 
-                                            onChange={(e) => setLoginPassword(e.target.value)} 
-                                        />
-                                        <button 
-                                            type="button" 
-                                            onClick={() => setShowPassword(!showPassword)} 
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
-                                        >
-                                            <Icon name={showPassword ? "eyeoff" : "eye"} className="w-5 h-5" />
-                                        </button>
+                                
+                                {authMode !== 'forgot' && (
+                                    <div className="text-left space-y-1 relative">
+                                        <label className="text-[9px] font-black uppercase text-zinc-600 ml-4 tracking-widest">Senha</label>
+                                        <div className="relative">
+                                            <input 
+                                                required
+                                                type={showPassword ? "text" : "password"} 
+                                                placeholder="••••••••" 
+                                                className="w-full p-4 pr-12 rounded-2xl text-sm" 
+                                                value={loginPassword}
+                                                onChange={(e) => setLoginPassword(e.target.value)} 
+                                            />
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setShowPassword(!showPassword)} 
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                                            >
+                                                <Icon name={showPassword ? "eyeoff" : "eye"} className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
+
                                 <button type="submit" className="w-full bg-red-600 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95 mt-4">
-                                    ACESSAR A BIBLIOTECA
+                                    {authMode === 'login' ? 'ACESSAR A BIBLIOTECA' : 'ENVIAR LINK DE RECUPERAÇÃO'}
                                 </button>
                             </form>
+
+                            <div className="mt-6 flex flex-col gap-3 relative z-10">
+                                {authMode === 'login' ? (
+                                    <button onClick={() => setAuthMode('forgot')} className="text-[10px] text-zinc-400 hover:text-white transition-colors font-bold uppercase tracking-widest">
+                                        Esqueceu sua senha?
+                                    </button>
+                                ) : (
+                                    <button onClick={() => setAuthMode('login')} className="text-[10px] text-zinc-400 hover:text-white transition-colors font-bold uppercase tracking-widest">
+                                        Voltar para o Login
+                                    </button>
+                                )}
+                            </div>
                             
-                            <div className="mt-10 p-4 bg-white/5 rounded-2xl border border-white/5">
+                            <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 relative z-10">
                                 <p className="text-[9px] text-zinc-500 uppercase font-black leading-relaxed tracking-widest">
                                     Este ambiente é exclusivo para compradores
                                 </p>
