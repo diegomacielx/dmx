@@ -120,8 +120,9 @@
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // REMOVIDA A TRAVA DE PREVIEW - Agora aponta diretamente para o seu Firebase Real
-        const firebaseConfig = {
+        // RESTAURADO O SISTEMA INTELIGENTE DE CONFIGURAÇÃO (Funciona no GitHub e no Teste)
+        const isPreview = typeof __firebase_config !== 'undefined';
+        const firebaseConfig = isPreview ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyCB6L2IdpXnVhYcFsbpZvhLJAdRMVRJyHM",
             authDomain: "biblioteca-dmx.firebaseapp.com",
             projectId: "biblioteca-dmx",
@@ -130,13 +131,13 @@
             appId: "1:571660956624:web:fc3d6e3fe402be7f70bfd5"
         };
         
-        const appId = 'dmx-exercicios-cloud';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dmx-exercicios-cloud';
         const CUSTOM_LOGO_URL = "https://i.imgur.com/rLLYQ3Z.png";
 
         let app, auth, db;
         const isValid = firebaseConfig.apiKey && firebaseConfig.apiKey !== "SUA_API_KEY";
 
-        if (isValid) {
+        if (isValid || isPreview) {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
@@ -145,7 +146,7 @@
         window.fb = { 
             db, auth, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, 
             writeBatch, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
-            isValid: isValid 
+            isValid: (isValid || isPreview)
         };
         window.app_id = appId;
         window.CUSTOM_LOGO_URL = CUSTOM_LOGO_URL;
@@ -155,9 +156,11 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // Função universal para garantir que salva e lê na mesma pasta, em qualquer ambiente.
+        // RESTAURADA A "BÚSSOLA" ORIGINAL DE PASTAS
         const getDbPath = () => {
-            return ['artifacts', window.app_id, 'public', 'data', 'exercises'];
+            return typeof __app_id !== 'undefined' 
+                ? ['artifacts', window.app_id || 'dmx-exercicios-cloud', 'public', 'data', 'exercises'] 
+                : ['exercises']; // <- É AQUI QUE OS SEUS EXERCÍCIOS ESTÃO SALVOS NO GITHUB!
         };
 
         // Função para extrair o ID do vídeo do YouTube a partir de qualquer tipo de link
@@ -185,7 +188,7 @@
                 save: <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8" />,
                 circlecheck: <g><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></g>,
                 logout: <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />,
-                eye: <g><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></g>,
+                eye: <g><path d="M2 12s3-7 10-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></g>,
                 eyeoff: <g><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20" /></g>
             };
 
@@ -228,7 +231,6 @@
             
             const scrollRef = useRef(null);
             
-            // Alteração 1: Categoria 'Combinações' Removida
             const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core'];
 
             // Listener de Autenticação Modificado
