@@ -677,15 +677,22 @@
                                                     className="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110" 
                                                     onError={(e) => { 
                                                         const currentSrc = e.target.src;
-                                                        // Se falhar o GitHub ou a customizada, tenta YouTube 4K
-                                                        if (currentSrc.includes('githubusercontent') || (ex.thumbnail && currentSrc.includes(ex.thumbnail))) {
+                                                        const isGithubJpg = currentSrc.includes('githubusercontent.com') && currentSrc.includes(`${ex.id}.jpg`);
+                                                        const isGithubPng = currentSrc.includes('githubusercontent.com') && currentSrc.includes(`${ex.id}.png`);
+
+                                                        // 1. Se falhar o JPG do GitHub, tenta o PNG do GitHub
+                                                        if (isGithubJpg && !ex.thumbnail) {
+                                                            e.target.src = `https://raw.githubusercontent.com/diegomacielx/dmx/main/${ex.id}.png`;
+                                                        }
+                                                        // 2. Se falhar o PNG do GitHub OU a capa customizada, tenta YouTube 4K
+                                                        else if (isGithubPng || (ex.thumbnail && currentSrc.includes(ex.thumbnail))) {
                                                             e.target.src = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400";
                                                         } 
-                                                        // Se falhar o 4K do YouTube, tenta HQ padrão
+                                                        // 3. Se falhar o 4K do YouTube, tenta HQ padrão
                                                         else if (currentSrc.includes('maxresdefault.jpg')) {
                                                             e.target.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
                                                         } 
-                                                        // Se falhar tudo, imagem placeholder
+                                                        // 4. Se falhar tudo, imagem placeholder
                                                         else {
                                                             e.target.src = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400";
                                                         }
