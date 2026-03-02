@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMX TEAM | Consultoria de Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dmx-red: #e11d48;
+            --dmx-black: #050505;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--dmx-black);
+            overflow-x: hidden;
+        }
+        
+        /* Animações de Entrada (Reveal) */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Efeito de Vidro Escuro */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Botão WhatsApp Animado */
+        .btn-glow {
+            box-shadow: 0 0 20px rgba(37, 211, 102, 0.2);
+            transition: all 0.3s ease;
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 30px rgba(37, 211, 102, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Movimento flutuante para elementos decorativos */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-anim { animation: float 6s ease-in-out infinite; }
+
+        /* Gradientes DMX */
+        .bg-red-gradient {
+            background: linear-gradient(135deg, var(--dmx-red) 0%, #881337 100%);
+        }
+        
+        /* Scroll Smooth */
+        html { scroll-behavior: smooth; }
+
+        /* Estilo da barra de rolagem */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: var(--dmx-red); border-radius: 10px; }
+    </style>
+</head>
+<body class="text-white">
+
+    <!-- Navbar Fixa -->
+    <nav class="fixed w-full z-50 py-4 px-6 glass border-b border-white/5">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="text-2xl font-black italic tracking-tighter">
+                DMX<span class="text-rose-600">TEAM</span>
+            </div>
+            <div class="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest">
+                <a href="#sobre" class="hover:text-rose-600 transition">A Dupla</a>
+                <a href="#metodo" class="hover:text-rose-600 transition">O Método</a>
+                <a href="#faq" class="hover:text-rose-600 transition">Dúvidas</a>
+            </div>
+            <div id="nav-cta">
+                <script>
+                    const whatsappUrl = "https://wa.me/SEU_NUMERO";
+                    document.write(whatsappUrl ? `<a href="${whatsappUrl}" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full text-xs font-bold uppercase btn-glow">Vagas Limitadas</a>` : "");
+                </script>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        <!-- Elementos decorativos movendo ao fundo -->
+        <div class="absolute top-20 right-[-10%] w-[500px] h-[500px] bg-rose-900/20 blur-[120px] rounded-full float-anim"></div>
+        <div class="absolute bottom-10 left-[-5%] w-[300px] h-[300px] bg-rose-950/30 blur-[100px] rounded-full float-anim" style="animation-delay: 2s;"></div>
+
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center z-10">
+            <div class="reveal">
+                <span class="inline-block py-1 px-3 bg-rose-600/10 text-rose-500 text-xs font-black uppercase tracking-[0.3em] mb-6 border-l-2 border-rose-600">
+                    Engenharia Corporal
+                </span>
+                <h1 class="text-6xl md:text-8xl font-black leading-[0.85] uppercase tracking-tighter mb-8">
+                    SEU CORPO <br> <span class="text-rose-600 italic">REESTRUTURADO.</span>
+                </h1>
+                <p class="text-xl text-zinc-400 mb-10 max-w-lg leading-relaxed font-light">
+                    Não é apenas dieta e treino. É a união da <span class="text-white font-bold">Ciência do Douglas</span> com a minha <span class="text-white font-bold">Estratégia de Performance</span>.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-5">
+                    <a href="#metodo" class="bg-rose-600 hover:bg-rose-700 text-white px-10 py-5 font-black uppercase italic tracking-widest transition-all hover:translate-y-[-4px] text-center">
+                        Começar Transformação
+                    </a>
+                </div>
+            </div>
+
+            <div class="relative reveal" style="transition-delay: 0.3s;">
+                <!-- Placeholder da Foto de Costas -->
+                <div class="relative z-10 w-full aspect-[3/4] glass rounded-2xl overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10"></div>
+                    <div class="w-full h-full flex flex-col items-center justify-center text-center p-10">
+                        <svg class="w-20 h-20 text-zinc-800 mb-4 group-hover:text-rose-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <p class="text-zinc-500 font-bold uppercase text-xs tracking-widest">[ FOTO: VOCÊ E DOUGLAS DE COSTAS ]</p>
+                    </div>
+                </div>
+                <!-- Badge flutuante -->
+                <div class="absolute -bottom-6 -left-6 glass p-6 z-20 float-anim border-l-4 border-rose-600">
+                    <p class="text-3xl font-black italic">+500</p>
+                    <p class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Vidas Transformadas</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de "Dores" (Itens que se movem como na referência) -->
+    <section class="py-24 bg-white text-black relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-20 reveal">
+                <h2 class="text-4xl md:text-6xl font-black uppercase tracking-tighter">
+                    POR QUE VOCÊ <span class="text-rose-600 italic">AINDA</span> <br> NÃO CHEGOU LÁ?
+                </h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6 reveal">
+                    <div class="flex items-center gap-5 p-6 glass-light border border-zinc-100 bg-zinc-50 hover:border-rose-600 transition group">
+                        <span class="w-10 h-10 bg-black text-white flex items-center justify-center font-bold italic shrink-0 group-hover:bg-rose-600">1</span>
+                        <p class="font-bold uppercase text-sm">Treinos genéricos que não respeitam sua rotina</p>
+                    </div>
+                    <div class="flex items-center gap-5 p-6 glass-light border border-zinc-100 bg-zinc-50 hover:border-rose-600 transition group">
+                        <span class="w-10 h-10 bg-black text-white flex items-center justify-center font-bold italic shrink-0 group-hover:bg-rose-600">2</span>
+                        <p class="font-bold uppercase text-sm">Dieta restritiva demais que te faz desistir na 2ª semana</p>
+                    </div>
+                    <div class="flex items-center gap-5 p-6 glass-light border border-zinc-100 bg-zinc-50 hover:border-rose-600 transition group">
+                        <span class="w-10 h-10 bg-black text-white flex items-center justify-center font-bold italic shrink-0 group-hover:bg-rose-600">3</span>
+                        <p class="font-bold uppercase text-sm">Falta de um método validado para queimar gordura</p>
+                    </div>
+                </div>
+                <div class="reveal" style="transition-delay: 0.4s;">
+                    <div class="p-10 bg-black text-white border-l-[12px] border-rose-600">
+                        <h3 class="text-3xl font-black uppercase italic mb-6">O RESULTADO É MATEMÁTICO.</h3>
+                        <p class="text-zinc-400 leading-relaxed mb-6">
+                            Se você faz o que todo mundo faz, você terá o corpo que todo mundo tem. A consultoria DMX é para quem quer sair da média.
+                        </p>
+                        <p class="text-rose-600 font-black uppercase tracking-widest text-sm">Treino Inteligente + Dieta Flexível = Shape Inevitável.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pilares do Método (Cartões com movimento no Hover) -->
+    <section id="metodo" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 reveal">
+                <div>
+                    <h2 class="text-rose-600 font-black uppercase tracking-[0.3em] text-xs mb-4 italic">Metodologia DMX</h2>
+                    <p class="text-4xl md:text-6xl font-black uppercase leading-none">O TRIPÉ DA <br> <span class="text-zinc-700">EVOLUÇÃO</span></p>
+                </div>
+                <div class="hidden md:block w-32 h-px bg-zinc-800 mb-4"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Card Treino -->
+                <div class="reveal glass p-10 group hover:border-rose-600 transition-all duration-500" style="transition-delay: 0.1s;">
+                    <div class="w-16 h-16 bg-rose-600 flex items-center justify-center mb-8 rotate-3 group-hover:rotate-12 transition-transform">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-black uppercase mb-4 italic">Treino DMX</h4>
+                    <p class="text-zinc-500 text-sm leading-relaxed">
+                        Prescrito pelo Douglas. Focado em densidade muscular e correção de pontos fracos. Nada de séries aleatórias.
+                    </p>
+                </div>
+                <!-- Card Dieta -->
+                <div class="reveal glass p-10 group hover:border-rose-600 transition-all duration-500" style="transition-delay: 0.2s;">
+                    <div class="w-16 h-16 bg-white flex items-center justify-center mb-8 -rotate-3 group-hover:rotate-0 transition-transform">
+                        <svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-black uppercase mb-4 italic">Protocolo Nutricional</h4>
+                    <h4 class="text-zinc-500 text-sm leading-relaxed">
+                        Minha estratégia para você comer o que gosta e ainda assim ver o abdômen aparecer. Sem terrorismo nutricional.
+                    </h4>
+                </div>
+                <!-- Card Suporte -->
+                <div class="reveal glass p-10 group hover:border-rose-600 transition-all duration-500" style="transition-delay: 0.3s;">
+                    <div class="w-16 h-16 bg-rose-600 flex items-center justify-center mb-8 rotate-6 group-hover:rotate-[-6deg] transition-transform">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-black uppercase mb-4 italic">Suporte de Elite</h4>
+                    <p class="text-zinc-500 text-sm leading-relaxed">
+                        Acesso ao nosso app e suporte direto. Você nunca mais terá dúvida se está fazendo o certo ou não.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção da Dupla (Destaque Visual) -->
+    <section id="sobre" class="py-24 bg-rose-600">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+            <div class="reveal">
+                <h2 class="text-5xl md:text-7xl font-black uppercase italic mb-8 leading-[0.9] text-white">A DUPLA QUE <br> VAI TE MUDAR.</h2>
+                <div class="space-y-8 text-white">
+                    <div class="flex gap-6 items-start">
+                        <span class="text-4xl font-black italic opacity-30">D</span>
+                        <div>
+                            <h5 class="text-xl font-bold uppercase">Douglas: O Engenheiro do Treino</h5>
+                            <p class="text-rose-100 mt-2">Mestre em biomecânica e hipertrofia. Ele constrói a carcaça.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 items-start">
+                        <span class="text-4xl font-black italic opacity-30">X</span>
+                        <div>
+                            <h5 class="text-xl font-bold uppercase">Estrategista: O Mestre da Dieta</h5>
+                            <p class="text-rose-100 mt-2">Focado em performance metabólica e queima de gordura real.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CTA DMX Custom -->
+                <div class="mt-12" id="sobre-cta">
+                    <script>
+                        if (whatsappUrl) {
+                            document.write(`
+                                <a href="${whatsappUrl}" class="inline-block bg-black text-white px-10 py-5 font-black uppercase italic tracking-widest hover:bg-zinc-900 transition shadow-2xl">
+                                    Quero entrar pro time
+                                </a>
+                            `);
+                        }
+                    </script>
+                </div>
+            </div>
+            
+            <div class="relative reveal" style="transition-delay: 0.3s;">
+                <div class="aspect-square bg-white/10 border-4 border-white/20 rotate-3 p-12 flex items-center justify-center text-center">
+                    <p class="text-3xl font-black uppercase italic text-white leading-tight">
+                        "Onde um olha para o músculo, o outro olha para o metabolismo. É impossível não evoluir."
+                    </p>
+                </div>
+                <div class="absolute -top-4 -right-4 w-20 h-20 bg-black flex items-center justify-center font-black italic text-2xl">DMX</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Estilo Acordeon -->
+    <section id="faq" class="py-24">
+        <div class="max-w-3xl mx-auto px-6">
+            <h2 class="text-4xl font-black uppercase text-center italic mb-12 reveal">Perguntas Frequentes</h2>
+            <div class="space-y-4 reveal">
+                <details class="group glass p-6 cursor-pointer border-l-4 border-rose-600">
+                    <summary class="flex justify-between items-center font-bold uppercase tracking-tighter list-none">
+                        Como funciona o acesso ao suporte?
+                        <span class="text-rose-600 transition group-open:rotate-180">▼</span>
+                    </summary>
+                    <p class="mt-4 text-zinc-500 text-sm">Tudo é centralizado no nosso aplicativo exclusivo DMX. Lá você tem os vídeos dos treinos e chat para dúvidas.</p>
+                </details>
+                <details class="group glass p-6 cursor-pointer border-l-4 border-rose-600">
+                    <summary class="flex justify-between items-center font-bold uppercase tracking-tighter list-none">
+                        Posso treinar em casa?
+                        <span class="text-rose-600 transition group-open:rotate-180">▼</span>
+                    </summary>
+                    <p class="mt-4 text-zinc-500 text-sm">Sim. Adaptamos o planejamento de acordo com o seu equipamento disponível (ou a falta dele).</p>
+                </details>
+                <details class="group glass p-6 cursor-pointer border-l-4 border-rose-600">
+                    <summary class="flex justify-between items-center font-bold uppercase tracking-tighter list-none">
+                        Tem cardápio fixo?
+                        <span class="text-rose-600 transition group-open:rotate-180">▼</span>
+                    </summary>
+                    <p class="mt-4 text-zinc-500 text-sm">Trabalhamos com metas de macronutrientes e sugestões. Você aprende a comer o que gosta batendo as metas.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-32 relative text-center overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-rose-600 to-transparent"></div>
+        <div class="max-w-4xl mx-auto px-6 reveal">
+            <h2 class="text-7xl md:text-9xl font-black uppercase italic mb-8 tracking-tighter leading-none">FAÇA <br> <span class="text-rose-600 underline decoration-8">HISTÓRIA.</span></h2>
+            <p class="text-zinc-500 mb-12 text-xl font-light">Seu próximo shape começa na decisão que você toma agora.</p>
+            <a href="https://wa.me/SEU_NUMERO" class="btn-whatsapp inline-flex items-center gap-5 text-white px-14 py-7 rounded-none text-2xl font-black uppercase italic shadow-red bg-green-500 hover:bg-green-600 transition-all btn-glow">
+                <span>Aplicar para o Time</span>
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </a>
+            <p class="mt-10 text-rose-600 text-xs font-black uppercase tracking-[0.5em]">Apenas 5 vagas restantes para este mês</p>
+        </div>
+    </section>
+
+    <footer class="py-12 border-t border-white/5 bg-black/50 text-center">
+        <p class="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700 italic">DMX TEAM | PERFORMANCE E ESTÉTICA EXTREMA | &copy; 2024</p>
+    </footer>
+
+    <!-- Script para Animações de Scroll -->
+    <script>
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
