@@ -411,16 +411,39 @@
                 }
             };
 
-            // Importação em Lote c/ VERIFICAÇÃO DE DUPLICADOS (ID E NOME)
+            // Importação em Lote c/ VERIFICAÇÃO DE DUPLICADOS E GERAÇÃO DE AUTO-ID
             const handleBatchImport = async () => {
                 if (!batchInput.trim()) return;
                 setSyncing(true);
                 try {
-                    const dataArray = JSON.parse(batchInput);
+                    let dataArray = JSON.parse(batchInput);
                     if (!Array.isArray(dataArray)) throw new Error("JSON deve ser um Array de objetos");
 
-                    // 1. Extrair os IDs que o utilizador está a tentar importar
-                    const newIds = dataArray.map(item => String(item.id || '')).filter(id => id !== '');
+                    // --- LÓGICA INTELIGENTE DE AUTO-ID PARA O LOTE ---
+                    const existingIdsNum = exercises.map(ex => parseInt(ex.id, 10)).filter(id => !isNaN(id));
+                    const providedIdsInBatch = dataArray.map(item => parseInt(item.id, 10)).filter(id => !isNaN(id));
+                    const allUsedIds = [...existingIdsNum, ...providedIdsInBatch].sort((a, b) => a - b);
+
+                    let nextAvailableId = 1;
+                    const getNextId = () => {
+                        while (allUsedIds.includes(nextAvailableId)) {
+                            nextAvailableId++;
+                        }
+                        allUsedIds.push(nextAvailableId); // Reserva este ID para o próximo do lote
+                        return String(nextAvailableId).padStart(4, '0');
+                    };
+
+                    // Verifica cada item do JSON: Se não tiver ID, gera um automático!
+                    dataArray = dataArray.map(item => {
+                        if (!item.id || String(item.id).trim() === '') {
+                            return { ...item, id: getNextId() };
+                        }
+                        return { ...item, id: String(item.id).trim() };
+                    });
+                    // -------------------------------------------------
+
+                    // 1. Extrair os IDs que o utilizador está a tentar importar (agora todos têm ID)
+                    const newIds = dataArray.map(item => item.id);
                     
                     // 2. Verificar se o utilizador colou IDs repetidos dentro do próprio texto
                     const duplicatesInBatch = newIds.filter((item, index) => newIds.indexOf(item) !== index);
@@ -431,8 +454,8 @@
                     }
 
                     // 3. Verificar se algum dos IDs novos já existe na base de dados (Conflito de ID)
-                    const existingIds = exercises.map(ex => String(ex.id));
-                    const duplicatedWithDb = newIds.filter(id => existingIds.includes(id));
+                    const existingIdsStr = exercises.map(ex => String(ex.id));
+                    const duplicatedWithDb = newIds.filter(id => existingIdsStr.includes(id));
                     
                     if (duplicatedWithDb.length > 0) {
                         alert(`❌ ERRO DE CONFLITO NO LOTE:\nOs seguintes IDs já existem na sua base de dados:\n\n${duplicatedWithDb.join(', ')}\n\nA importação foi bloqueada para proteger os seus dados. Mude estes IDs no seu JSON e tente novamente.`);
