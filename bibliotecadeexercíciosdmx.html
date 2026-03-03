@@ -330,14 +330,25 @@
 
             // Filtro de Busca Avançado (Multi-Termos e Combinações)
             const filteredExercises = useMemo(() => {
+                // NOVO: Oculta exercícios sem vídeo (ou com link provisório) para os alunos
+                const validExercises = exercises.filter(ex => {
+                    if (isAdmin) return true; // Você (Admin) vê tudo para poder editar!
+                    
+                    const url = ex.youtubeUrl ? String(ex.youtubeUrl).trim() : '';
+                    const isPlaceholder = url === '' || url.includes('youtube.com/...');
+                    
+                    // Só mostra para o aluno se não for um link vazio ou provisório
+                    return !isPlaceholder;
+                });
+
                 if (!searchTerm.trim()) {
-                    return exercises.filter(ex => activeCategory === 'Todos' || ex.category === activeCategory);
+                    return validExercises.filter(ex => activeCategory === 'Todos' || ex.category === activeCategory);
                 }
 
                 const rawSearch = searchTerm.toLowerCase();
                 const searchParts = rawSearch.split(/[\s+&]+|\band\b/i).filter(Boolean);
 
-                return exercises.filter(ex => {
+                return validExercises.filter(ex => {
                     const safeId = ex.id ? String(ex.id).toLowerCase() : '';
                     const safeName = ex.name ? String(ex.name).toLowerCase() : '';
                     const keywords = Array.isArray(ex.keywords) ? ex.keywords.map(k => String(k).toLowerCase()) : [];
@@ -352,7 +363,7 @@
 
                     return (activeCategory === 'Todos' || ex.category === activeCategory) && matchesSearch;
                 });
-            }, [searchTerm, activeCategory, exercises]);
+            }, [searchTerm, activeCategory, exercises, isAdmin]);
 
             // Salvamento c/ Tratamento Rigoroso de Erros, Auto-ID E VERIFICAÇÃO DE DUPLICADOS
             const handleSave = async (e) => {
@@ -723,7 +734,13 @@
                                                     alt={`Capa do exercício ${ex.name}`}
                                                 />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
-                                                <div className="absolute top-5 left-5 bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase italic border border-white/10 shadow-lg shadow-red-600/30">#{ex.id}</div>
+                                                
+                                                <div className="absolute top-5 left-5 flex gap-2">
+                                                    <div className="bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase italic border border-white/10 shadow-lg shadow-red-600/30">#{ex.id}</div>
+                                                    {isAdmin && (!ex.youtubeUrl || ex.youtubeUrl.includes('youtube.com/...')) && (
+                                                        <div className="bg-amber-500 text-black text-[10px] font-black px-2.5 py-1 rounded-lg uppercase border border-white/10 shadow-lg">INCOMPLETO</div>
+                                                    )}
+                                                </div>
                                                 
                                                 <div className="absolute bottom-5 left-5 right-5">
                                                     <p className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-1 italic opacity-80">{ex.category}</p>
