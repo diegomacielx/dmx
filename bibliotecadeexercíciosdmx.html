@@ -328,17 +328,27 @@
                 if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === 'left' ? -250 : 250, behavior: 'smooth' });
             };
 
+            // NOVA LÓGICA INTELIGENTE PARA VERIFICAR SE O EXERCÍCIO ESTÁ INCOMPLETO
+            const isExerciseIncomplete = (url) => {
+                if (!url) return true; // Se estiver vazio
+                const cleanUrl = String(url).trim().toLowerCase();
+                
+                // Verifica todas as possibilidades de link temporário/provisório
+                return cleanUrl === '' || 
+                       cleanUrl.includes('revisar_link') || 
+                       cleanUrl === 'url' || 
+                       cleanUrl === 'https://url' || 
+                       cleanUrl.includes('youtube.com/...');
+            };
+
             // Filtro de Busca Avançado (Multi-Termos e Combinações)
             const filteredExercises = useMemo(() => {
-                // NOVO: Oculta exercícios sem vídeo (ou com link provisório) para os alunos
+                // Oculta exercícios sem vídeo (ou com link provisório) para os alunos
                 const validExercises = exercises.filter(ex => {
                     if (isAdmin) return true; // Você (Admin) vê tudo para poder editar!
                     
-                    const url = ex.youtubeUrl ? String(ex.youtubeUrl).trim() : '';
-                    const isPlaceholder = url === '' || url.includes('youtube.com/...');
-                    
-                    // Só mostra para o aluno se não for um link vazio ou provisório
-                    return !isPlaceholder;
+                    // Usa a nova lógica inteligente de verificação
+                    return !isExerciseIncomplete(ex.youtubeUrl);
                 });
 
                 if (!searchTerm.trim()) {
@@ -737,7 +747,9 @@
                                                 
                                                 <div className="absolute top-5 left-5 flex gap-2">
                                                     <div className="bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase italic border border-white/10 shadow-lg shadow-red-600/30">#{ex.id}</div>
-                                                    {isAdmin && (!ex.youtubeUrl || ex.youtubeUrl.includes('youtube.com/...')) && (
+                                                    
+                                                    {/* ETIQUETA 'INCOMPLETO' (Mostra apenas para você) */}
+                                                    {isAdmin && isExerciseIncomplete(ex.youtubeUrl) && (
                                                         <div className="bg-amber-500 text-black text-[10px] font-black px-2.5 py-1 rounded-lg uppercase border border-white/10 shadow-lg">INCOMPLETO</div>
                                                     )}
                                                 </div>
