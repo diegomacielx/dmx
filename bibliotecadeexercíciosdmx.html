@@ -153,7 +153,7 @@
         const { useState, useEffect, useMemo, useRef } = React;
 
         // ⚠️ LISTA DE E-MAILS DE ADMINISTRADORES (Altere para o seu e-mail real)
-        const ADMIN_EMAILS = ['diego.maciel.965@gmail.com']; 
+        const ADMIN_EMAILS = ['diegomacielx@gmail.com']; 
 
         const getDbPath = () => {
             return typeof __app_id !== 'undefined' 
@@ -237,11 +237,7 @@
             
             const categories = ['Todos', 'Quadríceps', 'Posteriores', 'Glúteos', 'Adutores', 'Panturrilha', 'Peitoral', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Core'];
 
-            const showToast = (msg, type = 'success') => {
-                setToast({ show: true, msg, type });
-                setTimeout(() => setToast({ show: false, msg: '', type: 'success' }), 4000);
-            };
-
+            // Salva a busca e a categoria na memória sempre que elas mudarem
             useEffect(() => {
                 localStorage.setItem('dmx_search', searchTerm);
             }, [searchTerm]);
@@ -250,14 +246,17 @@
                 localStorage.setItem('dmx_category', activeCategory);
             }, [activeCategory]);
 
+            // Listener de Autenticação Modificado
             useEffect(() => {
                 if (window.fb && window.fb.isValid) {
                     const unsubscribe = window.fb.onAuthStateChanged(window.fb.auth, (u) => {
                         if (u) {
                             setIsLoggedIn(true);
                             setUser(u);
-                            // Verificação de segurança pelo E-mail ao invés de URL
-                            setIsAdmin(ADMIN_EMAILS.includes(u.email));
+                            // Verificação de segurança HÍBRIDA: E-mail autorizado + Parâmetro na URL
+                            const params = new URLSearchParams(window.location.search);
+                            const hasAdminParam = params.get('admin') === 'dmx2026';
+                            setIsAdmin(ADMIN_EMAILS.includes(u.email) && hasAdminParam);
                         } else {
                             setIsLoggedIn(false);
                             setUser(null);
@@ -271,6 +270,7 @@
                 }
             }, []);
 
+            // Leitura dos dados 100% blindada (Somente após login)
             useEffect(() => {
                 if (!isLoggedIn || !window.fb || !window.fb.isValid) return;
                 const path = getDbPath();
