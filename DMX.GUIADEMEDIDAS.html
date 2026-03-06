@@ -34,18 +34,30 @@
             transition: transform 0.3s ease-in-out;
         }
 
-        /* Tabela Scroll Hint */
+        /* Tabela Scroll Hint e Layout Inteligente */
         .table-container {
-            background: 
-                linear-gradient(to right, white 30%, rgba(255,255,255,0)),
-                linear-gradient(to right, rgba(255,255,255,0), white 70%) 0 100%,
-                radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.2), rgba(0,0,0,0)),
-                radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
-            background-repeat: no-repeat;
+            position: relative;
             background-color: white;
-            background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
-            background-position: 0 0, 100% 0, 0 0, 100% 0;
-            background-attachment: local, local, scroll, scroll;
+            /* Scrollbar personalizada para melhorar UX */
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        /* Scrollbar Webkit (Chrome, Edge, Safari) */
+        .table-container::-webkit-scrollbar {
+            height: 12px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f8fafc;
+            border-radius: 0 0 8px 8px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 8px;
+            border: 3px solid #f8fafc;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8;
         }
 
         /* Estilo dos Inputs na Tabela */
@@ -56,7 +68,8 @@
             font-weight: 600;
             color: #374151;
             outline: none;
-            padding: 4px 0;
+            padding: 6px 4px;
+            font-size: 0.8rem;
         }
         .measure-input:focus {
             background-color: #FEF2F2; /* Red-50 */
@@ -64,12 +77,50 @@
         }
         .measure-input::placeholder {
             color: #D1D5DB;
-            font-weight: 400;
+            font-weight: 500;
         }
+
+        /* Coluna Congelada com Sombra */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            box-shadow: 4px 0 10px -2px rgba(0,0,0,0.1);
+        }
+        /* Header Congelado sobrepõe a Coluna Congelada */
+        th.sticky-col {
+            z-index: 30;
+            box-shadow: 4px 0 10px -2px rgba(0,0,0,0.3);
+        }
+
+        /* Toast Message (Mensagem de Copiado) */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 50px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 
         /* --- OTIMIZAÇÃO DE IMPRESSÃO (PRINT STYLES) --- */
         @media print {
-            /* Reset Global */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -85,19 +136,16 @@
                 padding: 0;
             }
 
-            /* Esconder elementos de navegação/interação */
-            .no-print, #mobile-menu-btn, #mobile-menu, header nav, #clear-data-btn, .animate-bounce {
+            .no-print, #mobile-menu-btn, #mobile-menu, header nav, #clear-data-btn, .animate-bounce, .copy-btn, .scroll-hint-box {
                 display: none !important;
             }
 
-            /* Forçar cores de fundo importantes */
             .bg-black, .bg-zinc-900 { background-color: #18181B !important; color: white !important; }
             .bg-red-600 { background-color: #DC2626 !important; color: white !important; }
             .bg-zinc-800 { background-color: #27272A !important; color: white !important; }
             .bg-red-50 { background-color: #FEF2F2 !important; }
             .bg-zinc-100 { background-color: #F4F4F5 !important; }
 
-            /* Ajuste de Layout Geral */
             .container {
                 width: 100% !important;
                 max-width: 100% !important;
@@ -106,7 +154,6 @@
                 margin: 0 !important;
             }
 
-            /* Cabeçalho na Impressão */
             header {
                 position: relative !important;
                 padding: 10px 0 !important;
@@ -114,36 +161,27 @@
                 color: white !important;
             }
 
-            /* Imagens */
             img {
                 max-width: 100% !important;
                 height: auto !important;
                 page-break-inside: avoid;
             }
             
-            /* Correção específica para a imagem grande "Fotos Evolutivas" */
             .relative.w-full.max-w-6xl {
                 max-width: 100% !important;
                 width: 100% !important;
-                border: none !important; /* Remove borda grossa se atrapalhar */
+                border: none !important;
             }
 
-            /* Cards de Medidas */
-            .grid {
-                display: block !important; /* Empilha ou usa flow normal */
-            }
+            .grid { display: block !important; }
             .grid-cols-1, .md\:grid-cols-2, .lg\:grid-cols-3 {
                 display: grid !important;
-                grid-template-columns: 1fr 1fr !important; /* Força 2 colunas para economizar espaço vertical */
+                grid-template-columns: 1fr 1fr !important;
                 gap: 1rem !important;
             }
             
-            /* Evitar quebra de cards */
-            .group, section, tr, li {
-                page-break-inside: avoid;
-            }
+            .group, section, tr, li { page-break-inside: avoid; }
 
-            /* Tabela */
             .table-container {
                 border: 1px solid #ccc !important;
                 overflow: visible !important;
@@ -156,11 +194,8 @@
                 border: none !important;
                 color: black !important;
             }
-            .measure-input::placeholder {
-                color: transparent !important; /* Esconde placeholder na impressão */
-            }
+            .measure-input::placeholder { color: transparent !important; }
 
-            /* Botão Instagram (Transformar em link visível) */
             a[href*="instagram"] {
                 display: inline-flex !important;
                 background-color: #DC2626 !important;
@@ -171,7 +206,6 @@
                 margin-bottom: 20px !important;
             }
             
-            /* Ajustes de Espaçamento */
             section { padding-top: 1rem !important; padding-bottom: 1rem !important; }
             h1 { font-size: 24pt !important; }
             h2 { font-size: 18pt !important; }
@@ -180,18 +214,16 @@
 </head>
 <body class="bg-gray-50 text-gray-800 overflow-x-hidden">
 
+    <!-- Toast Notification -->
+    <div id="toast">Relatório copiado com sucesso!</div>
+
     <!-- Navbar / Header -->
     <header class="bg-black text-white shadow-lg sticky top-0 z-50 transition-all duration-300" id="main-header">
-        <!-- Layout Flexível: Botão Menu (Esq) - Logo (Centro) - Ações (Dir) -->
         <div class="container mx-auto px-4 py-4 flex justify-between items-center relative h-24">
-            
-            <!-- Lado Esquerdo: Botão Menu Mobile ou Nav Desktop -->
             <div class="flex items-center">
                 <button id="mobile-menu-btn" class="lg:hidden z-50 p-2 text-white focus:outline-none hover:bg-white/10 rounded-full transition" aria-label="Abrir Menu">
                     <i data-lucide="menu" class="w-8 h-8"></i>
                 </button>
-                
-                <!-- Desktop Nav (Escondido no mobile) -->
                 <nav class="hidden lg:flex gap-6 font-bold text-xs tracking-wider text-gray-300 no-print">
                     <a href="#intro" class="hover:text-red-500 transition py-2">INÍCIO</a>
                     <a href="#peso" class="hover:text-red-500 transition py-2">PESO</a>
@@ -200,12 +232,10 @@
                 </nav>
             </div>
 
-            <!-- Centro: Logo DMX Centralizada e Maior -->
             <a href="#" class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group">
                 <img src="https://i.imgur.com/z1DuC77.png" alt="Logo DMX" class="h-16 md:h-20 w-auto object-contain group-hover:scale-105 transition duration-300">
             </a>
 
-            <!-- Lado Direito: Botão Imprimir -->
             <div class="flex items-center">
                 <button onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-2 rounded-full font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/30 no-print" aria-label="Imprimir">
                     <i data-lucide="printer" class="w-5 h-5"></i> <span class="hidden md:inline">IMPRIMIR</span>
@@ -502,9 +532,8 @@
 
             </div>
 
-            <!-- Instruções Gerais: Cards lado a lado no desktop, empilhados no mobile -->
+            <!-- Instruções Gerais -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                <!-- O que Fazer -->
                 <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-green-500">
                     <h3 class="font-bold text-lg md:text-xl mb-6 text-center text-green-700 flex items-center justify-center gap-2">
                         <i data-lucide="thumbs-up" class="w-5 h-5"></i> O que fazer?
@@ -529,7 +558,6 @@
                     </ul>
                 </div>
 
-                <!-- O que NÃO Fazer -->
                 <div class="bg-zinc-800 text-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-red-600">
                     <h3 class="font-bold text-lg md:text-xl mb-6 text-center flex items-center justify-center text-red-500 gap-2">
                         <i data-lucide="thumbs-down" class="w-5 h-5"></i> O que NÃO fazer?
@@ -551,117 +579,208 @@
 
     <!-- Tabela de Registro -->
     <section id="tabela" class="py-12 md:py-20 container mx-auto px-4 page-break">
-        <div class="text-center mb-8 md:mb-10">
-            <h2 class="text-2xl md:text-3xl font-bold section-title text-zinc-800">REGISTRO</h2>
+        <div class="text-center mb-6">
+            <h2 class="text-2xl md:text-3xl font-bold section-title text-zinc-800">REGISTRO (12 MESES)</h2>
             <p class="text-gray-500 mt-2 text-sm md:text-base">
-                <span class="hidden md:inline">Digite seus dados abaixo para acompanhar sua evolução.</span>
-                <span class="md:hidden">Arraste para o lado para ver mais meses <i data-lucide="arrow-right" class="inline w-4 h-4 ml-1"></i></span>
+                Digite seus dados abaixo para acompanhar sua evolução ao longo do ano.
             </p>
-            <div class="flex justify-center mt-4">
-                <button id="clear-data-btn" class="text-xs text-red-500 hover:text-red-700 underline" onclick="if(confirm('Tem certeza que deseja apagar todos os dados salvos?')) { localStorage.clear(); location.reload(); }">
-                    Limpar dados salvos
-                </button>
-            </div>
         </div>
 
-        <!-- Table Container com Scroll Indicator Visual -->
-        <div class="overflow-x-auto table-container rounded-lg shadow-lg border border-gray-100">
-            <table class="w-full border-collapse bg-white text-xs md:text-sm text-center min-w-[600px]">
+        <!-- Scroll Hint Visual -->
+        <div class="flex justify-center items-center mb-4 text-red-600 animate-pulse scroll-hint-box font-bold text-sm bg-red-50 py-2 px-4 rounded-full max-w-xs mx-auto border border-red-100">
+            <i data-lucide="move-horizontal" class="w-5 h-5 mr-2"></i>
+            <span>Deslize a tabela para ver mais meses</span>
+        </div>
+
+        <div class="flex justify-center mb-6">
+            <button id="clear-data-btn" class="text-xs text-red-500 hover:text-red-700 underline no-print" onclick="if(confirm('Tem certeza que deseja apagar todos os dados salvos?')) { localStorage.clear(); location.reload(); }">
+                Limpar todos os dados salvos
+            </button>
+        </div>
+
+        <!-- Table Container -->
+        <div class="overflow-x-auto table-container rounded-lg shadow-xl border border-gray-200">
+            <!-- Definindo largura mínima grande para comportar 12 meses + textos completos -->
+            <table class="w-full border-collapse bg-white text-xs md:text-sm text-center min-w-[2200px]">
                 <thead>
                     <tr class="bg-zinc-900 text-white uppercase text-[10px] md:text-xs tracking-wider">
-                        <th class="p-3 md:p-4 text-left w-1/4 sticky left-0 bg-zinc-900 z-10">Medida (cm)</th>
-                        <th class="p-3 md:p-4 border-l border-zinc-700 w-[18%]">Mês 1</th>
-                        <th class="p-3 md:p-4 border-l border-zinc-700 w-[18%]">Mês 2</th>
-                        <th class="p-3 md:p-4 border-l border-zinc-700 w-[18%]">Mês 3</th>
-                        <th class="p-3 md:p-4 border-l border-zinc-700 w-[18%]">Mês 4</th>
+                        <!-- Cabeçalho Coluna Fixa -->
+                        <th class="p-3 md:p-4 text-left w-[200px] sticky-col bg-zinc-900 border-r border-zinc-700">Medida (cm)</th>
+                        
+                        <!-- 12 Meses Headers -->
+                        <script>
+                            // Script inline para gerar os 12 cabeçalhos para não poluir o HTML visualmente
+                            for(let i=1; i<=12; i++) {
+                                // Alterna a cor do fundo sutilmente entre meses no cabeçalho
+                                const bgClass = i % 2 === 0 ? 'bg-zinc-800' : 'bg-zinc-900';
+                                document.write(`
+                                    <th class="p-3 md:p-4 border-l border-zinc-700 min-w-[160px] ${bgClass}">
+                                        <div class="flex flex-col items-center gap-2">
+                                            <span class="font-bold text-sm">Mês ${i}</span>
+                                            <button onclick="copyMonthData(${i})" class="copy-btn bg-white/10 hover:bg-red-600 px-3 py-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] shadow-sm">
+                                                <i data-lucide="copy" class="w-3 h-3"></i> COPIAR
+                                            </button>
+                                        </div>
+                                    </th>
+                                `);
+                            }
+                        </script>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                    <tr class="bg-red-50 font-bold text-red-800">
-                        <td class="p-3 md:p-4 text-left sticky left-0 bg-red-50">Peso (kg)</td>
-                        <td class="border-l border-red-100"><input type="text" inputmode="decimal" class="measure-input" data-id="peso-m1" placeholder="-"></td>
-                        <td class="border-l border-red-100"><input type="text" inputmode="decimal" class="measure-input" data-id="peso-m2" placeholder="-"></td>
-                        <td class="border-l border-red-100"><input type="text" inputmode="decimal" class="measure-input" data-id="peso-m3" placeholder="-"></td>
-                        <td class="border-l border-red-100"><input type="text" inputmode="decimal" class="measure-input" data-id="peso-m4" placeholder="-"></td>
+                <tbody class="divide-y divide-gray-200">
+                    
+                    <!-- LINHA: PESO -->
+                    <tr class="font-bold text-red-800">
+                        <td class="p-3 md:p-4 text-left sticky-col bg-red-50 border-r border-red-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Peso (kg)</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-red-100' : 'bg-red-50';
+                                document.write(`
+                                    <td class="border-l border-red-200 ${bgClass}">
+                                        <input type="text" inputmode="decimal" class="measure-input text-base" data-id="peso-m${i}" data-label="Peso" placeholder="-">
+                                    </td>
+                                `);
+                            }
+                        </script>
                     </tr>
                     
-                    <!-- Braços -->
-                    <tr class="bg-gray-100"><td colspan="5" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100">Braços</td></tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Antebraço (E/D)</td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="ant-m1" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="ant-m2" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="ant-m3" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="ant-m4" placeholder="/"></td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Braço Relax. (E/D)</td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="brlx-m1" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="brlx-m2" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="brlx-m3" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="brlx-m4" placeholder="/"></td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Braço Contr. (E/D)</td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="bcon-m1" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="bcon-m2" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="bcon-m3" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="bcon-m4" placeholder="/"></td>
+                    <!-- BRAÇOS -->
+                    <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Membros Superiores</td></tr>
+                    
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Antebraço</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`
+                                    <td class="border-l border-gray-200 ${bgClass}">
+                                        <div class="flex divide-x divide-gray-200">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-m${i}-l" data-label="Antebraço Esq" placeholder="Esquerdo">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-m${i}-r" data-label="Antebraço Dir" placeholder="Direito">
+                                        </div>
+                                    </td>
+                                `);
+                            }
+                        </script>
                     </tr>
 
-                    <!-- Tronco -->
-                    <tr class="bg-gray-100"><td colspan="5" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100">Tronco</td></tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Ombro</td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="omb-m1" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="omb-m2" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="omb-m3" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="omb-m4" placeholder="-"></td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Tórax</td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="tor-m1" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="tor-m2" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="tor-m3" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="tor-m4" placeholder="-"></td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Cintura</td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="cin-m1" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="cin-m2" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="cin-m3" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="cin-m4" placeholder="-"></td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Abdômen</td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="abd-m1" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="abd-m2" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="abd-m3" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="abd-m4" placeholder="-"></td>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Braço Relaxado</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`
+                                    <td class="border-l border-gray-200 ${bgClass}">
+                                        <div class="flex divide-x divide-gray-200">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-m${i}-l" data-label="Braço Relax Esq" placeholder="Esquerdo">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-m${i}-r" data-label="Braço Relax Dir" placeholder="Direito">
+                                        </div>
+                                    </td>
+                                `);
+                            }
+                        </script>
                     </tr>
 
-                    <!-- Inferiores -->
-                    <tr class="bg-gray-100"><td colspan="5" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100">Inferiores</td></tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Quadril</td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="qua-m1" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="qua-m2" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="qua-m3" placeholder="-"></td>
-                        <td class="border-l px-2"><input type="text" inputmode="decimal" class="measure-input" data-id="qua-m4" placeholder="-"></td>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Braço Contraído</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`
+                                    <td class="border-l border-gray-200 ${bgClass}">
+                                        <div class="flex divide-x divide-gray-200">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-m${i}-l" data-label="Braço Contr Esq" placeholder="Esquerdo">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-m${i}-r" data-label="Braço Contr Dir" placeholder="Direito">
+                                        </div>
+                                    </td>
+                                `);
+                            }
+                        </script>
                     </tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Coxa (E/D)</td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="cox-m1" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="cox-m2" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="cox-m3" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="cox-m4" placeholder="/"></td>
+
+                    <!-- TRONCO -->
+                    <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Tronco</td></tr>
+                    
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Ombro</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="omb-m${i}" data-label="Ombro" placeholder="-"></td>`);
+                            }
+                        </script>
                     </tr>
-                    <tr>
-                        <td class="p-3 text-left text-gray-600 font-medium sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Panturrilha (E/D)</td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="pan-m1" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="pan-m2" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="pan-m3" placeholder="/"></td>
-                        <td class="border-l"><input type="text" class="measure-input" data-id="pan-m4" placeholder="/"></td>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Tórax</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="tor-m${i}" data-label="Tórax" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Cintura</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="cin-m${i}" data-label="Cintura" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Abdômen</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="abd-m${i}" data-label="Abdômen" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+
+                    <!-- INFERIORES -->
+                    <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Membros Inferiores</td></tr>
+                    
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Quadril</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="qua-m${i}" data-label="Quadril" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Coxa</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`
+                                    <td class="border-l border-gray-200 ${bgClass}">
+                                        <div class="flex divide-x divide-gray-200">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-m${i}-l" data-label="Coxa Esq" placeholder="Esquerdo">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-m${i}-r" data-label="Coxa Dir" placeholder="Direito">
+                                        </div>
+                                    </td>
+                                `);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Panturrilha</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`
+                                    <td class="border-l border-gray-200 ${bgClass}">
+                                        <div class="flex divide-x divide-gray-200">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-m${i}-l" data-label="Panturrilha Esq" placeholder="Esquerdo">
+                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-m${i}-r" data-label="Panturrilha Dir" placeholder="Direito">
+                                        </div>
+                                    </td>
+                                `);
+                            }
+                        </script>
                     </tr>
                 </tbody>
             </table>
@@ -669,18 +788,15 @@
     </section>
 
     <!-- Fotos Section -->
-    <section class="bg-zinc-900 text-white py-16 md:py-24">
+    <section class="bg-zinc-900 text-white py-16 md:py-24 page-break">
         <div class="container mx-auto px-4 md:px-6">
-            <!-- Parte Superior: Título e Dicas -->
             <div class="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 mb-12">
-                <!-- Coluna Esquerda: Título -->
                 <div class="w-full lg:w-1/3 text-center lg:text-right flex flex-col items-center lg:items-end">
                     <h2 class="text-3xl md:text-5xl font-black text-red-600 mb-2 tracking-tighter">FOTOS</h2>
                     <h3 class="text-xl md:text-3xl font-bold mb-4 text-white">EVOLUTIVAS</h3>
                     <p class="text-gray-400 text-sm md:text-base max-w-xs lg:max-w-none">Acompanhe visualmente o que os números não mostram.</p>
                 </div>
 
-                <!-- Coluna Direita: Grid de Dicas -->
                 <div class="w-full lg:w-2/3 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left">
                         <i data-lucide="camera" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
@@ -700,7 +816,6 @@
                 </div>
             </div>
 
-            <!-- Parte Inferior: Imagem Grande Centralizada -->
             <div class="flex justify-center w-full">
                 <div class="relative w-full max-w-6xl rounded-lg overflow-hidden border-4 border-red-600 shadow-2xl">
                     <img src="https://i.imgur.com/1aSuKzZ.png" loading="lazy" alt="Exemplo Foto Evolutiva" class="w-full h-auto object-cover">
@@ -712,14 +827,11 @@
     <!-- Footer -->
     <footer class="bg-black text-white text-center py-12 md:py-20 border-t-4 border-red-800">
         <div class="container mx-auto px-4">
-            
-            <!-- Frase Motivacional -->
             <p class="text-base md:text-2xl text-gray-300 mb-8 font-light max-w-3xl mx-auto italic leading-relaxed">
                 Seu corpo acompanha aquilo que sua mente acredita.<br class="hidden md:block"> <span class="text-red-600 font-bold block md:inline mt-2 md:mt-0">@diegomacielx</span> te ajuda a acreditar mais!
             </p>
 
-            <!-- Botão Instagram -->
-            <a href="https://www.instagram.com/diegomacielx/" target="_blank" class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-10 rounded-full transition-all transform hover:scale-105 hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] mb-16 text-sm md:text-base">
+            <a href="https://www.instagram.com/diegomacielx/" target="_blank" class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-10 rounded-full transition-all transform hover:scale-105 hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] mb-16 text-sm md:text-base no-print">
                 <i data-lucide="instagram" class="w-5 h-5 mr-2"></i>
                 ACOMPANHE NO INSTAGRAM
             </a>
@@ -750,7 +862,7 @@
                 menu.classList.remove('translate-x-full');
                 btn.innerHTML = '<i data-lucide="x" class="w-8 h-8"></i>';
                 lucide.createIcons();
-                document.body.style.overflow = 'hidden'; // Prevent scrolling
+                document.body.style.overflow = 'hidden'; 
             } else {
                 menu.classList.add('translate-x-full');
                 btn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
@@ -759,7 +871,6 @@
             }
         });
 
-        // Close menu when clicking a link
         links.forEach(link => {
             link.addEventListener('click', () => {
                 isMenuOpen = false;
@@ -770,23 +881,82 @@
             });
         });
 
-        // Local Storage Logic for Inputs
+        // Local Storage Logic
         document.addEventListener('DOMContentLoaded', () => {
-            const inputs = document.querySelectorAll('.measure-input');
-
-            // Load saved data
-            inputs.forEach(input => {
-                const savedValue = localStorage.getItem(input.dataset.id);
-                if (savedValue) {
-                    input.value = savedValue;
-                }
-
-                // Save data on change
-                input.addEventListener('input', (e) => {
-                    localStorage.setItem(e.target.dataset.id, e.target.value);
+            // Pequeno atraso para garantir que os inputs gerados via JS estejam no DOM
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('.measure-input');
+                inputs.forEach(input => {
+                    const savedValue = localStorage.getItem(input.dataset.id);
+                    if (savedValue) {
+                        input.value = savedValue;
+                    }
+                    input.addEventListener('input', (e) => {
+                        localStorage.setItem(e.target.dataset.id, e.target.value);
+                    });
                 });
-            });
+            }, 100);
         });
+
+        // Função de Cópia Atualizada (Proteção contra bugs com números tipo 1 vs 10)
+        function copyMonthData(monthIndex) {
+            const date = new Date().toLocaleDateString('pt-BR');
+            let report = `📊 *RELATÓRIO DE EVOLUÇÃO - MÊS ${monthIndex}*\n`;
+            report += `📅 Data: ${date}\n`;
+            report += `------------------------------\n`;
+
+            const allInputs = document.querySelectorAll('.measure-input');
+            const groups = {};
+            let hasData = false;
+            
+            allInputs.forEach(input => {
+                const id = input.dataset.id; // Ex: ant-m1-l ou peso-m12
+                const idParts = id.split('-');
+                
+                // Verifica exatidão para não puxar mês 12 ao clicar no mês 1 (m1 !== m12)
+                if (idParts[1] === `m${monthIndex}`) {
+                    const label = input.dataset.label;
+                    const val = input.value || "---";
+                    if(input.value) hasData = true;
+
+                    if (label.includes("Esq") || label.includes("Dir")) {
+                        const baseLabel = label.replace(" Esq", "").replace(" Dir", "");
+                        if (!groups[baseLabel]) groups[baseLabel] = { e: "---", d: "---" };
+                        
+                        if (label.includes("Esq")) groups[baseLabel].e = val;
+                        if (label.includes("Dir")) groups[baseLabel].d = val;
+                    } else {
+                        report += `*${label}:* ${val}\n`;
+                    }
+                }
+            });
+
+            for (const [name, measures] of Object.entries(groups)) {
+                report += `*${name}:* ${measures.e} | ${measures.d}\n`;
+            }
+
+
+            if(!hasData) {
+                showToast(`Nenhum dado preenchido no Mês ${monthIndex}.`);
+                return;
+            }
+
+            const el = document.createElement('textarea');
+            el.value = report;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast(`Relatório do Mês ${monthIndex} copiado!`);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
     </script>
 </body>
 </html>
