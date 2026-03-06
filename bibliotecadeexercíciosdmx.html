@@ -253,7 +253,7 @@
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80 z-20" />
                         
-                        <div className="absolute top-5 left-5 flex gap-2 z-30">
+                        <div className="absolute top-5 left-5 flex flex-col items-start gap-2 z-30">
                             <div className="bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase italic border border-white/10 shadow-lg shadow-red-600/30">#{ex.id}</div>
                             {isAdmin && isExerciseIncomplete(ex.youtubeUrl) && (
                                 <div className="bg-amber-500 text-black text-[10px] font-black px-2.5 py-1 rounded-lg uppercase border border-white/10 shadow-lg">INCOMPLETO</div>
