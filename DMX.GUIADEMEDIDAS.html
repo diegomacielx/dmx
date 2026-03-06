@@ -29,7 +29,6 @@
             background-color: #DC2626;
         }
 
-        /* Mobile Menu Transition */
         #mobile-menu {
             transition: transform 0.3s ease-in-out;
         }
@@ -38,29 +37,15 @@
         .table-container {
             position: relative;
             background-color: white;
-            /* Scrollbar personalizada para melhorar UX */
             scrollbar-width: thin;
             scrollbar-color: #cbd5e1 #f8fafc;
         }
 
-        /* Scrollbar Webkit (Chrome, Edge, Safari) */
-        .table-container::-webkit-scrollbar {
-            height: 12px;
-        }
-        .table-container::-webkit-scrollbar-track {
-            background: #f8fafc;
-            border-radius: 0 0 8px 8px;
-        }
-        .table-container::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 8px;
-            border: 3px solid #f8fafc;
-        }
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background-color: #94a3b8;
-        }
+        .table-container::-webkit-scrollbar { height: 12px; }
+        .table-container::-webkit-scrollbar-track { background: #f8fafc; border-radius: 0 0 8px 8px; }
+        .table-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 8px; border: 3px solid #f8fafc; }
+        .table-container::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
-        /* Estilo dos Inputs na Tabela */
         .measure-input {
             width: 100%;
             background: transparent;
@@ -71,29 +56,12 @@
             padding: 6px 4px;
             font-size: 0.8rem;
         }
-        .measure-input:focus {
-            background-color: #FEF2F2; /* Red-50 */
-            border-radius: 4px;
-        }
-        .measure-input::placeholder {
-            color: #D1D5DB;
-            font-weight: 500;
-        }
+        .measure-input:focus { background-color: #FEF2F2; border-radius: 4px; }
+        .measure-input::placeholder { color: #D1D5DB; font-weight: 500; }
 
-        /* Coluna Congelada com Sombra */
-        .sticky-col {
-            position: sticky;
-            left: 0;
-            z-index: 20;
-            box-shadow: 4px 0 10px -2px rgba(0,0,0,0.1);
-        }
-        /* Header Congelado sobrepõe a Coluna Congelada */
-        th.sticky-col {
-            z-index: 30;
-            box-shadow: 4px 0 10px -2px rgba(0,0,0,0.3);
-        }
+        .sticky-col { position: sticky; left: 0; z-index: 20; box-shadow: 4px 0 10px -2px rgba(0,0,0,0.1); }
+        th.sticky-col { z-index: 30; box-shadow: 4px 0 10px -2px rgba(0,0,0,0.3); }
 
-        /* Toast Message (Mensagem de Copiado) */
         #toast {
             visibility: hidden;
             min-width: 250px;
@@ -119,164 +87,107 @@
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 
-        /* --- OTIMIZAÇÃO DE IMPRESSÃO PROFISSIONAL (CORRIGIDO) --- */
+        /* WIZARD ANIMATIONS */
+        .wizard-enter {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* WIZARD INPUT STYLES */
+        .wizard-input {
+            font-size: 2rem;
+            text-align: center;
+            font-weight: 900;
+            color: #DC2626;
+            background-color: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1rem;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .wizard-input:focus {
+            outline: none;
+            border-color: #DC2626;
+            background-color: #FEF2F2;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+        .wizard-input::placeholder {
+            color: #d1d5db;
+            font-weight: 400;
+        }
+
+        /* --- OTIMIZAÇÃO DE IMPRESSÃO --- */
         @media print {
-            /* 1. Configuração da Página - Forçar Paisagem para caber os 12 meses */
-            @page { 
-                size: landscape; 
-                margin: 10mm; 
-            }
-
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                text-shadow: none !important;
-                box-shadow: none !important;
-            }
-
-            body {
-                background-color: white !important;
-                color: black !important;
-                margin: 0;
-                padding: 0;
-            }
-
-            /* Esconder o que não precisa ser impresso */
-            .no-print, #mobile-menu-btn, #mobile-menu, header nav, #clear-data-btn, .animate-bounce, .copy-btn, .scroll-hint-box {
-                display: none !important;
-            }
-
-            /* 2. Correção do Cabeçalho e Logo Gigante */
-            header {
-                position: static !important; /* Tira o fixed/sticky */
-                height: auto !important;
-                padding: 15px 0 !important;
-                background-color: #18181B !important;
-                color: white !important;
-                border-bottom: 2px solid #DC2626 !important;
-            }
-            
-            header .container {
-                display: flex !important;
-                justify-content: center !important; /* Centraliza tudo */
-                align-items: center !important;
-            }
-            
-            /* Esconde as divs laterais que quebravam o layout sem os botões */
-            header .container > div.flex.items-center { 
-                display: none !important; 
-            }
-            
-            /* Reposiciona a logo de forma segura */
-            header a.group {
-                position: static !important;
-                transform: none !important;
-                margin: 0 auto !important;
-                display: block !important;
-            }
-            header a.group img {
-                height: 50px !important; /* Altura controlada */
-                width: auto !important;
-                position: static !important;
-                transform: none !important;
-            }
-
-            /* 3. Correção do Esmagamento da Página (A Tabela) */
-            .table-container {
-                border: 1px solid #e5e7eb !important;
-                overflow: visible !important; /* Libera o scroll */
-            }
-            
-            /* Remove a largura forçada gigante e força a caber na página */
-            #main-table {
-                min-width: 100% !important;
-                width: 100% !important;
-                table-layout: fixed !important; /* Força colunas a terem larguras iguais */
-            }
-            
-            /* Remove a trava de largura dos cabeçalhos dos meses */
-            #main-table th.min-w-\[160px\] {
-                min-width: 0 !important;
-                width: auto !important;
-            }
-
-            /* Ajuste dos textos da tabela para caberem lado a lado */
-            #main-table th, #main-table td {
-                padding: 4px 2px !important;
-                font-size: 8px !important; /* Fonte menor para caber 12 colunas */
-                border: 1px solid #e5e7eb !important;
-                word-wrap: break-word;
-            }
-
-            /* Desliga o congelamento da primeira coluna que bugava no papel */
-            #main-table th.sticky-col, #main-table td.sticky-col {
-                position: static !important;
-                width: 70px !important;
-                min-width: 70px !important;
-                box-shadow: none !important;
-                background-color: #f3f4f6 !important; /* Fundo cinza para destacar */
-            }
-
-            /* Reduz inputs */
-            .measure-input {
-                font-size: 8px !important;
-                padding: 1px !important;
-                border: none !important;
-                color: black !important;
-            }
-            .measure-input::placeholder {
-                font-size: 6px !important;
-                color: #9ca3af !important;
-            }
-
-            /* 4. Evita cortar Cards e Imagens no meio da página */
-            .grid > div, section, tr, li, .page-break-inside-avoid {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            
-            /* Imagem final FOTOS não pode ser gigante */
-            .max-w-6xl {
-                max-width: 100% !important;
-                border: 2px solid #DC2626 !important;
-                box-shadow: none !important;
-            }
-            .max-w-6xl img {
-                max-height: 350px !important; /* Trava altura */
-                width: auto !important;
-                margin: 0 auto;
-                object-fit: contain !important;
-            }
-
-            /* Cores básicas */
+            @page { size: landscape; margin: 10mm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-shadow: none !important; box-shadow: none !important; }
+            body { background-color: white !important; color: black !important; margin: 0; padding: 0; }
+            .no-print, #mobile-menu-btn, #mobile-menu, header nav, #clear-data-btn, .animate-bounce, .copy-btn, .scroll-hint-box, #wizard-modal { display: none !important; }
+            header { position: static !important; height: auto !important; padding: 15px 0 !important; background-color: #18181B !important; color: white !important; border-bottom: 2px solid #DC2626 !important; }
+            header .container { display: flex !important; justify-content: center !important; align-items: center !important; }
+            header .container > div.flex.items-center { display: none !important; }
+            header a.group { position: static !important; transform: none !important; margin: 0 auto !important; display: block !important; }
+            header a.group img { height: 50px !important; width: auto !important; position: static !important; transform: none !important; }
+            .table-container { border: 1px solid #e5e7eb !important; overflow: visible !important; }
+            #main-table { min-width: 100% !important; width: 100% !important; table-layout: fixed !important; }
+            #main-table th.min-w-\[160px\] { min-width: 0 !important; width: auto !important; }
+            #main-table th, #main-table td { padding: 4px 2px !important; font-size: 8px !important; border: 1px solid #e5e7eb !important; word-wrap: break-word; }
+            #main-table th.sticky-col, #main-table td.sticky-col { position: static !important; width: 70px !important; min-width: 70px !important; box-shadow: none !important; background-color: #f3f4f6 !important; }
+            .measure-input { font-size: 8px !important; padding: 1px !important; border: none !important; color: black !important; }
+            .measure-input::placeholder { font-size: 6px !important; color: #9ca3af !important; }
+            .grid > div, section, tr, li, .page-break-inside-avoid { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .max-w-6xl { max-width: 100% !important; border: 2px solid #DC2626 !important; box-shadow: none !important; }
+            .max-w-6xl img { max-height: 350px !important; width: auto !important; margin: 0 auto; object-fit: contain !important; }
             .bg-red-600 { background-color: #DC2626 !important; color: white !important; }
             .bg-zinc-800 { background-color: #27272A !important; color: white !important; }
             .bg-red-50 { background-color: #FEF2F2 !important; }
-
-            /* Grid de Fotos */
             .grid { display: grid !important; }
-            .grid-cols-1, .md\:grid-cols-2, .lg\:grid-cols-3 {
-                grid-template-columns: repeat(3, 1fr) !important;
-                gap: 10px !important;
-            }
-
-            /* Botão Instagram visível como link verde/vermelho */
-            a[href*="instagram"] {
-                display: inline-flex !important;
-                background-color: #DC2626 !important;
-                color: white !important;
-                border-radius: 9999px !important;
-                padding: 10px 20px !important;
-                text-decoration: none !important;
-                margin-bottom: 20px !important;
-            }
+            .grid-cols-1, .md\:grid-cols-2, .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
+            a[href*="instagram"] { display: inline-flex !important; background-color: #DC2626 !important; color: white !important; border-radius: 9999px !important; padding: 10px 20px !important; text-decoration: none !important; margin-bottom: 20px !important; }
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 overflow-x-hidden">
 
     <!-- Toast Notification -->
-    <div id="toast">Relatório copiado com sucesso!</div>
+    <div id="toast">Ação realizada!</div>
+
+    <!-- WIZARD MODAL (FULLSCREEN) -->
+    <div id="wizard-modal" class="fixed inset-0 z-[100] bg-white hidden flex-col transition-opacity duration-300">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-100">
+            <div>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest" id="wizard-month-label">MÊS 1</span>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="w-24 md:w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div id="wizard-progress-bar" class="h-full bg-red-600 transition-all duration-300 w-0"></div>
+                    </div>
+                    <span id="wizard-progress-text" class="text-xs font-bold text-zinc-800">0/11</span>
+                </div>
+            </div>
+            <button onclick="closeWizard()" class="p-2 bg-gray-100 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors text-gray-500">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="flex-grow flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto wizard-enter" id="wizard-content">
+            <!-- Dynamic Content Injected via JS -->
+        </div>
+
+        <!-- Footer / Controls -->
+        <div class="p-4 md:p-6 bg-white border-t border-gray-100 flex justify-between items-center gap-4 pb-8">
+            <button id="btn-wizard-prev" onclick="wizardPrev()" class="flex-1 py-4 md:py-5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i> VOLTAR
+            </button>
+            <button id="btn-wizard-next" onclick="wizardNext()" class="flex-[2] py-4 md:py-5 rounded-xl font-black text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/30 transition-all transform active:scale-95 flex justify-center items-center gap-2 text-lg">
+                PRÓXIMO <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- Navbar / Header -->
     <header class="bg-black text-white shadow-lg sticky top-0 z-50 transition-all duration-300" id="main-header">
@@ -436,7 +347,6 @@
 
             <!-- Grid de Cards de Medidas -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 print-grid mb-12">
-                
                 <!-- 1. Antebraço -->
                 <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
@@ -643,11 +553,10 @@
         <div class="text-center mb-6">
             <h2 class="text-2xl md:text-3xl font-bold section-title text-zinc-800">REGISTRO (12 MESES)</h2>
             <p class="text-gray-500 mt-2 text-sm md:text-base">
-                Digite seus dados abaixo para acompanhar sua evolução ao longo do ano.
+                Acompanhe sua evolução. <strong class="text-red-600">No celular, clique em "Preencher"</strong> para uma experiência otimizada.
             </p>
         </div>
 
-        <!-- Scroll Hint Visual -->
         <div class="flex justify-center items-center mb-4 text-red-600 animate-pulse scroll-hint-box font-bold text-sm bg-red-50 py-2 px-4 rounded-full max-w-xs mx-auto border border-red-100">
             <i data-lucide="move-horizontal" class="w-5 h-5 mr-2"></i>
             <span>Deslize a tabela para ver mais meses</span>
@@ -661,14 +570,11 @@
 
         <!-- Table Container -->
         <div class="overflow-x-auto table-container rounded-lg shadow-xl">
-            <!-- Tabela otimizada para Desktop (Scroll) e Impressão (Fixo na Página) -->
             <table id="main-table" class="w-full border-collapse bg-white text-xs md:text-sm text-center min-w-[2200px]">
                 <thead>
                     <tr class="bg-zinc-900 text-white uppercase text-[10px] md:text-xs tracking-wider">
-                        <!-- Cabeçalho Coluna Fixa -->
                         <th class="p-3 md:p-4 text-left w-[200px] sticky-col bg-zinc-900 border-r border-zinc-700">Medida (cm)</th>
                         
-                        <!-- 12 Meses Headers -->
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-zinc-800' : 'bg-zinc-900';
@@ -676,7 +582,13 @@
                                     <th class="p-3 md:p-4 border-l border-zinc-700 min-w-[160px] ${bgClass}">
                                         <div class="flex flex-col items-center gap-2">
                                             <span class="font-bold text-sm">Mês ${i}</span>
-                                            <button onclick="copyMonthData(${i})" class="copy-btn bg-white/10 hover:bg-red-600 px-3 py-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] shadow-sm">
+                                            
+                                            <!-- NOVO BOTÃO DE WIZARD PARA CELULAR/DESKTOP -->
+                                            <button onclick="openWizard(${i})" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 text-[10px] shadow-sm mb-1">
+                                                <i data-lucide="edit-3" class="w-3 h-3"></i> PREENCHER
+                                            </button>
+
+                                            <button onclick="copyMonthData(${i})" class="w-full bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 text-[10px] shadow-sm text-gray-300">
                                                 <i data-lucide="copy" class="w-3 h-3"></i> COPIAR
                                             </button>
                                         </div>
@@ -688,22 +600,16 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     
-                    <!-- LINHA: PESO -->
                     <tr class="font-bold text-red-800">
                         <td class="p-3 md:p-4 text-left sticky-col bg-red-50 border-r border-red-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Peso (kg)</td>
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-red-100' : 'bg-red-50';
-                                document.write(`
-                                    <td class="border-l border-red-200 ${bgClass}">
-                                        <input type="text" inputmode="decimal" class="measure-input text-base" data-id="peso-m${i}" data-label="Peso" placeholder="-">
-                                    </td>
-                                `);
+                                document.write(`<td class="border-l border-red-200 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input text-base" data-id="peso-m${i}" data-label="Peso" placeholder="-"></td>`);
                             }
                         </script>
                     </tr>
                     
-                    <!-- BRAÇOS -->
                     <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Membros Superiores</td></tr>
                     
                     <tr class="hover:bg-gray-50 transition">
@@ -711,14 +617,7 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`
-                                    <td class="border-l border-gray-200 ${bgClass}">
-                                        <div class="flex divide-x divide-gray-200">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-m${i}-l" data-label="Antebraço Esq" placeholder="Esquerdo">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-m${i}-r" data-label="Antebraço Dir" placeholder="Direito">
-                                        </div>
-                                    </td>
-                                `);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-l-m${i}" data-label="Antebraço Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-r-m${i}" data-label="Antebraço Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -728,14 +627,7 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`
-                                    <td class="border-l border-gray-200 ${bgClass}">
-                                        <div class="flex divide-x divide-gray-200">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-m${i}-l" data-label="Braço Relax Esq" placeholder="Esquerdo">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-m${i}-r" data-label="Braço Relax Dir" placeholder="Direito">
-                                        </div>
-                                    </td>
-                                `);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-l-m${i}" data-label="Braço Relax Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-r-m${i}" data-label="Braço Relax Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -745,19 +637,11 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`
-                                    <td class="border-l border-gray-200 ${bgClass}">
-                                        <div class="flex divide-x divide-gray-200">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-m${i}-l" data-label="Braço Contr Esq" placeholder="Esquerdo">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-m${i}-r" data-label="Braço Contr Dir" placeholder="Direito">
-                                        </div>
-                                    </td>
-                                `);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-l-m${i}" data-label="Braço Contr Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-r-m${i}" data-label="Braço Contr Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
 
-                    <!-- TRONCO -->
                     <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Tronco</td></tr>
                     
                     <tr class="hover:bg-gray-50 transition">
@@ -797,7 +681,6 @@
                         </script>
                     </tr>
 
-                    <!-- INFERIORES -->
                     <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Membros Inferiores</td></tr>
                     
                     <tr class="hover:bg-gray-50 transition">
@@ -814,14 +697,7 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`
-                                    <td class="border-l border-gray-200 ${bgClass}">
-                                        <div class="flex divide-x divide-gray-200">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-m${i}-l" data-label="Coxa Esq" placeholder="Esquerdo">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-m${i}-r" data-label="Coxa Dir" placeholder="Direito">
-                                        </div>
-                                    </td>
-                                `);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-l-m${i}" data-label="Coxa Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-r-m${i}" data-label="Coxa Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -830,14 +706,7 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`
-                                    <td class="border-l border-gray-200 ${bgClass}">
-                                        <div class="flex divide-x divide-gray-200">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-m${i}-l" data-label="Panturrilha Esq" placeholder="Esquerdo">
-                                            <input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-m${i}-r" data-label="Panturrilha Dir" placeholder="Direito">
-                                        </div>
-                                    </td>
-                                `);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-l-m${i}" data-label="Panturrilha Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-r-m${i}" data-label="Panturrilha Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -909,7 +778,7 @@
     <script>
         lucide.createIcons();
 
-        // Mobile Menu Logic
+        // Menu Mobile
         const btn = document.getElementById('mobile-menu-btn');
         const menu = document.getElementById('mobile-menu');
         const links = document.querySelectorAll('.mobile-link');
@@ -940,15 +809,15 @@
             });
         });
 
-        // Local Storage Logic
+        // Carregar dados salvos
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const inputs = document.querySelectorAll('.measure-input');
                 inputs.forEach(input => {
                     const savedValue = localStorage.getItem(input.dataset.id);
-                    if (savedValue) {
-                        input.value = savedValue;
-                    }
+                    if (savedValue) { input.value = savedValue; }
+                    
+                    // Salvar sempre que digitar algo na tabela normal
                     input.addEventListener('input', (e) => {
                         localStorage.setItem(e.target.dataset.id, e.target.value);
                     });
@@ -956,7 +825,174 @@
             }, 100);
         });
 
-        // Função de Cópia Atualizada
+        /* =========================================
+           WIZARD (FORMULÁRIO PASSO A PASSO)
+           ========================================= */
+        let currentWizardMonth = 1;
+        let currentWizardStep = 0;
+
+        // Configuração exata das etapas
+        const wizardSteps = [
+            { id: 'peso', title: 'Peso Corporal', desc: 'Sua pesagem atual.', type: 'single', label: 'Peso (kg)' },
+            { id: 'ant', title: 'Antebraço', desc: 'Maior circunferência.', type: 'double' },
+            { id: 'brlx', title: 'Braço Relaxado', desc: 'Maior circunferência.', type: 'double' },
+            { id: 'bcon', title: 'Braço Contraído', desc: 'Maior circunferência.', type: 'double' },
+            { id: 'omb', title: 'Ombro', desc: 'Passe a fita entre os pontos mais largos.', type: 'single', label: 'Medida (cm)' },
+            { id: 'tor', title: 'Tórax', desc: 'Debaixo das axilas.', type: 'single', label: 'Medida (cm)' },
+            { id: 'cin', title: 'Cintura', desc: 'Acima do umbigo.', type: 'single', label: 'Medida (cm)' },
+            { id: 'abd', title: 'Abdômen', desc: 'Por cima do umbigo.', type: 'single', label: 'Medida (cm)' },
+            { id: 'qua', title: 'Quadril', desc: 'Meio do glúteo.', type: 'single', label: 'Medida (cm)' },
+            { id: 'cox', title: 'Coxa', desc: 'Maior circunferência.', type: 'double' },
+            { id: 'pan', title: 'Panturrilha', desc: 'Maior circunferência.', type: 'double' }
+        ];
+
+        function openWizard(monthIndex) {
+            currentWizardMonth = monthIndex;
+            currentWizardStep = 0;
+            
+            document.getElementById('wizard-month-label').innerText = `PREENCHENDO: MÊS ${monthIndex}`;
+            document.getElementById('wizard-modal').classList.remove('hidden');
+            document.getElementById('wizard-modal').classList.add('flex');
+            document.body.style.overflow = 'hidden'; // Bloqueia scroll atrás
+            
+            renderWizardStep();
+        }
+
+        function closeWizard() {
+            document.getElementById('wizard-modal').classList.add('hidden');
+            document.getElementById('wizard-modal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        function renderWizardStep() {
+            const step = wizardSteps[currentWizardStep];
+            const content = document.getElementById('wizard-content');
+            
+            // Animação de entrada
+            content.classList.remove('wizard-enter');
+            void content.offsetWidth; // Trigger reflow
+            content.classList.add('wizard-enter');
+
+            // Atualizar barra de progresso
+            const progress = ((currentWizardStep + 1) / wizardSteps.length) * 100;
+            document.getElementById('wizard-progress-bar').style.width = `${progress}%`;
+            document.getElementById('wizard-progress-text').innerText = `${currentWizardStep + 1}/${wizardSteps.length}`;
+
+            // Controlar botões
+            document.getElementById('btn-wizard-prev').disabled = currentWizardStep === 0;
+            
+            if (currentWizardStep === wizardSteps.length - 1) {
+                document.getElementById('btn-wizard-next').innerHTML = 'FINALIZAR <i data-lucide="check" class="w-5 h-5"></i>';
+                document.getElementById('btn-wizard-next').classList.replace('bg-red-600', 'bg-green-600');
+                document.getElementById('btn-wizard-next').classList.replace('hover:bg-red-700', 'hover:bg-green-700');
+            } else {
+                document.getElementById('btn-wizard-next').innerHTML = 'PRÓXIMO <i data-lucide="chevron-right" class="w-5 h-5"></i>';
+                document.getElementById('btn-wizard-next').classList.replace('bg-green-600', 'bg-red-600');
+                document.getElementById('btn-wizard-next').classList.replace('hover:bg-green-700', 'hover:bg-red-700');
+            }
+            lucide.createIcons();
+
+            // Construir o HTML do passo atual
+            let html = `
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-5xl font-black text-zinc-900 mb-2">${step.title}</h2>
+                    <p class="text-gray-500 text-sm md:text-lg">${step.desc}</p>
+                </div>
+            `;
+
+            if (step.type === 'single') {
+                // Input Único
+                const inputId = `${step.id}-m${currentWizardMonth}`;
+                const savedVal = localStorage.getItem(inputId) || '';
+                
+                html += `
+                    <div class="w-full max-w-sm">
+                        <label class="block text-center font-bold text-gray-400 text-sm mb-3 uppercase tracking-wider">${step.label}</label>
+                        <input type="text" inputmode="decimal" id="wiz-input-single" class="wizard-input" placeholder="0.0" value="${savedVal}">
+                    </div>
+                `;
+            } else {
+                // Input Duplo (E/D)
+                const idL = `${step.id}-l-m${currentWizardMonth}`;
+                const idR = `${step.id}-r-m${currentWizardMonth}`;
+                const savedValL = localStorage.getItem(idL) || '';
+                const savedValR = localStorage.getItem(idR) || '';
+
+                html += `
+                    <div class="w-full max-w-md grid grid-cols-2 gap-4 md:gap-6">
+                        <div>
+                            <label class="block text-center font-bold text-gray-400 text-xs md:text-sm mb-3 uppercase tracking-wider">Lado Esquerdo</label>
+                            <input type="text" inputmode="decimal" id="wiz-input-l" class="wizard-input" placeholder="Esq" value="${savedValL}">
+                        </div>
+                        <div>
+                            <label class="block text-center font-bold text-gray-400 text-xs md:text-sm mb-3 uppercase tracking-wider">Lado Direito</label>
+                            <input type="text" inputmode="decimal" id="wiz-input-r" class="wizard-input" placeholder="Dir" value="${savedValR}">
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+            
+            // Focar automaticamente no primeiro input (desktop)
+            setTimeout(() => {
+                const firstInput = document.getElementById(step.type === 'single' ? 'wiz-input-single' : 'wiz-input-l');
+                if(firstInput && window.innerWidth > 768) firstInput.focus();
+            }, 300);
+        }
+
+        function saveCurrentStep() {
+            const step = wizardSteps[currentWizardStep];
+            
+            if (step.type === 'single') {
+                const val = document.getElementById('wiz-input-single').value;
+                const id = `${step.id}-m${currentWizardMonth}`;
+                localStorage.setItem(id, val);
+                
+                // Atualizar a tabela por trás
+                const tableInput = document.querySelector(`[data-id="${id}"]`);
+                if(tableInput) tableInput.value = val;
+            } else {
+                const valL = document.getElementById('wiz-input-l').value;
+                const valR = document.getElementById('wiz-input-r').value;
+                const idL = `${step.id}-l-m${currentWizardMonth}`;
+                const idR = `${step.id}-r-m${currentWizardMonth}`;
+                
+                localStorage.setItem(idL, valL);
+                localStorage.setItem(idR, valR);
+                
+                // Atualizar a tabela por trás
+                const tableInputL = document.querySelector(`[data-id="${idL}"]`);
+                const tableInputR = document.querySelector(`[data-id="${idR}"]`);
+                if(tableInputL) tableInputL.value = valL;
+                if(tableInputR) tableInputR.value = valR;
+            }
+        }
+
+        function wizardNext() {
+            saveCurrentStep();
+            
+            if (currentWizardStep < wizardSteps.length - 1) {
+                currentWizardStep++;
+                renderWizardStep();
+            } else {
+                // Finalizou
+                closeWizard();
+                showToast(`Dados do Mês ${currentWizardMonth} salvos com sucesso!`);
+            }
+        }
+
+        function wizardPrev() {
+            saveCurrentStep();
+            if (currentWizardStep > 0) {
+                currentWizardStep--;
+                renderWizardStep();
+            }
+        }
+
+        /* =========================================
+           CÓPIA INTELIGENTE DOS DADOS
+           ========================================= */
         function copyMonthData(monthIndex) {
             const date = new Date().toLocaleDateString('pt-BR');
             let report = `📊 *RELATÓRIO DE EVOLUÇÃO - MÊS ${monthIndex}*\n`;
@@ -970,8 +1006,9 @@
             allInputs.forEach(input => {
                 const id = input.dataset.id; 
                 const idParts = id.split('-');
+                const monthPart = idParts[idParts.length - 1]; // Pega o "-m1", "-m12", etc.
                 
-                if (idParts[1] === `m${monthIndex}`) {
+                if (monthPart === `m${monthIndex}`) {
                     const label = input.dataset.label;
                     const val = input.value || "---";
                     if(input.value) hasData = true;
