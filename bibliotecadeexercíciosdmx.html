@@ -745,19 +745,38 @@
                                                                 <div className="px-3 py-2 bg-white/5 border-b border-white/10 text-[8px] text-zinc-400 font-black uppercase text-center tracking-widest">
                                                                     Qualidade
                                                                 </div>
-                                                                {['4K', '1080p', '720p', '480p'].map(quality => (
-                                                                    <a 
-                                                                        key={quality} 
-                                                                        /* ALERTA: Substitua o link abaixo pela URL base do seu servidor de vídeos */
-                                                                        href={`https://seu-servidor-de-video.com/videos/${ex.id}_${quality}.mp4`} 
-                                                                        target="_blank" 
-                                                                        download 
-                                                                        onClick={(e) => { e.stopPropagation(); setActiveDownloadId(null); }}
-                                                                        className="px-4 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-red-600 text-white transition-colors text-center border-b border-white/5 last:border-0"
-                                                                    >
-                                                                        {quality}
-                                                                    </a>
-                                                                ))}
+                                                                {['4K', '1080p', '720p', '480p'].map(quality => {
+                                                                    if (quality === '4K') {
+                                                                        return (
+                                                                            <a 
+                                                                                key={quality} 
+                                                                                /* ALERTA: Substitua SEU_NOME_DO_BUCKET pelo nome que você criou no Google Cloud */
+                                                                                href={`https://storage.googleapis.com/SEU_NOME_DO_BUCKET/${ex.id}_${quality}.mp4`} 
+                                                                                target="_blank" 
+                                                                                download 
+                                                                                onClick={(e) => { e.stopPropagation(); setActiveDownloadId(null); }}
+                                                                                className="block px-4 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-red-600 text-white transition-colors text-center border-b border-white/5 last:border-0"
+                                                                            >
+                                                                                {quality}
+                                                                            </a>
+                                                                        );
+                                                                    } else {
+                                                                        return (
+                                                                            <button 
+                                                                                key={quality} 
+                                                                                type="button"
+                                                                                onClick={(e) => { 
+                                                                                    e.stopPropagation(); 
+                                                                                    setActiveDownloadId(null);
+                                                                                    showToast("Qualidades abaixo de 4K estarão disponíveis em breve!");
+                                                                                }}
+                                                                                className="w-full px-4 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-red-600 text-white transition-colors text-center border-b border-white/5 last:border-0"
+                                                                            >
+                                                                                {quality}
+                                                                            </button>
+                                                                        );
+                                                                    }
+                                                                })}
                                                             </div>
                                                         )}
                                                     </div>
