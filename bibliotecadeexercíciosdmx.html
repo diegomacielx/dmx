@@ -750,8 +750,8 @@
                                                                         return (
                                                                             <a 
                                                                                 key={quality} 
-                                                                                /* ALERTA: Substitua SEU_NOME_DO_BUCKET pelo nome que você criou no Google Cloud */
-                                                                                href={`https://storage.googleapis.com/ biblioteca-dmx-videos-oficiais/${ex.id}_${quality}.mp4`} 
+                                                                                /* ALERTA: Removido o espaço vazio antes do nome do bucket */
+                                                                                href={`https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_${quality}.mp4`} 
                                                                                 target="_blank" 
                                                                                 download 
                                                                                 onClick={(e) => { e.stopPropagation(); setActiveDownloadId(null); }}
