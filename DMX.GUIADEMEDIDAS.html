@@ -981,6 +981,17 @@
             content.innerHTML = html;
             
             setTimeout(() => {
+                // Adiciona evento para avançar com a tecla "Enter"
+                const wizInputs = document.querySelectorAll('.wizard-input');
+                wizInputs.forEach(input => {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault(); // Evita comportamentos indesejados do navegador
+                            wizardNext();
+                        }
+                    });
+                });
+
                 const firstInput = document.getElementById(step.type === 'single' ? 'wiz-input-single' : 'wiz-input-l');
                 if(firstInput && window.innerWidth > 768) firstInput.focus();
             }, 300);
@@ -1069,8 +1080,6 @@
             for (const [name, measures] of Object.entries(groups)) {
                 report += `*${name}:* ${measures.e} | ${measures.d}\n`;
             }
-
-            report += `\n💪 DMX Performance & Fit`;
 
             if(!hasData) {
                 showToast(`Nenhum dado preenchido no Mês ${monthIndex}.`);
