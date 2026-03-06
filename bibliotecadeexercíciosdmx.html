@@ -339,7 +339,7 @@
                        cleanUrl.includes('youtube.com/...');
             };
 
-            // NOVO: Função inteligente para verificar se o arquivo existe ANTES de baixar
+            // NOVO: Função inteligente e agressiva para forçar o download
             const handleDownloadCheck = async (e, exId, quality) => {
                 e.stopPropagation();
                 setActiveDownloadId(null);
@@ -347,26 +347,34 @@
                 const url = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${exId}_${quality}.mp4`;
 
                 try {
-                    // O site "bate na porta" do Google para ler apenas o cabeçalho do arquivo (sem gastar dados)
+                    // Passo 1: Verifica se o arquivo existe (CORS precisa estar ativo)
                     const response = await fetch(url, { method: 'HEAD' });
 
                     if (response.ok) {
-                        // Arquivo existe! Inicia o download imediatamente
+                        // Passo 2: Forçar o download criando um link temporário com atributos agressivos
                         const link = document.createElement('a');
                         link.href = url;
-                        link.target = '_blank';
-                        link.download = '';
+                        // O atributo download vazio instrui o navegador a salvar o arquivo, não abri-lo
+                        link.setAttribute('download', `${exId}_${quality}.mp4`); 
+                        // Definir o target como blank pode ajudar em alguns navegadores mobile
+                        link.setAttribute('target', '_blank'); 
+                        
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
                     } else {
-                        // Arquivo não existe no Google Cloud
                         showToast("Este exercício ainda não foi upado para download.", "error");
                     }
                 } catch (err) {
-                    // Se a internet falhar ou se o comando CORS do Google não tiver sido executado
                     console.error("Erro de verificação (CORS ou Rede):", err);
-                    showToast("Este exercício ainda não foi upado para download.", "error");
+                    // Fallback agressivo: se o HEAD falhar por erro de CORS, tenta forçar o download na mesma
+                    // Pode falhar com o erro 404 se o arquivo não existir, mas é melhor tentar.
+                     const fallbackLink = document.createElement('a');
+                     fallbackLink.href = url;
+                     fallbackLink.setAttribute('download', `${exId}_${quality}.mp4`); 
+                     document.body.appendChild(fallbackLink);
+                     fallbackLink.click();
+                     document.body.removeChild(fallbackLink);
                 }
             };
 
