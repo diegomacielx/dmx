@@ -119,8 +119,14 @@
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 
-        /* --- OTIMIZAÇÃO DE IMPRESSÃO (PRINT STYLES) --- */
+        /* --- OTIMIZAÇÃO DE IMPRESSÃO PROFISSIONAL (CORRIGIDO) --- */
         @media print {
+            /* 1. Configuração da Página - Forçar Paisagem para caber os 12 meses */
+            @page { 
+                size: landscape; 
+                margin: 10mm; 
+            }
+
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -131,71 +137,130 @@
             body {
                 background-color: white !important;
                 color: black !important;
-                font-size: 12pt;
                 margin: 0;
                 padding: 0;
             }
 
+            /* Esconder o que não precisa ser impresso */
             .no-print, #mobile-menu-btn, #mobile-menu, header nav, #clear-data-btn, .animate-bounce, .copy-btn, .scroll-hint-box {
                 display: none !important;
             }
 
-            .bg-black, .bg-zinc-900 { background-color: #18181B !important; color: white !important; }
-            .bg-red-600 { background-color: #DC2626 !important; color: white !important; }
-            .bg-zinc-800 { background-color: #27272A !important; color: white !important; }
-            .bg-red-50 { background-color: #FEF2F2 !important; }
-            .bg-zinc-100 { background-color: #F4F4F5 !important; }
-
-            .container {
-                width: 100% !important;
-                max-width: 100% !important;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-                margin: 0 !important;
-            }
-
+            /* 2. Correção do Cabeçalho e Logo Gigante */
             header {
-                position: relative !important;
-                padding: 10px 0 !important;
-                background-color: black !important;
-                color: white !important;
-            }
-
-            img {
-                max-width: 100% !important;
+                position: static !important; /* Tira o fixed/sticky */
                 height: auto !important;
-                page-break-inside: avoid;
+                padding: 15px 0 !important;
+                background-color: #18181B !important;
+                color: white !important;
+                border-bottom: 2px solid #DC2626 !important;
             }
             
-            .relative.w-full.max-w-6xl {
-                max-width: 100% !important;
-                width: 100% !important;
-                border: none !important;
-            }
-
-            .grid { display: block !important; }
-            .grid-cols-1, .md\:grid-cols-2, .lg\:grid-cols-3 {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 1rem !important;
+            header .container {
+                display: flex !important;
+                justify-content: center !important; /* Centraliza tudo */
+                align-items: center !important;
             }
             
-            .group, section, tr, li { page-break-inside: avoid; }
+            /* Esconde as divs laterais que quebravam o layout sem os botões */
+            header .container > div.flex.items-center { 
+                display: none !important; 
+            }
+            
+            /* Reposiciona a logo de forma segura */
+            header a.group {
+                position: static !important;
+                transform: none !important;
+                margin: 0 auto !important;
+                display: block !important;
+            }
+            header a.group img {
+                height: 50px !important; /* Altura controlada */
+                width: auto !important;
+                position: static !important;
+                transform: none !important;
+            }
 
+            /* 3. Correção do Esmagamento da Página (A Tabela) */
             .table-container {
-                border: 1px solid #ccc !important;
-                overflow: visible !important;
+                border: 1px solid #e5e7eb !important;
+                overflow: visible !important; /* Libera o scroll */
             }
-            table {
+            
+            /* Remove a largura forçada gigante e força a caber na página */
+            #main-table {
+                min-width: 100% !important;
                 width: 100% !important;
-                font-size: 9pt !important;
+                table-layout: fixed !important; /* Força colunas a terem larguras iguais */
             }
+            
+            /* Remove a trava de largura dos cabeçalhos dos meses */
+            #main-table th.min-w-\[160px\] {
+                min-width: 0 !important;
+                width: auto !important;
+            }
+
+            /* Ajuste dos textos da tabela para caberem lado a lado */
+            #main-table th, #main-table td {
+                padding: 4px 2px !important;
+                font-size: 8px !important; /* Fonte menor para caber 12 colunas */
+                border: 1px solid #e5e7eb !important;
+                word-wrap: break-word;
+            }
+
+            /* Desliga o congelamento da primeira coluna que bugava no papel */
+            #main-table th.sticky-col, #main-table td.sticky-col {
+                position: static !important;
+                width: 70px !important;
+                min-width: 70px !important;
+                box-shadow: none !important;
+                background-color: #f3f4f6 !important; /* Fundo cinza para destacar */
+            }
+
+            /* Reduz inputs */
             .measure-input {
+                font-size: 8px !important;
+                padding: 1px !important;
                 border: none !important;
                 color: black !important;
             }
-            .measure-input::placeholder { color: transparent !important; }
+            .measure-input::placeholder {
+                font-size: 6px !important;
+                color: #9ca3af !important;
+            }
 
+            /* 4. Evita cortar Cards e Imagens no meio da página */
+            .grid > div, section, tr, li, .page-break-inside-avoid {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            /* Imagem final FOTOS não pode ser gigante */
+            .max-w-6xl {
+                max-width: 100% !important;
+                border: 2px solid #DC2626 !important;
+                box-shadow: none !important;
+            }
+            .max-w-6xl img {
+                max-height: 350px !important; /* Trava altura */
+                width: auto !important;
+                margin: 0 auto;
+                object-fit: contain !important;
+            }
+
+            /* Cores básicas */
+            .bg-red-600 { background-color: #DC2626 !important; color: white !important; }
+            .bg-zinc-800 { background-color: #27272A !important; color: white !important; }
+            .bg-red-50 { background-color: #FEF2F2 !important; }
+
+            /* Grid de Fotos */
+            .grid { display: grid !important; }
+            .grid-cols-1, .md\:grid-cols-2, .lg\:grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 10px !important;
+            }
+
+            /* Botão Instagram visível como link verde/vermelho */
             a[href*="instagram"] {
                 display: inline-flex !important;
                 background-color: #DC2626 !important;
@@ -205,10 +270,6 @@
                 text-decoration: none !important;
                 margin-bottom: 20px !important;
             }
-            
-            section { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-            h1 { font-size: 24pt !important; }
-            h2 { font-size: 18pt !important; }
         }
     </style>
 </head>
@@ -377,7 +438,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 print-grid mb-12">
                 
                 <!-- 1. Antebraço -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/9j5tS6G.png" loading="lazy" alt="Medida Antebraço" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -392,7 +453,7 @@
                 </div>
 
                 <!-- 2. Braço Relaxado -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/JXNNlV0.png" loading="lazy" alt="Medida Braço Relaxado" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -407,7 +468,7 @@
                 </div>
 
                 <!-- 3. Braço Contraído -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/oEN8KqT.png" loading="lazy" alt="Medida Braço Contraído" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -422,7 +483,7 @@
                 </div>
 
                 <!-- 4. Ombro -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/ZR5a1Fg.png" loading="lazy" alt="Medida Ombro" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -437,7 +498,7 @@
                 </div>
 
                 <!-- 5. Tórax -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/GVMiOPF.png" loading="lazy" alt="Medida Tórax" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -456,7 +517,7 @@
                 </div>
 
                 <!-- 6. Cintura -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/YcFu0nE.png" loading="lazy" alt="Medida Cintura" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -471,7 +532,7 @@
                 </div>
 
                 <!-- 7. Abdômen -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/eVdePfT.png" loading="lazy" alt="Medida Abdômen" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -486,7 +547,7 @@
                 </div>
 
                 <!-- 8. Quadril -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/eYceyFN.png" loading="lazy" alt="Medida Quadril" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -501,7 +562,7 @@
                 </div>
 
                 <!-- 9. Coxa -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/4SO5yjE.png" loading="lazy" alt="Medida Coxa" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -516,7 +577,7 @@
                 </div>
 
                 <!-- 10. Panturrilha -->
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
                     <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
                          <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
                         <img src="https://i.imgur.com/HarZ9G3.png" loading="lazy" alt="Medida Panturrilha" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
@@ -534,7 +595,7 @@
 
             <!-- Instruções Gerais -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-green-500">
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-green-500 page-break-inside-avoid">
                     <h3 class="font-bold text-lg md:text-xl mb-6 text-center text-green-700 flex items-center justify-center gap-2">
                         <i data-lucide="thumbs-up" class="w-5 h-5"></i> O que fazer?
                     </h3>
@@ -558,7 +619,7 @@
                     </ul>
                 </div>
 
-                <div class="bg-zinc-800 text-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-red-600">
+                <div class="bg-zinc-800 text-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-red-600 page-break-inside-avoid">
                     <h3 class="font-bold text-lg md:text-xl mb-6 text-center flex items-center justify-center text-red-500 gap-2">
                         <i data-lucide="thumbs-down" class="w-5 h-5"></i> O que NÃO fazer?
                     </h3>
@@ -599,9 +660,9 @@
         </div>
 
         <!-- Table Container -->
-        <div class="overflow-x-auto table-container rounded-lg shadow-xl border border-gray-200">
-            <!-- Definindo largura mínima grande para comportar 12 meses + textos completos -->
-            <table class="w-full border-collapse bg-white text-xs md:text-sm text-center min-w-[2200px]">
+        <div class="overflow-x-auto table-container rounded-lg shadow-xl">
+            <!-- Tabela otimizada para Desktop (Scroll) e Impressão (Fixo na Página) -->
+            <table id="main-table" class="w-full border-collapse bg-white text-xs md:text-sm text-center min-w-[2200px]">
                 <thead>
                     <tr class="bg-zinc-900 text-white uppercase text-[10px] md:text-xs tracking-wider">
                         <!-- Cabeçalho Coluna Fixa -->
@@ -609,9 +670,7 @@
                         
                         <!-- 12 Meses Headers -->
                         <script>
-                            // Script inline para gerar os 12 cabeçalhos para não poluir o HTML visualmente
                             for(let i=1; i<=12; i++) {
-                                // Alterna a cor do fundo sutilmente entre meses no cabeçalho
                                 const bgClass = i % 2 === 0 ? 'bg-zinc-800' : 'bg-zinc-900';
                                 document.write(`
                                     <th class="p-3 md:p-4 border-l border-zinc-700 min-w-[160px] ${bgClass}">
@@ -790,7 +849,7 @@
     <!-- Fotos Section -->
     <section class="bg-zinc-900 text-white py-16 md:py-24 page-break">
         <div class="container mx-auto px-4 md:px-6">
-            <div class="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 mb-12">
+            <div class="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 mb-12 page-break-inside-avoid">
                 <div class="w-full lg:w-1/3 text-center lg:text-right flex flex-col items-center lg:items-end">
                     <h2 class="text-3xl md:text-5xl font-black text-red-600 mb-2 tracking-tighter">FOTOS</h2>
                     <h3 class="text-xl md:text-3xl font-bold mb-4 text-white">EVOLUTIVAS</h3>
@@ -798,17 +857,17 @@
                 </div>
 
                 <div class="w-full lg:w-2/3 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left page-break-inside-avoid">
                         <i data-lucide="camera" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
                         <h4 class="font-bold mb-2 text-lg">Posição</h4>
                         <p class="text-xs text-gray-400 leading-relaxed">De frente, costas e perfis. Mantenha a distância.</p>
                     </div>
-                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left page-break-inside-avoid">
                         <i data-lucide="sun" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
                         <h4 class="font-bold mb-2 text-lg">Luz</h4>
                         <p class="text-xs text-gray-400 leading-relaxed">Luz natural de frente. Evite sombras fortes.</p>
                     </div>
-                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left page-break-inside-avoid">
                         <i data-lucide="calendar" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
                         <h4 class="font-bold mb-2 text-lg">Frequência</h4>
                         <p class="text-xs text-gray-400 leading-relaxed">A cada 30 dias, preferencialmente em jejum.</p>
@@ -816,7 +875,7 @@
                 </div>
             </div>
 
-            <div class="flex justify-center w-full">
+            <div class="flex justify-center w-full page-break-inside-avoid">
                 <div class="relative w-full max-w-6xl rounded-lg overflow-hidden border-4 border-red-600 shadow-2xl">
                     <img src="https://i.imgur.com/1aSuKzZ.png" loading="lazy" alt="Exemplo Foto Evolutiva" class="w-full h-auto object-cover">
                 </div>
@@ -825,7 +884,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-black text-white text-center py-12 md:py-20 border-t-4 border-red-800">
+    <footer class="bg-black text-white text-center py-12 md:py-20 border-t-4 border-red-800 page-break-inside-avoid">
         <div class="container mx-auto px-4">
             <p class="text-base md:text-2xl text-gray-300 mb-8 font-light max-w-3xl mx-auto italic leading-relaxed">
                 Seu corpo acompanha aquilo que sua mente acredita.<br class="hidden md:block"> <span class="text-red-600 font-bold block md:inline mt-2 md:mt-0">@diegomacielx</span> te ajuda a acreditar mais!
@@ -883,7 +942,6 @@
 
         // Local Storage Logic
         document.addEventListener('DOMContentLoaded', () => {
-            // Pequeno atraso para garantir que os inputs gerados via JS estejam no DOM
             setTimeout(() => {
                 const inputs = document.querySelectorAll('.measure-input');
                 inputs.forEach(input => {
@@ -898,7 +956,7 @@
             }, 100);
         });
 
-        // Função de Cópia Atualizada (Proteção contra bugs com números tipo 1 vs 10)
+        // Função de Cópia Atualizada
         function copyMonthData(monthIndex) {
             const date = new Date().toLocaleDateString('pt-BR');
             let report = `📊 *RELATÓRIO DE EVOLUÇÃO - MÊS ${monthIndex}*\n`;
@@ -910,10 +968,9 @@
             let hasData = false;
             
             allInputs.forEach(input => {
-                const id = input.dataset.id; // Ex: ant-m1-l ou peso-m12
+                const id = input.dataset.id; 
                 const idParts = id.split('-');
                 
-                // Verifica exatidão para não puxar mês 12 ao clicar no mês 1 (m1 !== m12)
                 if (idParts[1] === `m${monthIndex}`) {
                     const label = input.dataset.label;
                     const val = input.value || "---";
@@ -934,7 +991,6 @@
             for (const [name, measures] of Object.entries(groups)) {
                 report += `*${name}:* ${measures.e} | ${measures.d}\n`;
             }
-
 
             if(!hasData) {
                 showToast(`Nenhum dado preenchido no Mês ${monthIndex}.`);
