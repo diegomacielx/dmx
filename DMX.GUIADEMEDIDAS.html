@@ -87,7 +87,15 @@
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 
-        /* WIZARD ANIMATIONS */
+        /* WIZARD E MODAL ANIMATIONS */
+        .modal-enter {
+            animation: fadeInScale 0.2s ease-out forwards;
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         .wizard-enter {
             animation: slideIn 0.3s ease-out forwards;
         }
@@ -125,7 +133,7 @@
             @page { size: landscape; margin: 10mm; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-shadow: none !important; box-shadow: none !important; }
             body { background-color: white !important; color: black !important; margin: 0; padding: 0; }
-            .no-print, #mobile-menu-btn, #mobile-menu, header nav, #clear-data-btn, .animate-bounce, .copy-btn, .scroll-hint-box, #wizard-modal { display: none !important; }
+            .no-print, #mobile-menu-btn, #mobile-menu, header nav, #clear-data-btn, .animate-bounce, .copy-btn, .scroll-hint-box, #wizard-modal, #confirm-modal { display: none !important; }
             header { position: static !important; height: auto !important; padding: 15px 0 !important; background-color: #18181B !important; color: white !important; border-bottom: 2px solid #DC2626 !important; }
             header .container { display: flex !important; justify-content: center !important; align-items: center !important; }
             header .container > div.flex.items-center { display: none !important; }
@@ -154,6 +162,29 @@
 
     <!-- Toast Notification -->
     <div id="toast">Ação realizada!</div>
+
+    <!-- MODAL DE CONFIRMAÇÃO DE LIMPEZA -->
+    <div id="confirm-modal" class="fixed inset-0 z-[110] bg-black/60 hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white p-6 md:p-8 rounded-3xl max-w-sm w-full shadow-2xl modal-enter border border-gray-100">
+            <div class="flex justify-center mb-4">
+                <div class="p-3 bg-red-100 rounded-full text-red-600">
+                    <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                </div>
+            </div>
+            <h3 class="text-xl md:text-2xl font-black text-center text-zinc-900 mb-2">Apagar todos os dados?</h3>
+            <p class="text-gray-500 text-center text-sm mb-8 leading-relaxed">
+                Esta ação não pode ser desfeita. Os registros dos 12 meses serão permanentemente apagados do seu dispositivo.
+            </p>
+            <div class="flex flex-col gap-3">
+                <button onclick="executeClearData()" class="w-full py-4 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition shadow-lg shadow-red-500/30 flex justify-center items-center gap-2">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i> SIM, APAGAR TUDO
+                </button>
+                <button onclick="closeConfirmModal()" class="w-full py-4 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition">
+                    CANCELAR
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- WIZARD MODAL (FULLSCREEN) -->
     <div id="wizard-modal" class="fixed inset-0 z-[100] bg-white hidden flex-col transition-opacity duration-300">
@@ -563,7 +594,8 @@
         </div>
 
         <div class="flex justify-center mb-6">
-            <button id="clear-data-btn" class="text-xs text-red-500 hover:text-red-700 underline no-print" onclick="if(confirm('Tem certeza que deseja apagar todos os dados salvos?')) { localStorage.clear(); location.reload(); }">
+            <!-- Botão de limpeza corrigido para acionar o modal modal -->
+            <button onclick="showConfirmModal()" class="text-xs text-red-500 hover:text-red-700 underline no-print cursor-pointer px-4 py-2">
                 Limpar todos os dados salvos
             </button>
         </div>
@@ -612,12 +644,13 @@
                     
                     <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Membros Superiores</td></tr>
                     
+                    <!-- INPUT MODE DECIMAL EM TODOS OS CAMPOS COM LABELS CORRIGIDOS -->
                     <tr class="hover:bg-gray-50 transition">
                         <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Antebraço</td>
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-l-m${i}" data-label="Antebraço Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-r-m${i}" data-label="Antebraço Dir" placeholder="Dir"></div></td>`);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-l-m${i}" data-label="Antebraço Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-r-m${i}" data-label="Antebraço Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -627,7 +660,7 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-l-m${i}" data-label="Braço Relax Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-r-m${i}" data-label="Braço Relax Dir" placeholder="Dir"></div></td>`);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-l-m${i}" data-label="Braço Relaxado Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-r-m${i}" data-label="Braço Relaxado Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -637,7 +670,7 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-l-m${i}" data-label="Braço Contr Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-r-m${i}" data-label="Braço Contr Dir" placeholder="Dir"></div></td>`);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-l-m${i}" data-label="Braço Contraído Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-r-m${i}" data-label="Braço Contraído Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -697,7 +730,7 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-l-m${i}" data-label="Coxa Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-r-m${i}" data-label="Coxa Dir" placeholder="Dir"></div></td>`);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-l-m${i}" data-label="Coxa Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-r-m${i}" data-label="Coxa Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -706,7 +739,7 @@
                         <script>
                             for(let i=1; i<=12; i++) {
                                 const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-l-m${i}" data-label="Panturrilha Esq" placeholder="Esq"><input type="text" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-r-m${i}" data-label="Panturrilha Dir" placeholder="Dir"></div></td>`);
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-l-m${i}" data-label="Panturrilha Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-r-m${i}" data-label="Panturrilha Dir" placeholder="Dir"></div></td>`);
                             }
                         </script>
                     </tr>
@@ -826,12 +859,31 @@
         });
 
         /* =========================================
+           LIMPAR DADOS (MODAL MOBILE FIX)
+           ========================================= */
+        function showConfirmModal() {
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            document.getElementById('confirm-modal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            document.getElementById('confirm-modal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        function executeClearData() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        /* =========================================
            WIZARD (FORMULÁRIO PASSO A PASSO)
            ========================================= */
         let currentWizardMonth = 1;
         let currentWizardStep = 0;
 
-        // Configuração exata das etapas
         const wizardSteps = [
             { id: 'peso', title: 'Peso Corporal', desc: 'Sua pesagem atual.', type: 'single', label: 'Peso (kg)' },
             { id: 'ant', title: 'Antebraço', desc: 'Maior circunferência.', type: 'double' },
@@ -853,7 +905,7 @@
             document.getElementById('wizard-month-label').innerText = `PREENCHENDO: MÊS ${monthIndex}`;
             document.getElementById('wizard-modal').classList.remove('hidden');
             document.getElementById('wizard-modal').classList.add('flex');
-            document.body.style.overflow = 'hidden'; // Bloqueia scroll atrás
+            document.body.style.overflow = 'hidden'; 
             
             renderWizardStep();
         }
@@ -868,17 +920,14 @@
             const step = wizardSteps[currentWizardStep];
             const content = document.getElementById('wizard-content');
             
-            // Animação de entrada
             content.classList.remove('wizard-enter');
-            void content.offsetWidth; // Trigger reflow
+            void content.offsetWidth;
             content.classList.add('wizard-enter');
 
-            // Atualizar barra de progresso
             const progress = ((currentWizardStep + 1) / wizardSteps.length) * 100;
             document.getElementById('wizard-progress-bar').style.width = `${progress}%`;
             document.getElementById('wizard-progress-text').innerText = `${currentWizardStep + 1}/${wizardSteps.length}`;
 
-            // Controlar botões
             document.getElementById('btn-wizard-prev').disabled = currentWizardStep === 0;
             
             if (currentWizardStep === wizardSteps.length - 1) {
@@ -892,7 +941,6 @@
             }
             lucide.createIcons();
 
-            // Construir o HTML do passo atual
             let html = `
                 <div class="text-center mb-8">
                     <h2 class="text-3xl md:text-5xl font-black text-zinc-900 mb-2">${step.title}</h2>
@@ -901,7 +949,6 @@
             `;
 
             if (step.type === 'single') {
-                // Input Único
                 const inputId = `${step.id}-m${currentWizardMonth}`;
                 const savedVal = localStorage.getItem(inputId) || '';
                 
@@ -912,7 +959,6 @@
                     </div>
                 `;
             } else {
-                // Input Duplo (E/D)
                 const idL = `${step.id}-l-m${currentWizardMonth}`;
                 const idR = `${step.id}-r-m${currentWizardMonth}`;
                 const savedValL = localStorage.getItem(idL) || '';
@@ -934,7 +980,6 @@
 
             content.innerHTML = html;
             
-            // Focar automaticamente no primeiro input (desktop)
             setTimeout(() => {
                 const firstInput = document.getElementById(step.type === 'single' ? 'wiz-input-single' : 'wiz-input-l');
                 if(firstInput && window.innerWidth > 768) firstInput.focus();
@@ -949,7 +994,6 @@
                 const id = `${step.id}-m${currentWizardMonth}`;
                 localStorage.setItem(id, val);
                 
-                // Atualizar a tabela por trás
                 const tableInput = document.querySelector(`[data-id="${id}"]`);
                 if(tableInput) tableInput.value = val;
             } else {
@@ -961,7 +1005,6 @@
                 localStorage.setItem(idL, valL);
                 localStorage.setItem(idR, valR);
                 
-                // Atualizar a tabela por trás
                 const tableInputL = document.querySelector(`[data-id="${idL}"]`);
                 const tableInputR = document.querySelector(`[data-id="${idR}"]`);
                 if(tableInputL) tableInputL.value = valL;
@@ -976,7 +1019,6 @@
                 currentWizardStep++;
                 renderWizardStep();
             } else {
-                // Finalizou
                 closeWizard();
                 showToast(`Dados do Mês ${currentWizardMonth} salvos com sucesso!`);
             }
@@ -996,8 +1038,7 @@
         function copyMonthData(monthIndex) {
             const date = new Date().toLocaleDateString('pt-BR');
             let report = `📊 *RELATÓRIO DE EVOLUÇÃO - MÊS ${monthIndex}*\n`;
-            report += `📅 Data: ${date}\n`;
-            report += `------------------------------\n`;
+            report += `📅 Data: ${date}\n\n`; // Substitui a linha de traços por uma quebra de linha limpa
 
             const allInputs = document.querySelectorAll('.measure-input');
             const groups = {};
@@ -1006,16 +1047,16 @@
             allInputs.forEach(input => {
                 const id = input.dataset.id; 
                 const idParts = id.split('-');
-                const monthPart = idParts[idParts.length - 1]; // Pega o "-m1", "-m12", etc.
+                const monthPart = idParts[idParts.length - 1]; 
                 
                 if (monthPart === `m${monthIndex}`) {
                     const label = input.dataset.label;
-                    const val = input.value || "---";
+                    const val = input.value || "∅"; // Usa o símbolo de vazio caso não tenha valor
                     if(input.value) hasData = true;
 
                     if (label.includes("Esq") || label.includes("Dir")) {
                         const baseLabel = label.replace(" Esq", "").replace(" Dir", "");
-                        if (!groups[baseLabel]) groups[baseLabel] = { e: "---", d: "---" };
+                        if (!groups[baseLabel]) groups[baseLabel] = { e: "∅", d: "∅" };
                         
                         if (label.includes("Esq")) groups[baseLabel].e = val;
                         if (label.includes("Dir")) groups[baseLabel].d = val;
@@ -1028,6 +1069,8 @@
             for (const [name, measures] of Object.entries(groups)) {
                 report += `*${name}:* ${measures.e} | ${measures.d}\n`;
             }
+
+            report += `\n💪 DMX Performance & Fit`;
 
             if(!hasData) {
                 showToast(`Nenhum dado preenchido no Mês ${monthIndex}.`);
