@@ -207,14 +207,11 @@
             );
         };
 
-        // 🎭 NOVO COMPONENTE: ExerciseCard (Garante performance extrema e carregamento suave)
         const ExerciseCard = ({ ex, index, isAdmin, isExerciseIncomplete, handleDownloadCheck, showToast, activeDownloadId, setActiveDownloadId, setForm, setEditingId, setAdminTab, setShowAdminPanel, copyLink, copiedId }) => {
             const [isExpanded, setIsExpanded] = useState(false);
-            
-            // Lógica isolada da imagem com Skeleton Loader embutido
             const initialImg = ex.thumbnail || `https://raw.githubusercontent.com/diegomacielx/dmx/main/${ex.id}.jpg`;
             const [imgSrc, setImgSrc] = useState(initialImg);
-            const [imgLoaded, setImgLoaded] = useState(false); // Mantém a imagem oculta até carregar com sucesso
+            const [imgLoaded, setImgLoaded] = useState(false); 
 
             const ytId = getYouTubeId(ex.youtubeUrl);
 
@@ -239,7 +236,6 @@
                 <div className={`group relative bg-zinc-950 rounded-[2.5rem] border border-white/5 overflow-hidden flex flex-col transition-all hover:border-red-600/50 hover:-translate-y-2 animate-fade-in ${activeDownloadId === ex.firestoreId ? 'z-[50]' : 'z-10'}`} style={{ animationDelay: `${index * 30}ms` }}>
                     <div className="aspect-[9/16] bg-zinc-900 relative overflow-hidden">
                         
-                        {/* FUNDO SKELETON: Mostra um pulso bonito enquanto a imagem resolve o seu link */}
                         {!imgLoaded && (
                             <div className="absolute inset-0 bg-zinc-800 animate-pulse z-0 flex items-center justify-center">
                                 <Icon name="loader" className="w-6 h-6 animate-spin text-zinc-700" />
@@ -251,7 +247,6 @@
                             loading="lazy"
                             onLoad={() => setImgLoaded(true)}
                             onError={handleImageError}
-                            // A imagem nasce invisível (opacity-0). Só aparece quando carregar 100%!
                             className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 relative z-10 ${imgLoaded ? 'opacity-40 group-hover:opacity-100' : 'opacity-0'}`} 
                             alt={`Capa do exercício ${ex.name}`}
                         />
@@ -379,7 +374,7 @@
             const [user, setUser] = useState(null);
             const [exercises, setExercises] = useState([]);
             const [loading, setLoading] = useState(true);
-            const [slowConnection, setSlowConnection] = useState(false); // Estado para conexão lenta
+            const [slowConnection, setSlowConnection] = useState(false);
             
             const [searchTerm, setSearchTerm] = useState(() => localStorage.getItem('dmx_search') || '');
             const [activeCategory, setActiveCategory] = useState(() => localStorage.getItem('dmx_category') || 'Todos');
@@ -410,13 +405,10 @@
                 }, 4000);
             };
 
-            // Efeito para detetar rede lenta (mais de 6 segundos no loading)
             useEffect(() => {
                 let timer;
                 if (authLoading || loading) {
-                    timer = setTimeout(() => {
-                        setSlowConnection(true);
-                    }, 6000);
+                    timer = setTimeout(() => setSlowConnection(true), 6000);
                 } else {
                     setSlowConnection(false);
                 }
@@ -515,35 +507,41 @@
                 return cleanUrl === '' || cleanUrl.includes('revisar_link') || cleanUrl === 'url' || cleanUrl === 'https://url' || cleanUrl.includes('youtube.com/...');
             };
 
+            // CORREÇÃO CRÍTICA DE DOWNLOAD: Nunca forçar o download de arquivos inexistentes.
             const handleDownloadCheck = async (e, ex, quality) => {
                 e.stopPropagation();
                 setActiveDownloadId(null);
                 
                 const url = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_${quality}.mp4`;
 
+                showToast(`Verificando disponibilidade do vídeo...`);
+
                 try {
                     const response = await fetch(url, { method: 'HEAD' });
 
                     if (response.ok) {
+                        // O arquivo existe no Google Cloud.
+                        showToast(`Iniciando download...`);
+                        
+                        // Cria um link temporário para que o navegador lide com o download nativamente.
+                        // Como você colocou a regra "attachment" no Google Cloud, isso vai baixar direto e perfeito.
                         const link = document.createElement('a');
                         link.href = url;
-                        link.setAttribute('download', `${ex.id}_${quality}.mp4`); 
+                        // O navegador tenta aplicar esse nome, mas se o Google Cloud forçar, ele baixa sem corromper.
+                        link.setAttribute('download', `${ex.name.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}_${quality}.mp4`); 
                         link.setAttribute('target', '_blank'); 
                         
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
                     } else {
-                        showToast(`O vídeo "${ex.name}" ainda não foi upado.`, "error");
+                        // Se o vídeo não existe, apenas avisa e NÃO BAIXA NADA.
+                        showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
                     }
                 } catch (err) {
-                    console.error("Erro de verificação:", err);
-                     const fallbackLink = document.createElement('a');
-                     fallbackLink.href = url;
-                     fallbackLink.setAttribute('download', `${ex.id}_${quality}.mp4`); 
-                     document.body.appendChild(fallbackLink);
-                     fallbackLink.click();
-                     document.body.removeChild(fallbackLink);
+                    console.error("Erro de verificação na rede:", err);
+                    // Se falhar a verificação por falta de internet ou CORS. NÃO VAMOS FORÇAR O DOWNLOAD PARA NÃO CORROMPER.
+                    showToast(`Falha de conexão. O vídeo não pôde ser verificado.`, "error");
                 }
             };
 
@@ -700,6 +698,7 @@
                             <div className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center sm:items-start sm:pt-5">
                                 <div 
                                     onClick={() => setToast({ show: false, msg: '', type: 'success' })}
+                                    title="Clique para fechar"
                                     className={`pointer-events-auto cursor-pointer group px-5 py-3 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl animate-fade-in flex items-center justify-between gap-4 max-w-[85vw] text-center border sm:border-none hover:scale-[1.02] active:scale-95 transition-all ${toast.type === 'error' ? 'bg-zinc-900 text-red-500 border-red-900/50 shadow-[0_0_30px_rgba(0,0,0,0.8)]' : 'bg-red-600 text-white border-red-500/50 shadow-[0_0_30px_rgba(220,38,38,0.6)]'}`}
                                 >
                                     <div className="flex items-center justify-center gap-2">
@@ -736,10 +735,18 @@
                                     {authMode === 'login' ? 'ACESSAR A BIBLIOTECA' : 'ENVIAR LINK DE RECUPERAÇÃO'}
                                 </button>
                             </form>
+
                             <div className="mt-6 flex flex-col gap-3 relative z-10">
                                 <button onClick={() => setAuthMode(authMode === 'login' ? 'forgot' : 'login')} className="text-[10px] text-zinc-400 hover:text-white transition-colors font-bold uppercase tracking-widest">
                                     {authMode === 'login' ? 'Esqueceu sua senha?' : 'Voltar para o Login'}
                                 </button>
+                            </div>
+                            
+                            {/* TEXTO RESTAURADO AQUI */}
+                            <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 relative z-10">
+                                <p className="text-[9px] text-zinc-500 uppercase font-black leading-relaxed tracking-widest">
+                                    Este ambiente é exclusivo para compradores
+                                </p>
                             </div>
                         </div>
                     </div>
