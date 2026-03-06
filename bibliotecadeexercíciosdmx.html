@@ -507,7 +507,7 @@
                 return cleanUrl === '' || cleanUrl.includes('revisar_link') || cleanUrl === 'url' || cleanUrl === 'https://url' || cleanUrl.includes('youtube.com/...');
             };
 
-            // CORREÇÃO CRÍTICA DE DOWNLOAD: Nunca forçar o download de arquivos inexistentes.
+            // CORREÇÃO CRÍTICA DE DOWNLOAD: Evita corromper vídeos usando o Fura-Cache + Navegação Nativa
             const handleDownloadCheck = async (e, ex, quality) => {
                 e.stopPropagation();
                 setActiveDownloadId(null);
@@ -520,27 +520,20 @@
                     const response = await fetch(url, { method: 'HEAD' });
 
                     if (response.ok) {
-                        // O arquivo existe no Google Cloud.
                         showToast(`Iniciando download...`);
                         
-                        // Cria um link temporário para que o navegador lide com o download nativamente.
-                        // Como você colocou a regra "attachment" no Google Cloud, isso vai baixar direto e perfeito.
-                        const link = document.createElement('a');
-                        link.href = url;
-                        // O navegador tenta aplicar esse nome, mas se o Google Cloud forçar, ele baixa sem corromper.
-                        link.setAttribute('download', `${ex.name.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}_${quality}.mp4`); 
-                        link.setAttribute('target', '_blank'); 
+                        // FURA-CACHE (O SEGREDO): Adiciona a data/hora atual na URL.
+                        // Isso impede que o seu PC puxe aquele erro corrompido que guardou na memória ontem!
+                        const noCacheUrl = `${url}?t=${new Date().getTime()}`;
                         
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
+                        // Direciona a página para o link de download direto
+                        window.location.href = noCacheUrl;
                     } else {
-                        // Se o vídeo não existe, apenas avisa e NÃO BAIXA NADA.
+                        // Se o vídeo não existe, apenas avisa e NÃO BAIXA NADA (evita arquivo corrompido).
                         showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
                     }
                 } catch (err) {
                     console.error("Erro de verificação na rede:", err);
-                    // Se falhar a verificação por falta de internet ou CORS. NÃO VAMOS FORÇAR O DOWNLOAD PARA NÃO CORROMPER.
                     showToast(`Falha de conexão. O vídeo não pôde ser verificado.`, "error");
                 }
             };
@@ -742,7 +735,6 @@
                                 </button>
                             </div>
                             
-                            {/* TEXTO RESTAURADO AQUI */}
                             <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 relative z-10">
                                 <p className="text-[9px] text-zinc-500 uppercase font-black leading-relaxed tracking-widest">
                                     Este ambiente é exclusivo para compradores
