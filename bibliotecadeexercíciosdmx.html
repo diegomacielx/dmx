@@ -604,6 +604,7 @@
                 } catch (e) { showToast("Erro ao gravar. O servidor negou permissão.", "error"); }
             };
 
+            // LÓGICA DE IMPORTAÇÃO ATUALIZADA: Ignora duplicados silenciosamente e cadastra o restante!
             const handleBatchImport = async () => {
                 if (!batchInput.trim()) return;
                 setSyncing(true);
@@ -611,39 +612,59 @@
                     let dataArray = JSON.parse(batchInput);
                     if (!Array.isArray(dataArray)) throw new Error("JSON deve ser um Array");
 
+                    // 1. Mapear o que já existe no banco de dados atual
+                    const existingNames = exercises.map(ex => String(ex.name).trim().toLowerCase());
+                    const existingIdsStr = exercises.map(ex => String(ex.id));
                     const existingIdsNum = exercises.map(ex => parseInt(ex.id, 10)).filter(id => !isNaN(id));
-                    const providedIdsInBatch = dataArray.map(item => parseInt(item.id, 10)).filter(id => !isNaN(id));
-                    const allUsedIds = [...existingIdsNum, ...providedIdsInBatch].sort((a, b) => a - b);
 
+                    // 2. Filtrar os dados que estão chegando: Manter apenas os exercícios inéditos (pelo nome)
+                    const newDataArray = [];
+                    let skippedCount = 0;
+                    const namesInCurrentBatch = new Set(); // Para evitar nomes repetidos dentro do próprio JSON colado
+
+                    for (const item of dataArray) {
+                        const itemName = String(item.name || '').trim().toLowerCase();
+                        if (!itemName) continue; 
+
+                        // Se o nome já existir na base OU já existir neste mesmo JSON que está sendo lido, ignore.
+                        if (existingNames.includes(itemName) || namesInCurrentBatch.has(itemName)) {
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        namesInCurrentBatch.add(itemName);
+                        newDataArray.push(item);
+                    }
+
+                    // Se não sobrou nenhum exercício novo para adicionar
+                    if (newDataArray.length === 0) {
+                        showToast(`Aviso: Todos os ${skippedCount} exercícios da lista já existem na base!`, "error");
+                        setSyncing(false);
+                        return;
+                    }
+
+                    // 3. Atribuir IDs limpos e sequenciais apenas para os itens que passaram no filtro
                     let nextAvailableId = 1;
-                    const getNextId = () => {
-                        while (allUsedIds.includes(nextAvailableId)) nextAvailableId++;
-                        allUsedIds.push(nextAvailableId);
-                        return String(nextAvailableId).padStart(4, '0');
-                    };
-
-                    dataArray = dataArray.map(item => {
-                        if (!item.id || String(item.id).trim() === '') return { ...item, id: getNextId() };
-                        return { ...item, id: String(item.id).trim() };
+                    const finalDataArray = newDataArray.map(item => {
+                        let targetId = String(item.id || '').trim();
+                        // Se não tem ID ou se o ID enviado por acaso já bate com algum no banco, cria um novo
+                        if (!targetId || existingIdsStr.includes(targetId)) {
+                            while (existingIdsNum.includes(nextAvailableId)) nextAvailableId++;
+                            targetId = String(nextAvailableId).padStart(4, '0');
+                            existingIdsNum.push(nextAvailableId); 
+                        } else {
+                            existingIdsNum.push(parseInt(targetId, 10));
+                            existingIdsStr.push(targetId);
+                        }
+                        return { ...item, id: targetId };
                     });
 
-                    const newIds = dataArray.map(item => item.id);
-                    const duplicatesInBatch = newIds.filter((item, index) => newIds.indexOf(item) !== index);
-                    if (duplicatesInBatch.length > 0) { showToast(`Erro JSON: IDs repetidos no texto colado.`, "error"); setSyncing(false); return; }
-
-                    const existingIdsStr = exercises.map(ex => String(ex.id));
-                    const duplicatedWithDb = newIds.filter(id => existingIdsStr.includes(id));
-                    if (duplicatedWithDb.length > 0) { showToast(`Conflito: Alguns IDs já existem na base.`, "error"); setSyncing(false); return; }
-
-                    const existingNames = exercises.map(ex => String(ex.name).trim().toLowerCase());
-                    const duplicatedNamesWithDb = dataArray.filter(item => existingNames.includes(String(item.name || '').trim().toLowerCase()));
-                    if (duplicatedNamesWithDb.length > 0) { showToast(`Erro: Nomes duplicados na base.`, "error"); setSyncing(false); return; }
-
+                    // 4. Enviar para o banco de dados
                     const batch = window.fb.writeBatch(window.fb.db);
                     const path = getDbPath();
                     const collRef = window.fb.collection(window.fb.db, ...path);
                     
-                    dataArray.forEach(item => {
+                    finalDataArray.forEach(item => {
                         const docRef = window.fb.doc(collRef);
                         batch.set(docRef, { ...item, muscleGroups: parseCommaList(item.muscleGroups), keywords: parseCommaList(item.keywords), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
                     });
@@ -652,8 +673,15 @@
                     setShowAdminPanel(false);
                     setBatchInput('');
                     setAdminTab('single');
-                    showToast(`Lote de ${dataArray.length} exercícios salvo!`);
-                } catch (e) { showToast("Erro de formato no JSON ou permissão negada.", "error"); } finally { setSyncing(false); }
+                    
+                    // Notifica exatamente o que aconteceu
+                    showToast(`Lote: ${finalDataArray.length} salvos! ${skippedCount > 0 ? `(${skippedCount} ignorados já existiam)` : ''}`);
+                } catch (e) { 
+                    console.error("Batch error:", e);
+                    showToast("Erro de formato no JSON ou permissão negada.", "error"); 
+                } finally { 
+                    setSyncing(false); 
+                }
             };
 
             const copyLink = (url, firestoreId) => {
