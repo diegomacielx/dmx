@@ -114,7 +114,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const isPreview = typeof __firebase_config !== 'undefined';
         const firebaseConfig = isPreview ? JSON.parse(__firebase_config) : {
@@ -146,7 +146,7 @@
         window.fb = { 
             db, auth, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, 
             writeBatch, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
-            sendPasswordResetEmail,
+            sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile,
             isValid: (isValid || isPreview)
         };
         window.app_id = appId;
@@ -368,6 +368,8 @@
             const [authLoading, setAuthLoading] = useState(true);
             const [loginEmail, setLoginEmail] = useState('');
             const [loginPassword, setLoginPassword] = useState('');
+            const [registerPasswordConfirm, setRegisterPasswordConfirm] = useState(''); 
+            const [registerName, setRegisterName] = useState(''); // NOVO ESTADO: NOME DO ALUNO
             const [showPassword, setShowPassword] = useState(false);
             const [authMode, setAuthMode] = useState('login'); 
 
@@ -487,6 +489,39 @@
                 }
             };
 
+            const handleRegister = async (e) => {
+                e.preventDefault();
+                if (!registerName.trim()) {
+                    showToast("Por favor, digite o seu nome completo.", "error");
+                    return;
+                }
+                if (loginPassword !== registerPasswordConfirm) {
+                    showToast("As senhas não coincidem.", "error");
+                    return;
+                }
+                if (loginPassword.length < 6) {
+                    showToast("A senha deve ter pelo menos 6 caracteres.", "error");
+                    return;
+                }
+                try {
+                    const userCredential = await window.fb.createUserWithEmailAndPassword(window.fb.auth, loginEmail, loginPassword);
+                    
+                    // ATUALIZAR O PERFIL DO USUÁRIO COM O NOME
+                    await window.fb.updateProfile(userCredential.user, {
+                        displayName: registerName
+                    });
+                    
+                    showToast("Conta criada com sucesso! Bem-vindo!");
+                } catch (error) {
+                    console.error("Register error:", error);
+                    if (error.code === 'auth/email-already-in-use') {
+                        showToast("Este e-mail já está cadastrado. Faça login.", "error");
+                    } else {
+                        showToast("Erro ao criar conta. Tente novamente.", "error");
+                    }
+                }
+            };
+
             const handleLogout = async () => {
                 if (confirm("Deseja encerrar sua sessão?")) {
                     await window.fb.signOut(window.fb.auth);
@@ -507,7 +542,6 @@
                 return cleanUrl === '' || cleanUrl.includes('revisar_link') || cleanUrl === 'url' || cleanUrl === 'https://url' || cleanUrl.includes('youtube.com/...');
             };
 
-            // CORREÇÃO CRÍTICA DE DOWNLOAD: Evita corromper vídeos usando o Fura-Cache + Navegação Nativa
             const handleDownloadCheck = async (e, ex, quality) => {
                 e.stopPropagation();
                 setActiveDownloadId(null);
@@ -521,15 +555,17 @@
 
                     if (response.ok) {
                         showToast(`Iniciando download...`);
-                        
-                        // FURA-CACHE (O SEGREDO): Adiciona a data/hora atual na URL.
-                        // Isso impede que o seu PC puxe aquele erro corrompido que guardou na memória ontem!
                         const noCacheUrl = `${url}?t=${new Date().getTime()}`;
                         
-                        // Direciona a página para o link de download direto
-                        window.location.href = noCacheUrl;
+                        const link = document.createElement('a');
+                        link.href = noCacheUrl;
+                        link.setAttribute('download', `${ex.name.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}_${quality}.mp4`); 
+                        link.setAttribute('target', '_blank'); 
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
                     } else {
-                        // Se o vídeo não existe, apenas avisa e NÃO BAIXA NADA (evita arquivo corrompido).
                         showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
                     }
                 } catch (err) {
@@ -604,7 +640,6 @@
                 } catch (e) { showToast("Erro ao gravar. O servidor negou permissão.", "error"); }
             };
 
-            // LÓGICA DE IMPORTAÇÃO ATUALIZADA: Ignora duplicados silenciosamente e cadastra o restante!
             const handleBatchImport = async () => {
                 if (!batchInput.trim()) return;
                 setSyncing(true);
@@ -612,21 +647,18 @@
                     let dataArray = JSON.parse(batchInput);
                     if (!Array.isArray(dataArray)) throw new Error("JSON deve ser um Array");
 
-                    // 1. Mapear o que já existe no banco de dados atual
                     const existingNames = exercises.map(ex => String(ex.name).trim().toLowerCase());
                     const existingIdsStr = exercises.map(ex => String(ex.id));
                     const existingIdsNum = exercises.map(ex => parseInt(ex.id, 10)).filter(id => !isNaN(id));
 
-                    // 2. Filtrar os dados que estão chegando: Manter apenas os exercícios inéditos (pelo nome)
                     const newDataArray = [];
                     let skippedCount = 0;
-                    const namesInCurrentBatch = new Set(); // Para evitar nomes repetidos dentro do próprio JSON colado
+                    const namesInCurrentBatch = new Set(); 
 
                     for (const item of dataArray) {
                         const itemName = String(item.name || '').trim().toLowerCase();
                         if (!itemName) continue; 
 
-                        // Se o nome já existir na base OU já existir neste mesmo JSON que está sendo lido, ignore.
                         if (existingNames.includes(itemName) || namesInCurrentBatch.has(itemName)) {
                             skippedCount++;
                             continue;
@@ -636,18 +668,15 @@
                         newDataArray.push(item);
                     }
 
-                    // Se não sobrou nenhum exercício novo para adicionar
                     if (newDataArray.length === 0) {
                         showToast(`Aviso: Todos os ${skippedCount} exercícios da lista já existem na base!`, "error");
                         setSyncing(false);
                         return;
                     }
 
-                    // 3. Atribuir IDs limpos e sequenciais apenas para os itens que passaram no filtro
                     let nextAvailableId = 1;
                     const finalDataArray = newDataArray.map(item => {
                         let targetId = String(item.id || '').trim();
-                        // Se não tem ID ou se o ID enviado por acaso já bate com algum no banco, cria um novo
                         if (!targetId || existingIdsStr.includes(targetId)) {
                             while (existingIdsNum.includes(nextAvailableId)) nextAvailableId++;
                             targetId = String(nextAvailableId).padStart(4, '0');
@@ -659,7 +688,6 @@
                         return { ...item, id: targetId };
                     });
 
-                    // 4. Enviar para o banco de dados
                     const batch = window.fb.writeBatch(window.fb.db);
                     const path = getDbPath();
                     const collRef = window.fb.collection(window.fb.db, ...path);
@@ -674,7 +702,6 @@
                     setBatchInput('');
                     setAdminTab('single');
                     
-                    // Notifica exatamente o que aconteceu
                     showToast(`Lote: ${finalDataArray.length} salvos! ${skippedCount > 0 ? `(${skippedCount} ignorados já existiam)` : ''}`);
                 } catch (e) { 
                     console.error("Batch error:", e);
@@ -734,11 +761,17 @@
                             <img src={window.CUSTOM_LOGO_URL} className="h-20 mx-auto mb-6 drop-shadow-lg relative z-10" alt="DMX Logo" />
                             <h2 className="text-xl font-black uppercase italic mb-8 tracking-tighter relative z-10">
                                 BIBLIOTECA DMX - <span className="text-red-600">
-                                    {authMode === 'login' ? 'ACESSO RESTRITO' : 'RECUPERAR SENHA'}
+                                    {authMode === 'login' ? 'ACESSO RESTRITO' : authMode === 'register' ? 'CRIAR CONTA' : 'RECUPERAR SENHA'}
                                 </span>
                             </h2>
                             
-                            <form onSubmit={authMode === 'login' ? handleLogin : handleResetPassword} className="space-y-4 relative z-10">
+                            <form onSubmit={authMode === 'login' ? handleLogin : authMode === 'register' ? handleRegister : handleResetPassword} className="space-y-4 relative z-10">
+                                {authMode === 'register' && (
+                                    <div className="text-left space-y-1 relative animate-fade-in mb-4">
+                                        <label className="text-[9px] font-black uppercase text-zinc-600 ml-4 tracking-widest">Nome Completo</label>
+                                        <input required type="text" placeholder="Seu nome e sobrenome" className="w-full p-4 rounded-2xl text-sm" value={registerName} onChange={(e) => setRegisterName(e.target.value)} />
+                                    </div>
+                                )}
                                 <div className="text-left space-y-1">
                                     <label className="text-[9px] font-black uppercase text-zinc-600 ml-4 tracking-widest">E-mail</label>
                                     <input required type="email" placeholder="Seu e-mail de acesso" className="w-full p-4 rounded-2xl text-sm" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} />
@@ -752,20 +785,37 @@
                                         </div>
                                     </div>
                                 )}
+                                {authMode === 'register' && (
+                                    <div className="text-left space-y-1 relative animate-fade-in">
+                                        <label className="text-[9px] font-black uppercase text-zinc-600 ml-4 tracking-widest">Confirmar Senha</label>
+                                        <input required type={showPassword ? "text" : "password"} placeholder="••••••••" className="w-full p-4 rounded-2xl text-sm" value={registerPasswordConfirm} onChange={(e) => setRegisterPasswordConfirm(e.target.value)} />
+                                    </div>
+                                )}
                                 <button type="submit" className="w-full bg-red-600 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95 mt-4">
-                                    {authMode === 'login' ? 'ACESSAR A BIBLIOTECA' : 'ENVIAR LINK DE RECUPERAÇÃO'}
+                                    {authMode === 'login' ? 'ACESSAR A BIBLIOTECA' : authMode === 'register' ? 'CADASTRAR E ACESSAR' : 'ENVIAR LINK DE RECUPERAÇÃO'}
                                 </button>
                             </form>
 
                             <div className="mt-6 flex flex-col gap-3 relative z-10">
-                                <button onClick={() => setAuthMode(authMode === 'login' ? 'forgot' : 'login')} className="text-[10px] text-zinc-400 hover:text-white transition-colors font-bold uppercase tracking-widest">
-                                    {authMode === 'login' ? 'Esqueceu sua senha?' : 'Voltar para o Login'}
-                                </button>
+                                {authMode === 'login' ? (
+                                    <>
+                                        <button onClick={() => {setAuthMode('register'); setLoginPassword(''); setRegisterName('');}} className="text-[10px] text-white hover:text-red-500 transition-colors font-black uppercase tracking-widest bg-white/5 py-3 rounded-xl border border-white/5">
+                                            Não tem conta? Cadastre-se
+                                        </button>
+                                        <button onClick={() => setAuthMode('forgot')} className="text-[10px] text-zinc-500 hover:text-white transition-colors font-bold uppercase tracking-widest mt-2">
+                                            Esqueceu sua senha?
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button onClick={() => {setAuthMode('login'); setLoginPassword(''); setRegisterPasswordConfirm(''); setRegisterName('');}} className="text-[10px] text-zinc-400 hover:text-white transition-colors font-bold uppercase tracking-widest">
+                                        Voltar para o Login
+                                    </button>
+                                )}
                             </div>
                             
                             <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 relative z-10">
                                 <p className="text-[9px] text-zinc-500 uppercase font-black leading-relaxed tracking-widest">
-                                    Este ambiente é exclusivo para compradores
+                                    Este ambiente é exclusivo para alunos
                                 </p>
                             </div>
                         </div>
@@ -794,9 +844,17 @@
                             <img src={window.CUSTOM_LOGO_URL} className="h-12 w-12 sm:h-16 sm:w-16 object-contain" alt="DMX" />
                             <div className="flex flex-col">
                                 <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
-                                <button onClick={handleLogout} className="text-[9px] text-zinc-500 uppercase font-black flex items-center gap-1 hover:text-red-600 transition-colors mt-1">
-                                    <Icon name="logout" className="w-3 h-3" /> Encerrar Sessão
-                                </button>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {user?.displayName && (
+                                        <span className="text-[10px] text-zinc-400 font-bold uppercase truncate max-w-[150px] sm:max-w-[200px]" title={user.displayName}>
+                                            {user.displayName}
+                                        </span>
+                                    )}
+                                    {user?.displayName && <span className="text-zinc-600 text-[10px]">•</span>}
+                                    <button onClick={handleLogout} className="text-[9px] text-zinc-500 uppercase font-black flex items-center gap-1 hover:text-red-600 transition-colors">
+                                        <Icon name="logout" className="w-3 h-3" /> Encerrar Sessão
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -826,7 +884,7 @@
                                 <Icon name="loader" className="w-12 h-12 animate-spin text-red-600 mb-4" />
                                 <p className="text-[10px] font-black uppercase tracking-widest mt-2">Conectando ao Banco...</p>
                                 {slowConnection && (
-                                    <p className="text-[9px] text-red-500 uppercase font-black mt-4 animate-fade-in bg-red-900/20 px-4 py-2 rounded-xl">A conexão parece lenta. A carregar o cache...</p>
+                                    <p className="text-[9px] text-red-500 uppercase font-black mt-4 animate-fade-in bg-red-900/20 px-4 py-2 rounded-xl">A conexão parece lenta. Aguarde...</p>
                                 )}
                             </div>
                         ) : (
