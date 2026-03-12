@@ -369,7 +369,7 @@
             const [loginEmail, setLoginEmail] = useState('');
             const [loginPassword, setLoginPassword] = useState('');
             const [registerPasswordConfirm, setRegisterPasswordConfirm] = useState(''); 
-            const [registerName, setRegisterName] = useState(''); // NOVO ESTADO: NOME DO ALUNO
+            const [registerName, setRegisterName] = useState(''); 
             const [showPassword, setShowPassword] = useState(false);
             const [authMode, setAuthMode] = useState('login'); 
 
@@ -383,6 +383,7 @@
             
             const [copiedId, setCopiedId] = useState(null);
             const [activeDownloadId, setActiveDownloadId] = useState(null); 
+            const [adminFilter, setAdminFilter] = useState('all'); 
             
             const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
             const toastTimeoutRef = useRef(null); 
@@ -576,7 +577,12 @@
 
             const filteredExercises = useMemo(() => {
                 const validExercises = exercises.filter(ex => {
-                    if (isAdmin) return true;
+                    if (isAdmin) {
+                        // Verifica qual é a "Visão" que o Admin escolheu
+                        if (adminFilter === 'completed') return !isExerciseIncomplete(ex.youtubeUrl);
+                        if (adminFilter === 'incomplete') return isExerciseIncomplete(ex.youtubeUrl);
+                        return true; // Se for 'all', mostra tudo
+                    }
                     return !isExerciseIncomplete(ex.youtubeUrl);
                 });
 
@@ -596,7 +602,7 @@
                     const matchesSearch = searchParts.every(part => safeId.includes(part) || safeName.includes(part) || keywords.some(k => k.includes(part)) || muscles.some(m => m.includes(part)));
                     return (activeCategory === 'Todos' || ex.category === activeCategory) && matchesSearch;
                 });
-            }, [searchTerm, activeCategory, exercises, isAdmin]);
+            }, [searchTerm, activeCategory, exercises, isAdmin, adminFilter]);
 
             const handleSave = async (e) => {
                 e.preventDefault();
@@ -858,13 +864,29 @@
                             </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row w-full lg:flex-1 lg:max-w-2xl gap-4 z-10">
+                        <div className="flex flex-col sm:flex-row w-full lg:flex-1 lg:max-w-3xl gap-4 z-10">
                             <div className="relative flex-1">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"><Icon name="search" /></span>
                                 <input type="text" placeholder="Busca por Nome, ID, Músculo..." className="w-full pl-12 pr-12 py-4 rounded-2xl text-sm shadow-xl" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                                 {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-red-600 transition-colors bg-[#111111] rounded-full"><Icon name="x" className="w-4 h-4" /></button>}
                             </div>
-                            {isAdmin && <button onClick={() => { setEditingId(null); setAdminTab('single'); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' }); setShowAdminPanel(true); }} className="bg-red-600 px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 text-xs uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-600/20"><Icon name="pluscircle" className="w-5 h-5" /> NOVO REGISTRO</button>}
+                            {isAdmin && (
+                                <div className="flex gap-2 shrink-0">
+                                    <select 
+                                        value={adminFilter}
+                                        onChange={e => setAdminFilter(e.target.value)}
+                                        className="bg-zinc-900 text-zinc-400 border border-white/10 px-3 py-4 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest outline-none shadow-xl focus:border-red-600 transition-colors cursor-pointer"
+                                        title="Filtrar exercícios na tela"
+                                    >
+                                        <option value="all">VISÃO: TODOS</option>
+                                        <option value="completed">SÓ PREENCHIDOS</option>
+                                        <option value="incomplete">SÓ PENDENTES</option>
+                                    </select>
+                                    <button onClick={() => { setEditingId(null); setAdminTab('single'); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' }); setShowAdminPanel(true); }} className="bg-red-600 px-5 sm:px-6 py-4 rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-600/20 whitespace-nowrap">
+                                        <Icon name="pluscircle" className="w-4 h-4 sm:w-5 sm:h-5" /> <span className="hidden md:inline">NOVO REGISTRO</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </header>
 
