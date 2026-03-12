@@ -408,6 +408,28 @@
                 }, 4000);
             };
 
+            const isExerciseIncomplete = (url) => {
+                if (!url) return true;
+                const cleanUrl = String(url).trim().toLowerCase();
+                return cleanUrl === '' || cleanUrl.includes('revisar_link') || cleanUrl === 'url' || cleanUrl === 'https://url' || cleanUrl.includes('youtube.com/...');
+            };
+
+            // Cálculo das Estatísticas Administrativas (Sempre limpas e exatas)
+            const stats = useMemo(() => {
+                if (!isAdmin) return null;
+                let total = exercises.length;
+                let completed = 0;
+                let pending = 0;
+                exercises.forEach(ex => {
+                    if (isExerciseIncomplete(ex.youtubeUrl)) {
+                        pending++;
+                    } else {
+                        completed++;
+                    }
+                });
+                return { total, completed, pending };
+            }, [exercises, isAdmin]);
+
             useEffect(() => {
                 let timer;
                 if (authLoading || loading) {
@@ -535,12 +557,6 @@
 
             const scroll = (dir) => {
                 if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === 'left' ? -250 : 250, behavior: 'smooth' });
-            };
-
-            const isExerciseIncomplete = (url) => {
-                if (!url) return true;
-                const cleanUrl = String(url).trim().toLowerCase();
-                return cleanUrl === '' || cleanUrl.includes('revisar_link') || cleanUrl === 'url' || cleanUrl === 'https://url' || cleanUrl.includes('youtube.com/...');
             };
 
             const handleDownloadCheck = async (e, ex, quality) => {
@@ -845,7 +861,7 @@
                         </div>
                     )}
 
-                    <header className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-6 mb-10 pt-2">
+                    <header className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-6 mb-8 pt-2">
                         <div className="flex items-center gap-4 self-start lg:self-center z-10">
                             <img src={window.CUSTOM_LOGO_URL} className="h-12 w-12 sm:h-16 sm:w-16 object-contain" alt="DMX" />
                             <div className="flex flex-col">
@@ -865,30 +881,49 @@
                         </div>
 
                         <div className="flex flex-col sm:flex-row w-full lg:flex-1 lg:max-w-3xl gap-4 z-10">
-                            <div className="relative flex-1">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"><Icon name="search" /></span>
-                                <input type="text" placeholder="Busca por Nome, ID, Músculo..." className="w-full pl-12 pr-12 py-4 rounded-2xl text-sm shadow-xl" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                                {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-red-600 transition-colors bg-[#111111] rounded-full"><Icon name="x" className="w-4 h-4" /></button>}
+                            <div className="relative flex-1 flex items-center">
+                                <span className="absolute left-4 text-zinc-600"><Icon name="search" /></span>
+                                <input type="text" placeholder="Busca por Nome, ID, Músculo..." className="w-full h-14 pl-12 pr-12 rounded-2xl text-sm shadow-xl bg-[#111111] border border-white/10 text-white outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/20 transition-all" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-4 p-1 text-zinc-500 hover:text-red-600 transition-colors bg-[#1a1a1a] rounded-full"><Icon name="x" className="w-4 h-4" /></button>}
                             </div>
                             {isAdmin && (
-                                <div className="flex gap-2 shrink-0">
+                                <div className="flex items-center gap-2 shrink-0 h-14">
                                     <select 
                                         value={adminFilter}
                                         onChange={e => setAdminFilter(e.target.value)}
-                                        className="bg-zinc-900 text-zinc-400 border border-white/10 px-3 py-4 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest outline-none shadow-xl focus:border-red-600 transition-colors cursor-pointer"
+                                        className="h-full bg-zinc-900 text-zinc-400 border border-white/10 px-4 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest outline-none shadow-xl focus:border-red-600 transition-colors cursor-pointer"
                                         title="Filtrar exercícios na tela"
                                     >
                                         <option value="all">VISÃO: TODOS</option>
                                         <option value="completed">SÓ PREENCHIDOS</option>
                                         <option value="incomplete">SÓ PENDENTES</option>
                                     </select>
-                                    <button onClick={() => { setEditingId(null); setAdminTab('single'); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' }); setShowAdminPanel(true); }} className="bg-red-600 px-5 sm:px-6 py-4 rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-600/20 whitespace-nowrap">
+                                    <button onClick={() => { setEditingId(null); setAdminTab('single'); setForm({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '' }); setShowAdminPanel(true); }} className="h-full bg-red-600 px-5 sm:px-6 rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-600/20 whitespace-nowrap">
                                         <Icon name="pluscircle" className="w-4 h-4 sm:w-5 sm:h-5" /> <span className="hidden md:inline">NOVO REGISTRO</span>
                                     </button>
                                 </div>
                             )}
                         </div>
                     </header>
+
+                    {/* DASHBOARD DE ESTATÍSTICAS (SÓ PARA ADMIN) */}
+                    {isAdmin && stats && (
+                        <div className="max-w-7xl mx-auto w-full mb-8 grid grid-cols-3 gap-3 sm:gap-6 z-10 relative animate-fade-in">
+                            <div className="bg-zinc-950 border border-white/5 py-5 px-2 rounded-[2rem] flex flex-col items-center justify-center shadow-xl">
+                                <span className="text-[9px] sm:text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-1 text-center">Total de Exercícios</span>
+                                <span className="text-2xl sm:text-3xl font-black text-white">{stats.total}</span>
+                            </div>
+                            <div className="bg-zinc-950 border border-white/5 py-5 px-2 rounded-[2rem] flex flex-col items-center justify-center shadow-xl">
+                                <span className="text-[9px] sm:text-[10px] text-green-500/80 font-black uppercase tracking-widest mb-1 text-center">Preenchidos</span>
+                                <span className="text-2xl sm:text-3xl font-black text-green-500">{stats.completed}</span>
+                            </div>
+                            <div className="bg-zinc-950 border border-red-900/30 py-5 px-2 rounded-[2rem] flex flex-col items-center justify-center shadow-xl relative overflow-hidden">
+                                <div className="absolute inset-0 bg-red-600/5"></div>
+                                <span className="text-[9px] sm:text-[10px] text-red-500 font-black uppercase tracking-widest mb-1 text-center relative z-10">Pendentes</span>
+                                <span className="text-2xl sm:text-3xl font-black text-red-500 relative z-10">{stats.pending}</span>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="max-w-7xl mx-auto w-full mb-10 flex items-center gap-2 z-10">
                         <button className="hidden sm:flex nav-arrow shrink-0" onClick={() => scroll('left')}><Icon name="left" className="w-4 h-4" /></button>
