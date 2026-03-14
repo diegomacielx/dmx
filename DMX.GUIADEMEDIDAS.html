@@ -885,17 +885,17 @@
         let currentWizardStep = 0;
 
         const wizardSteps = [
-            { id: 'peso', title: 'Peso Corporal', desc: 'Sua pesagem atual.', type: 'single', label: 'Peso (kg)' },
-            { id: 'ant', title: 'Antebraço', desc: 'Maior circunferência.', type: 'double' },
-            { id: 'brlx', title: 'Braço Relaxado', desc: 'Maior circunferência.', type: 'double' },
-            { id: 'bcon', title: 'Braço Contraído', desc: 'Maior circunferência.', type: 'double' },
-            { id: 'omb', title: 'Ombro', desc: 'Passe a fita entre os pontos mais largos.', type: 'single', label: 'Medida (cm)' },
-            { id: 'tor', title: 'Tórax', desc: 'Debaixo das axilas.', type: 'single', label: 'Medida (cm)' },
-            { id: 'cin', title: 'Cintura', desc: 'Acima do umbigo.', type: 'single', label: 'Medida (cm)' },
-            { id: 'abd', title: 'Abdômen', desc: 'Por cima do umbigo.', type: 'single', label: 'Medida (cm)' },
-            { id: 'qua', title: 'Quadril', desc: 'Meio do glúteo.', type: 'single', label: 'Medida (cm)' },
-            { id: 'cox', title: 'Coxa', desc: 'Maior circunferência.', type: 'double' },
-            { id: 'pan', title: 'Panturrilha', desc: 'Maior circunferência.', type: 'double' }
+            { id: 'peso', title: 'Peso Corporal', desc: 'Sua pesagem atual em jejum, se possível.', type: 'single', label: 'Peso (kg)', image: null },
+            { id: 'ant', title: 'Antebraço', desc: 'Região de maior circunferência do antebraço.', type: 'double', image: 'https://i.imgur.com/9j5tS6G.png' },
+            { id: 'brlx', title: 'Braço Relaxado', desc: 'Região de maior circunferência do braço relaxado.', type: 'double', image: 'https://i.imgur.com/JXNNlV0.png' },
+            { id: 'bcon', title: 'Braço Contraído', desc: 'Região de maior circunferência do braço contraído.', type: 'double', image: 'https://i.imgur.com/oEN8KqT.png' },
+            { id: 'omb', title: 'Ombro', desc: 'Passe a fita métrica ao redor do corpo entre os pontos mais largos de cada ombro.', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/ZR5a1Fg.png' },
+            { id: 'tor', title: 'Tórax', desc: 'Debaixo das axilas. Homens: na linha dos mamilos. Mulheres: 2 dedos acima.', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/GVMiOPF.png' },
+            { id: 'cin', title: 'Cintura', desc: 'Região entre a última costela e o osso ilíaco (geralmente 2 dedos acima do umbigo).', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/YcFu0nE.png' },
+            { id: 'abd', title: 'Abdômen', desc: 'Passe a fita métrica horizontalmente passando por cima do seu umbigo.', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/eVdePfT.png' },
+            { id: 'qua', title: 'Quadril', desc: 'Posicione a fita na região mais larga, geralmente no meio do glúteo.', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/eYceyFN.png' },
+            { id: 'cox', title: 'Coxa', desc: 'Região de maior circunferência da coxa.', type: 'double', image: 'https://i.imgur.com/4SO5yjE.png' },
+            { id: 'pan', title: 'Panturrilha', desc: 'Região de maior circunferência da panturrilha.', type: 'double', image: 'https://i.imgur.com/HarZ9G3.png' }
         ];
 
         function openWizard(monthIndex) {
@@ -941,10 +941,23 @@
             }
             lucide.createIcons();
 
-            let html = `
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl md:text-5xl font-black text-zinc-900 mb-2">${step.title}</h2>
-                    <p class="text-gray-500 text-sm md:text-lg">${step.desc}</p>
+            let html = '';
+            
+            // Adiciona a imagem se ela existir no passo atual
+            if (step.image) {
+                html += `
+                    <div class="mb-4 md:mb-6 w-full flex justify-center">
+                        <div class="h-40 md:h-56 w-full max-w-[200px] md:max-w-[250px] bg-white rounded-2xl p-3 flex items-center justify-center relative shadow-sm border border-gray-100">
+                            <img src="${step.image}" class="w-full h-full object-contain z-10" alt="Como medir ${step.title}">
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="text-center mb-6 md:mb-8">
+                    <h2 class="text-2xl md:text-4xl font-black text-zinc-900 mb-2 leading-tight">${step.title}</h2>
+                    <p class="text-gray-500 text-xs md:text-sm max-w-sm mx-auto px-4 leading-relaxed">${step.desc}</p>
                 </div>
             `;
 
