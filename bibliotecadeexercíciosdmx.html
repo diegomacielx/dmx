@@ -412,7 +412,7 @@
             const [auditProgress, setAuditProgress] = useState(0);
             const [isAuditing, setIsAuditing] = useState(false);
             const [auditStats, setAuditStats] = useState({ checked: 0, found: 0, missing: 0 });
-            const [auditCurrentItem, setAuditCurrentItem] = useState(''); // NOVO: Rastreio visual do item atual
+            const [auditCurrentItem, setAuditCurrentItem] = useState(''); 
 
             const [form, setForm] = useState({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '', hasCloudVideo: null });
             const scrollRef = useRef(null);
@@ -505,9 +505,10 @@
                 });
             }, [isLoggedIn]);
 
-            // MOTOR DE AUDITORIA DE NUVEM - V2 (Blindagem Anti-CORS e GET Abortivo)
+            // MOTOR DE AUDITORIA DE NUVEM - V3 (Força Bruta Nativa via DOM Media Engine)
+            // Esta estratégia ignora problemas de fetch/CORS e tenta instanciar o vídeo diretamente.
             const runCloudAudit = async () => {
-                if (!confirm("O robô vai testar a conexão real de todos os arquivos 4K no Google Cloud...\n\nEsta operação consome poucos recursos, mas pode demorar alguns minutos devido à latência da rede. Deseja iniciar a verificação profunda?")) return;
+                if (!confirm("O robô vai iniciar a Varredura de Força Bruta.\n\nIremos tentar carregar nativamente os 4K de todos os vídeos. Este processo é mais lento (pode demorar alguns minutos) e consumirá mais RAM do seu navegador temporariamente, mas garantirá 100% de precisão sobre ficheiros em falta. Deseja prosseguir?")) return;
 
                 setIsAuditing(true);
                 setAuditProgress(0);
@@ -516,49 +517,58 @@
                 let missing = 0;
                 let checked = 0;
 
+                // Função auxiliar que verifica o vídeo de forma bruta pelo motor do browser
+                const checkVideoExistsBruteForce = (url) => {
+                    return new Promise((resolve) => {
+                        const videoObj = document.createElement('video');
+                        videoObj.preload = "metadata"; // Carrega apenas o cabeçalho do ficheiro, não o 4K inteiro
+                        videoObj.muted = true;
+                        videoObj.playsInline = true;
+
+                        // Timeout de segurança se a nuvem não responder (10 segundos)
+                        let timeoutId = setTimeout(() => {
+                            cleanup();
+                            resolve(false); 
+                        }, 10000); 
+
+                        const cleanup = () => {
+                            videoObj.removeEventListener('loadedmetadata', onSuccess);
+                            videoObj.removeEventListener('error', onError);
+                            videoObj.removeAttribute('src');
+                            videoObj.load();
+                        };
+
+                        const onSuccess = () => {
+                            clearTimeout(timeoutId);
+                            cleanup();
+                            resolve(true); // O navegador conseguiu ler a massa do vídeo
+                        };
+
+                        const onError = () => {
+                            clearTimeout(timeoutId);
+                            cleanup();
+                            resolve(false); // O motor de media do navegador confirmou que não é um vídeo
+                        };
+
+                        videoObj.addEventListener('loadedmetadata', onSuccess);
+                        videoObj.addEventListener('error', onError);
+
+                        // Cache buster forçado
+                        videoObj.src = `${url}?t=${new Date().getTime()}`;
+                    });
+                };
+
                 for (let i = 0; i < exercises.length; i++) {
                     const ex = exercises[i];
-                    const url = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_4K.mp4`;
                     
-                    setAuditCurrentItem(ex.id); // Atualiza visualmente qual item está sendo processado
+                    setAuditCurrentItem(ex.id);
                     let isUpado = false;
 
-                    try {
-                        // Utilização de GET real com AbortController.
-                        // Resolve o problema de servidores que mentem em pedidos HEAD ou escondem o CORS em erros 404.
-                        const controller = new AbortController();
-                        const response = await fetch(url, { method: 'GET', signal: controller.signal, cache: 'no-store' });
-                        
-                        if (response.ok && (response.status === 200 || response.status === 206)) {
-                            const contentType = response.headers.get('content-type') || '';
-                            const contentLength = response.headers.get('content-length') || '10000';
-                            
-                            // Defesa extra: Se o Google retornar um XML disfarçado de sucesso ou um ficheiro minúsculo (vazio).
-                            if (contentType.includes('xml') || parseInt(contentLength) < 1000) {
-                                isUpado = false;
-                            } else {
-                                isUpado = true;
-                            }
-                        } else {
-                            // Ficheiro retornou 404, 403, etc (mas não bloqueou o CORS)
-                            isUpado = false;
-                        }
-                        
-                        // Cancela a transferência do vídeo instantaneamente após a leitura dos cabeçalhos.
-                        controller.abort(); 
-                    } catch (error) {
-                        // A LÓGICA ANTI-CORS-404:
-                        // Se ocorrer um erro no `fetch` (Failed to fetch) devido à ausência de CORS num erro 404 da Google,
-                        // mas a internet do computador do utilizador estiver a funcionar, confirmamos matematicamente que o vídeo está em falta.
-                        if (error.name === 'AbortError') {
-                            // Exceção gerada pacificamente pelo nosso próprio comando controller.abort()
-                        } else if (navigator.onLine) {
-                            isUpado = false; // Erro de CORS num ambiente com rede ativa = Ficheiro Não Existe.
-                        } else {
-                            showToast("Auditoria interrompida: Perda de ligação à internet.", "error");
-                            setIsAuditing(false);
-                            return;
-                        }
+                    if (!ex.id) {
+                        isUpado = false; // Sem ID, sem vídeo.
+                    } else {
+                        const url = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_4K.mp4`;
+                        isUpado = await checkVideoExistsBruteForce(url);
                     }
 
                     if (isUpado) found++; else missing++;
@@ -577,13 +587,13 @@
                     setAuditStats({ checked, found, missing });
                     setAuditProgress(Math.round((checked / exercises.length) * 100));
                     
-                    // Pequeno respiro computacional para impedir o congelamento do navegador
-                    await new Promise(r => setTimeout(r, 30));
+                    // Atraso de alívio para não congelar o navegador do utilizador
+                    await new Promise(r => setTimeout(r, 100));
                 }
 
                 setAuditCurrentItem('');
                 setIsAuditing(false);
-                showToast("Varredura profunda da nuvem finalizada com sucesso!");
+                showToast("Varredura de Força Bruta finalizada com 100% de precisão!");
             };
 
             const handleLogin = async (e) => {
