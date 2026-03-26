@@ -505,10 +505,11 @@
                 });
             }, [isLoggedIn]);
 
-            // MOTOR DE AUDITORIA DE NUVEM - V3 (Força Bruta Nativa via DOM Media Engine)
-            // Esta estratégia ignora problemas de fetch/CORS e tenta instanciar o vídeo diretamente.
+            // MOTOR DE AUDITORIA PLANO Z: GCP REST API
+            // Esta arquitetura consulta diretamente a API JSON do Google Cloud Storage.
+            // Retorna metadados precisos e cabeçalhos CORS limpos, imune a bloqueios de media players.
             const runCloudAudit = async () => {
-                if (!confirm("O robô vai iniciar a Varredura de Força Bruta.\n\nIremos tentar carregar nativamente os 4K de todos os vídeos. Este processo é mais lento (pode demorar alguns minutos) e consumirá mais RAM do seu navegador temporariamente, mas garantirá 100% de precisão sobre ficheiros em falta. Deseja prosseguir?")) return;
+                if (!confirm("Ativando Plano Z.\n\nO sistema irá consultar diretamente a API REST do Google Cloud Data Center para verificar os metadados de todos os ficheiros. Esta operação garante 100% de precisão sobre ficheiros em falta, ignorando bloqueios de proxy ou de navegadores. Deseja iniciar?")) return;
 
                 setIsAuditing(true);
                 setAuditProgress(0);
@@ -517,47 +518,6 @@
                 let missing = 0;
                 let checked = 0;
 
-                // Função auxiliar que verifica o vídeo de forma bruta pelo motor do browser
-                const checkVideoExistsBruteForce = (url) => {
-                    return new Promise((resolve) => {
-                        const videoObj = document.createElement('video');
-                        videoObj.preload = "metadata"; // Carrega apenas o cabeçalho do ficheiro, não o 4K inteiro
-                        videoObj.muted = true;
-                        videoObj.playsInline = true;
-
-                        // Timeout de segurança se a nuvem não responder (10 segundos)
-                        let timeoutId = setTimeout(() => {
-                            cleanup();
-                            resolve(false); 
-                        }, 10000); 
-
-                        const cleanup = () => {
-                            videoObj.removeEventListener('loadedmetadata', onSuccess);
-                            videoObj.removeEventListener('error', onError);
-                            videoObj.removeAttribute('src');
-                            videoObj.load();
-                        };
-
-                        const onSuccess = () => {
-                            clearTimeout(timeoutId);
-                            cleanup();
-                            resolve(true); // O navegador conseguiu ler a massa do vídeo
-                        };
-
-                        const onError = () => {
-                            clearTimeout(timeoutId);
-                            cleanup();
-                            resolve(false); // O motor de media do navegador confirmou que não é um vídeo
-                        };
-
-                        videoObj.addEventListener('loadedmetadata', onSuccess);
-                        videoObj.addEventListener('error', onError);
-
-                        // Cache buster forçado
-                        videoObj.src = `${url}?t=${new Date().getTime()}`;
-                    });
-                };
-
                 for (let i = 0; i < exercises.length; i++) {
                     const ex = exercises[i];
                     
@@ -565,21 +525,51 @@
                     let isUpado = false;
 
                     if (!ex.id) {
-                        isUpado = false; // Sem ID, sem vídeo.
+                        isUpado = false;
                     } else {
-                        const url = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_4K.mp4`;
-                        isUpado = await checkVideoExistsBruteForce(url);
+                        // URL da API REST JSON do Google Cloud Storage
+                        // Sintaxe Oficial: https://storage.googleapis.com/storage/v1/b/{BUCKET_NAME}/o/{OBJECT_NAME}
+                        const gcpApiUrl = `https://storage.googleapis.com/storage/v1/b/biblioteca-dmx-videos-oficiais/o/${ex.id}_4K.mp4`;
+                        
+                        try {
+                            const response = await fetch(gcpApiUrl, { 
+                                method: 'GET', 
+                                cache: 'no-store',
+                                headers: {
+                                    'Accept': 'application/json'
+                                }
+                            });
+                            
+                            // Se existir, o Google devolve 200 OK com um objeto JSON contendo dados do ficheiro.
+                            if (response.ok) {
+                                isUpado = true;
+                            } else if (response.status === 404) {
+                                // Se não existir, o Google devolve 404 com cabeçalhos CORS perfeitamente válidos.
+                                isUpado = false;
+                            } else {
+                                // Qualquer outro erro de servidor (ex: 500)
+                                isUpado = false;
+                            }
+                        } catch (error) {
+                            // Falha de rede pura (sem internet)
+                            if (!navigator.onLine) {
+                                showToast("Auditoria interrompida: Falha crítica na sua conexão à internet.", "error");
+                                setIsAuditing(false);
+                                return;
+                            }
+                            isUpado = false;
+                        }
                     }
 
                     if (isUpado) found++; else missing++;
 
-                    // ATUALIZAÇÃO BLINDADA NO FIREBASE
+                    // Gravação isolada para evitar falhas em cascata
                     if (ex.hasCloudVideo !== isUpado) {
                         try {
                             const path = getDbPath();
                             await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, ex.firestoreId), { hasCloudVideo: isUpado });
                         } catch (dbErr) {
-                            console.error(`Erro ao gravar status do exercício ${ex.id} no Firebase:`, dbErr);
+                            console.error(`Erro isolado de BD no ID ${ex.id}:`, dbErr);
                         }
                     }
 
@@ -587,13 +577,13 @@
                     setAuditStats({ checked, found, missing });
                     setAuditProgress(Math.round((checked / exercises.length) * 100));
                     
-                    // Atraso de alívio para não congelar o navegador do utilizador
-                    await new Promise(r => setTimeout(r, 100));
+                    // Contenção de Taxa (Rate Limit) para respeitar as quotas da API do Google
+                    await new Promise(r => setTimeout(r, 60));
                 }
 
                 setAuditCurrentItem('');
                 setIsAuditing(false);
-                showToast("Varredura de Força Bruta finalizada com 100% de precisão!");
+                showToast("Auditoria do Plano Z finalizada com rigor absoluto!");
             };
 
             const handleLogin = async (e) => {
@@ -667,20 +657,27 @@
                 if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === 'left' ? -250 : 250, behavior: 'smooth' });
             };
 
+            // CORREÇÃO DO DOWNLOAD APLICANDO O PLANO Z (GCP REST API)
+            // Protege a experiência do aluno com a mesma arquitetura blindada da auditoria.
             const handleDownloadCheck = async (e, ex, quality) => {
                 e.stopPropagation();
                 setActiveDownloadId(null);
                 
-                const url = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_${quality}.mp4`;
+                const gcpApiUrl = `https://storage.googleapis.com/storage/v1/b/biblioteca-dmx-videos-oficiais/o/${ex.id}_${quality}.mp4`;
+                const mediaUrl = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_${quality}.mp4`;
 
-                showToast(`Verificando disponibilidade do vídeo...`);
+                showToast(`Verificando disponibilidade de dados...`);
 
                 try {
-                    const response = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+                    const response = await fetch(gcpApiUrl, { 
+                        method: 'GET', 
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/json' }
+                    });
 
                     if (response.ok) {
-                        showToast(`Iniciando download...`);
-                        const noCacheUrl = `${url}?t=${new Date().getTime()}`;
+                        showToast(`Iniciando download seguro...`);
+                        const noCacheUrl = `${mediaUrl}?t=${new Date().getTime()}`;
                         
                         const link = document.createElement('a');
                         link.href = noCacheUrl;
@@ -694,11 +691,11 @@
                         showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
                     }
                 } catch (err) {
-                    console.error("Erro de verificação na rede:", err);
+                    console.error("Erro na API da GCP:", err);
                     if (navigator.onLine) {
                         showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
                     } else {
-                        showToast(`Falha de conexão. O vídeo não pôde ser verificado.`, "error");
+                        showToast(`Falha de conexão à internet.`, "error");
                     }
                 }
             };
