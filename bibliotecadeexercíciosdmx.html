@@ -261,13 +261,13 @@
                                 <div className="bg-amber-500 text-black text-[10px] font-black px-2.5 py-1 rounded-lg uppercase border border-white/10 shadow-lg">INCOMPLETO</div>
                             )}
                             {/* FLAG DE AUDITORIA DE NUVEM */}
-                            {isAdmin && ex.hasCloudVideo === false && (
-                                <div className="bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase border border-red-500/50 shadow-lg flex items-center gap-1">
+                            {isAdmin && ex.hasCloudVideo === false && !isExerciseIncomplete(ex.youtubeUrl) && (
+                                <div className="bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase border border-red-500/50 shadow-lg flex items-center gap-1 mt-1">
                                     <Icon name="x" className="w-3 h-3" /> FALTANDO NUVEM
                                 </div>
                             )}
-                            {isAdmin && ex.hasCloudVideo === true && (
-                                <div className="bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase border border-emerald-500/50 shadow-lg flex items-center gap-1">
+                            {isAdmin && ex.hasCloudVideo === true && !isExerciseIncomplete(ex.youtubeUrl) && (
+                                <div className="bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase border border-emerald-500/50 shadow-lg flex items-center gap-1 mt-1">
                                     <Icon name="circlecheck" className="w-3 h-3" /> UPADO (CLOUD)
                                 </div>
                             )}
@@ -442,8 +442,13 @@
                 let cloudMissing = 0;
                 
                 exercises.forEach(ex => {
-                    if (isExerciseIncomplete(ex.youtubeUrl)) pending++; else completed++;
-                    if (ex.hasCloudVideo === false) cloudMissing++;
+                    if (isExerciseIncomplete(ex.youtubeUrl)) {
+                        pending++;
+                    } else {
+                        completed++;
+                        // Apenas verificamos falta de cloud naqueles que já estão preenchidos
+                        if (ex.hasCloudVideo === false) cloudMissing++;
+                    }
                 });
                 return { total, completed, pending, cloudMissing };
             }, [exercises, isAdmin]);
@@ -505,9 +510,17 @@
                 });
             }, [isLoggedIn]);
 
-            // MOTOR DE AUDITORIA PLANO DEFINITIVO V4: Análise de Peso e Escudo de Base de Dados
+            // MOTOR DE AUDITORIA PLANO DEFINITIVO V4: Focado apenas nos Concluídos
             const runCloudAudit = async () => {
-                if (!confirm("Iniciando Verificação de Alta Precisão...\n\nO sistema irá analisar o peso (bytes) e o DNA de cada ficheiro para rejeitar falsos positivos. Para evitar o bloqueio do servidor, a base de dados será atualizada em lotes no final. Deseja iniciar?")) return;
+                // Filtra a base de dados para auditar APENAS os exercícios que já foram preenchidos (possuem URL válida)
+                const exercisesToAudit = exercises.filter(ex => !isExerciseIncomplete(ex.youtubeUrl));
+
+                if (exercisesToAudit.length === 0) {
+                    showToast("Não há exercícios preenchidos para auditar.", "error");
+                    return;
+                }
+
+                if (!confirm(`Iniciando Verificação Otimizada...\n\nO sistema irá analisar o peso e o DNA exclusivamente dos ${exercisesToAudit.length} exercícios já preenchidos no YouTube, procurando por vídeos esquecidos no Cloud Storage. Deseja iniciar?`)) return;
 
                 setIsAuditing(true);
                 setAuditProgress(0);
@@ -520,8 +533,8 @@
                 let batch = window.fb.writeBatch(window.fb.db);
                 let batchCount = 0;
 
-                for (let i = 0; i < exercises.length; i++) {
-                    const ex = exercises[i];
+                for (let i = 0; i < exercisesToAudit.length; i++) {
+                    const ex = exercisesToAudit[i];
                     
                     setAuditCurrentItem(ex.id);
                     let isUpado = false;
@@ -584,7 +597,7 @@
 
                     checked++;
                     setAuditStats({ checked, found, missing });
-                    setAuditProgress(Math.round((checked / exercises.length) * 100));
+                    setAuditProgress(Math.round((checked / exercisesToAudit.length) * 100));
                     
                     // Atraso de 40 milissegundos para não congelar o computador do Admin
                     await new Promise(r => setTimeout(r, 40));
@@ -597,7 +610,7 @@
 
                 setAuditCurrentItem('');
                 setIsAuditing(false);
-                showToast("Auditoria V4 concluída e Base de Dados Sincronizada!");
+                showToast("Auditoria otimizada concluída e Base de Dados sincronizada!");
             };
 
             const handleLogin = async (e) => {
@@ -737,8 +750,8 @@
                     if (isAdmin) {
                         if (adminFilter === 'completed') return !isExerciseIncomplete(ex.youtubeUrl);
                         if (adminFilter === 'incomplete') return isExerciseIncomplete(ex.youtubeUrl);
-                        if (adminFilter === 'missing_cloud') return ex.hasCloudVideo === false;
-                        if (adminFilter === 'upados_cloud') return ex.hasCloudVideo === true;
+                        if (adminFilter === 'missing_cloud') return !isExerciseIncomplete(ex.youtubeUrl) && ex.hasCloudVideo === false;
+                        if (adminFilter === 'upados_cloud') return !isExerciseIncomplete(ex.youtubeUrl) && ex.hasCloudVideo === true;
                         return true; 
                     }
                     return !isExerciseIncomplete(ex.youtubeUrl);
@@ -1154,13 +1167,13 @@
                                         <div className="bg-indigo-950/30 border border-indigo-500/20 p-6 sm:p-8 rounded-[2.5rem]">
                                             <h3 className="text-white font-black text-lg mb-2 flex items-center gap-3"><Icon name="server" className="w-6 h-6 text-indigo-500" /> Sincronização Inteligente Cloud</h3>
                                             <p className="text-zinc-400 text-xs mb-8 leading-relaxed">
-                                                Este robô auditor vai varrer todos os seus exercícios cadastrados e conectar-se à porta do Google Cloud Storage para verificar automaticamente se o ficheiro `.mp4` correspondente já foi devidamente upado. As informações da base de dados serão atualizadas silenciosamente.
+                                                Este robô auditor vai varrer de forma otimizada os seus exercícios já preenchidos e conectar-se à porta do Google Cloud Storage para verificar automaticamente se o ficheiro `.mp4` correspondente já foi devidamente upado. As informações da base de dados serão atualizadas silenciosamente.
                                             </p>
                                             
                                             <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
                                                 <button onClick={runCloudAudit} disabled={isAuditing} className="w-full sm:w-auto bg-indigo-600 py-4 px-8 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 text-[10px] sm:text-xs shadow-xl shadow-indigo-600/30 hover:bg-indigo-700 transition-all disabled:opacity-50 text-white">
                                                     {isAuditing ? <Icon name="loader" className="animate-spin w-5 h-5" /> : <Icon name="cloud" className="w-5 h-5" />} 
-                                                    {isAuditing ? 'VARRENDO NUVEM...' : `INICIAR VARREDURA (${exercises.length} itens)`}
+                                                    {isAuditing ? 'VARRENDO NUVEM...' : `INICIAR VARREDURA OTIMIZADA`}
                                                 </button>
                                                 {isAuditing && <span className="text-indigo-400 font-black text-[10px] uppercase tracking-widest">{auditProgress}% Concluído (ID: {auditCurrentItem})</span>}
                                             </div>
