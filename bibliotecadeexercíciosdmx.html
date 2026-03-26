@@ -505,11 +505,9 @@
                 });
             }, [isLoggedIn]);
 
-            // MOTOR DE AUDITORIA PLANO Z: GCP REST API
-            // Esta arquitetura consulta diretamente a API JSON do Google Cloud Storage.
-            // Retorna metadados precisos e cabeçalhos CORS limpos, imune a bloqueios de media players.
+            // MOTOR DE AUDITORIA PLANO DEFINITIVO V4: Análise de Peso e Escudo de Base de Dados
             const runCloudAudit = async () => {
-                if (!confirm("Ativando Plano Z.\n\nO sistema irá consultar diretamente a API REST do Google Cloud Data Center para verificar os metadados de todos os ficheiros. Esta operação garante 100% de precisão sobre ficheiros em falta, ignorando bloqueios de proxy ou de navegadores. Deseja iniciar?")) return;
+                if (!confirm("Iniciando Verificação de Alta Precisão...\n\nO sistema irá analisar o peso (bytes) e o DNA de cada ficheiro para rejeitar falsos positivos. Para evitar o bloqueio do servidor, a base de dados será atualizada em lotes no final. Deseja iniciar?")) return;
 
                 setIsAuditing(true);
                 setAuditProgress(0);
@@ -517,6 +515,10 @@
                 let found = 0;
                 let missing = 0;
                 let checked = 0;
+
+                // Preparação do sistema de "Batch" (Lotes) para driblar o Rate Limit do Firebase
+                let batch = window.fb.writeBatch(window.fb.db);
+                let batchCount = 0;
 
                 for (let i = 0; i < exercises.length; i++) {
                     const ex = exercises[i];
@@ -527,49 +529,56 @@
                     if (!ex.id) {
                         isUpado = false;
                     } else {
-                        // URL da API REST JSON do Google Cloud Storage
-                        // Sintaxe Oficial: https://storage.googleapis.com/storage/v1/b/{BUCKET_NAME}/o/{OBJECT_NAME}
-                        const gcpApiUrl = `https://storage.googleapis.com/storage/v1/b/biblioteca-dmx-videos-oficiais/o/${ex.id}_4K.mp4`;
+                        // Fazemos um GET direto à media, mas cancelamos imediatamente para não gastar dados
+                        const videoUrl = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_4K.mp4?cb=${Date.now()}`;
                         
                         try {
-                            const response = await fetch(gcpApiUrl, { 
+                            const controller = new AbortController();
+                            // Timeout rigoroso de 6 segundos
+                            const timeoutId = setTimeout(() => controller.abort(), 6000);
+                            
+                            const response = await fetch(videoUrl, { 
                                 method: 'GET', 
-                                cache: 'no-store',
-                                headers: {
-                                    'Accept': 'application/json'
-                                }
+                                signal: controller.signal,
+                                cache: 'no-store'
                             });
                             
-                            // Se existir, o Google devolve 200 OK com um objeto JSON contendo dados do ficheiro.
-                            if (response.ok) {
-                                isUpado = true;
-                            } else if (response.status === 404) {
-                                // Se não existir, o Google devolve 404 com cabeçalhos CORS perfeitamente válidos.
-                                isUpado = false;
-                            } else {
-                                // Qualquer outro erro de servidor (ex: 500)
-                                isUpado = false;
+                            clearTimeout(timeoutId);
+                            
+                            // Se a resposta for positiva, passamos pela "Balança" e pelo "Scanner de DNA"
+                            if (response.ok || response.status === 206) {
+                                const contentType = (response.headers.get('content-type') || '').toLowerCase();
+                                const contentLength = parseInt(response.headers.get('content-length') || '0', 10);
+                                
+                                // A prova de fogo: Um vídeo real de 4K tem mais de 10 Kilobytes e é do tipo video.
+                                // Páginas XML de erro (os falsos 200) chumbam neste teste porque pesam menos de 1KB.
+                                if ((contentType.includes('video') || contentType.includes('mp4')) && contentLength > 10000) {
+                                    isUpado = true;
+                                }
                             }
+                            
+                            // Cortar a transferência de dados no mesmo milissegundo
+                            controller.abort();
                         } catch (error) {
-                            // Falha de rede pura (sem internet)
-                            if (!navigator.onLine) {
-                                showToast("Auditoria interrompida: Falha crítica na sua conexão à internet.", "error");
-                                setIsAuditing(false);
-                                return;
-                            }
+                            // Qualquer erro de ligação, timeout, ou CORS de 404 é imediatamente classificado como Falta.
                             isUpado = false;
                         }
                     }
 
                     if (isUpado) found++; else missing++;
 
-                    // Gravação isolada para evitar falhas em cascata
+                    // Se o status da Nuvem for diferente do que está no Firebase, adicionamos ao "carrinho" (Batch)
                     if (ex.hasCloudVideo !== isUpado) {
-                        try {
-                            const path = getDbPath();
-                            await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, ex.firestoreId), { hasCloudVideo: isUpado });
-                        } catch (dbErr) {
-                            console.error(`Erro isolado de BD no ID ${ex.id}:`, dbErr);
+                        const path = getDbPath();
+                        const docRef = window.fb.doc(window.fb.db, ...path, ex.firestoreId);
+                        batch.update(docRef, { hasCloudVideo: isUpado });
+                        batchCount++;
+                        
+                        // Se o carrinho chegar a 450 (perto do limite do Firebase), envia de uma vez e esvazia o carrinho
+                        if (batchCount === 450) {
+                            await batch.commit();
+                            batch = window.fb.writeBatch(window.fb.db);
+                            batchCount = 0;
                         }
                     }
 
@@ -577,13 +586,18 @@
                     setAuditStats({ checked, found, missing });
                     setAuditProgress(Math.round((checked / exercises.length) * 100));
                     
-                    // Contenção de Taxa (Rate Limit) para respeitar as quotas da API do Google
-                    await new Promise(r => setTimeout(r, 60));
+                    // Atraso de 40 milissegundos para não congelar o computador do Admin
+                    await new Promise(r => setTimeout(r, 40));
+                }
+
+                // Submete os restantes ficheiros que ficaram no carrinho no final da operação
+                if (batchCount > 0) {
+                    await batch.commit();
                 }
 
                 setAuditCurrentItem('');
                 setIsAuditing(false);
-                showToast("Auditoria do Plano Z finalizada com rigor absoluto!");
+                showToast("Auditoria V4 concluída e Base de Dados Sincronizada!");
             };
 
             const handleLogin = async (e) => {
@@ -657,25 +671,43 @@
                 if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === 'left' ? -250 : 250, behavior: 'smooth' });
             };
 
-            // CORREÇÃO DO DOWNLOAD APLICANDO O PLANO Z (GCP REST API)
-            // Protege a experiência do aluno com a mesma arquitetura blindada da auditoria.
+            // CORREÇÃO DO DOWNLOAD: Mesma lógica de Blindagem de Peso do Motor V4
             const handleDownloadCheck = async (e, ex, quality) => {
                 e.stopPropagation();
                 setActiveDownloadId(null);
                 
-                const gcpApiUrl = `https://storage.googleapis.com/storage/v1/b/biblioteca-dmx-videos-oficiais/o/${ex.id}_${quality}.mp4`;
                 const mediaUrl = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_${quality}.mp4`;
 
-                showToast(`Verificando disponibilidade de dados...`);
+                showToast(`Verificando integridade do ficheiro...`);
 
                 try {
-                    const response = await fetch(gcpApiUrl, { 
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+                    
+                    // Utilizamos um GET brutal com desvio de Cache para não sermos enganados pelo navegador
+                    const response = await fetch(`${mediaUrl}?cb=${Date.now()}`, { 
                         method: 'GET', 
-                        cache: 'no-store',
-                        headers: { 'Accept': 'application/json' }
+                        signal: controller.signal,
+                        cache: 'no-store'
                     });
+                    
+                    clearTimeout(timeoutId);
 
-                    if (response.ok) {
+                    let isSafeToDownload = false;
+                    
+                    if (response.ok || response.status === 206) {
+                        const contentType = (response.headers.get('content-type') || '').toLowerCase();
+                        const contentLength = parseInt(response.headers.get('content-length') || '0', 10);
+                        
+                        // Validação dupla de segurança: Impede o download de erros XML disfarçados
+                        if ((contentType.includes('video') || contentType.includes('mp4')) && contentLength > 10000) {
+                            isSafeToDownload = true;
+                        }
+                    }
+                    
+                    controller.abort();
+
+                    if (isSafeToDownload) {
                         showToast(`Iniciando download seguro...`);
                         const noCacheUrl = `${mediaUrl}?t=${new Date().getTime()}`;
                         
@@ -688,10 +720,10 @@
                         link.click();
                         document.body.removeChild(link);
                     } else {
-                        showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
+                        showToast(`O vídeo "${ex.name}" não está disponível ou está corrompido em ${quality}.`, "error");
                     }
                 } catch (err) {
-                    console.error("Erro na API da GCP:", err);
+                    console.error("Erro no Download V4:", err);
                     if (navigator.onLine) {
                         showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
                     } else {
