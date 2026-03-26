@@ -504,7 +504,7 @@
                 });
             }, [isLoggedIn]);
 
-            // MOTOR DE AUDITORIA DE NUVEM
+            // MOTOR DE AUDITORIA DE NUVEM COM PROTEÇÃO ANTI-CORS-404
             const runCloudAudit = async () => {
                 if (!confirm("O robô vai testar a conexão de todos os arquivos 4K no Google Cloud. Pode demorar 1 a 2 minutos. Deseja iniciar?")) return;
 
@@ -519,20 +519,32 @@
                     const ex = exercises[i];
                     const url = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_4K.mp4`;
 
+                    let isUpado = false;
+
                     try {
-                        const response = await fetch(url, { method: 'HEAD' });
-                        const isUpado = response.ok;
-
-                        if (isUpado) found++; else missing++;
-
-                        // Persiste no Firebase apenas se o status estiver desatualizado
-                        if (ex.hasCloudVideo !== isUpado) {
-                            const path = getDbPath();
-                            await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, ex.firestoreId), { hasCloudVideo: isUpado });
-                        }
+                        // Fazemos o pedido. Adicionamos 'cache: no-cache' para garantir dados reais em tempo real.
+                        const response = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+                        isUpado = response.ok;
                     } catch (error) {
-                        // Erro de rede ou CORS. Ignoramos para não gerar falso negativo.
-                        console.error("Falha ao pingar", url);
+                        // AQUI ESTÁ A LÓGICA ANTI-CORS-404:
+                        // O Google Cloud omite o cabeçalho "Access-Control-Allow-Origin" em respostas 404 (Not Found).
+                        // Isto faz o navegador entrar em pânico e atirar um erro fatal de "Failed to fetch", caindo neste bloco Catch.
+                        // Portanto, se caiu aqui E o computador tiver internet, temos a garantia de que é um erro 404 (arquivo não existe).
+                        if (navigator.onLine) {
+                            isUpado = false;
+                        } else {
+                            showToast("Auditoria interrompida: Perda de ligação à internet.", "error");
+                            setIsAuditing(false);
+                            return;
+                        }
+                    }
+
+                    if (isUpado) found++; else missing++;
+
+                    // Persiste no Firebase apenas se o status estiver desatualizado
+                    if (ex.hasCloudVideo !== isUpado) {
+                        const path = getDbPath();
+                        await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, ex.firestoreId), { hasCloudVideo: isUpado });
                     }
 
                     checked++;
@@ -627,7 +639,7 @@
                 showToast(`Verificando disponibilidade do vídeo...`);
 
                 try {
-                    const response = await fetch(url, { method: 'HEAD' });
+                    const response = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
 
                     if (response.ok) {
                         showToast(`Iniciando download...`);
@@ -646,7 +658,12 @@
                     }
                 } catch (err) {
                     console.error("Erro de verificação na rede:", err);
-                    showToast(`Falha de conexão. O vídeo não pôde ser verificado.`, "error");
+                    // A mesma lógica protetora do Auditoria: se caiu aqui e há internet, é um ficheiro em falta (404 com erro CORS).
+                    if (navigator.onLine) {
+                        showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
+                    } else {
+                        showToast(`Falha de conexão. O vídeo não pôde ser verificado.`, "error");
+                    }
                 }
             };
 
