@@ -412,6 +412,7 @@
             const [auditProgress, setAuditProgress] = useState(0);
             const [isAuditing, setIsAuditing] = useState(false);
             const [auditStats, setAuditStats] = useState({ checked: 0, found: 0, missing: 0 });
+            const [auditCurrentItem, setAuditCurrentItem] = useState(''); // NOVO: Rastreio visual do item atual
 
             const [form, setForm] = useState({ id: '', name: '', category: 'Quadríceps', muscleGroups: '', youtubeUrl: '', thumbnail: '', keywords: '', hasCloudVideo: null });
             const scrollRef = useRef(null);
@@ -504,9 +505,9 @@
                 });
             }, [isLoggedIn]);
 
-            // MOTOR DE AUDITORIA DE NUVEM COM PROTEÇÃO ANTI-CORS-404
+            // MOTOR DE AUDITORIA DE NUVEM - V2 (Blindagem Anti-CORS e GET Abortivo)
             const runCloudAudit = async () => {
-                if (!confirm("O robô vai testar a conexão de todos os arquivos 4K no Google Cloud. Pode demorar 1 a 2 minutos. Deseja iniciar?")) return;
+                if (!confirm("O robô vai testar a conexão real de todos os arquivos 4K no Google Cloud...\n\nEsta operação consome poucos recursos, mas pode demorar alguns minutos devido à latência da rede. Deseja iniciar a verificação profunda?")) return;
 
                 setIsAuditing(true);
                 setAuditProgress(0);
@@ -518,20 +519,41 @@
                 for (let i = 0; i < exercises.length; i++) {
                     const ex = exercises[i];
                     const url = `https://storage.googleapis.com/biblioteca-dmx-videos-oficiais/${ex.id}_4K.mp4`;
-
+                    
+                    setAuditCurrentItem(ex.id); // Atualiza visualmente qual item está sendo processado
                     let isUpado = false;
 
                     try {
-                        // Fazemos o pedido. Adicionamos 'cache: no-cache' para garantir dados reais em tempo real.
-                        const response = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
-                        isUpado = response.ok;
-                    } catch (error) {
-                        // AQUI ESTÁ A LÓGICA ANTI-CORS-404:
-                        // O Google Cloud omite o cabeçalho "Access-Control-Allow-Origin" em respostas 404 (Not Found).
-                        // Isto faz o navegador entrar em pânico e atirar um erro fatal de "Failed to fetch", caindo neste bloco Catch.
-                        // Portanto, se caiu aqui E o computador tiver internet, temos a garantia de que é um erro 404 (arquivo não existe).
-                        if (navigator.onLine) {
+                        // Utilização de GET real com AbortController.
+                        // Resolve o problema de servidores que mentem em pedidos HEAD ou escondem o CORS em erros 404.
+                        const controller = new AbortController();
+                        const response = await fetch(url, { method: 'GET', signal: controller.signal, cache: 'no-store' });
+                        
+                        if (response.ok && (response.status === 200 || response.status === 206)) {
+                            const contentType = response.headers.get('content-type') || '';
+                            const contentLength = response.headers.get('content-length') || '10000';
+                            
+                            // Defesa extra: Se o Google retornar um XML disfarçado de sucesso ou um ficheiro minúsculo (vazio).
+                            if (contentType.includes('xml') || parseInt(contentLength) < 1000) {
+                                isUpado = false;
+                            } else {
+                                isUpado = true;
+                            }
+                        } else {
+                            // Ficheiro retornou 404, 403, etc (mas não bloqueou o CORS)
                             isUpado = false;
+                        }
+                        
+                        // Cancela a transferência do vídeo instantaneamente após a leitura dos cabeçalhos.
+                        controller.abort(); 
+                    } catch (error) {
+                        // A LÓGICA ANTI-CORS-404:
+                        // Se ocorrer um erro no `fetch` (Failed to fetch) devido à ausência de CORS num erro 404 da Google,
+                        // mas a internet do computador do utilizador estiver a funcionar, confirmamos matematicamente que o vídeo está em falta.
+                        if (error.name === 'AbortError') {
+                            // Exceção gerada pacificamente pelo nosso próprio comando controller.abort()
+                        } else if (navigator.onLine) {
+                            isUpado = false; // Erro de CORS num ambiente com rede ativa = Ficheiro Não Existe.
                         } else {
                             showToast("Auditoria interrompida: Perda de ligação à internet.", "error");
                             setIsAuditing(false);
@@ -541,22 +563,27 @@
 
                     if (isUpado) found++; else missing++;
 
-                    // Persiste no Firebase apenas se o status estiver desatualizado
+                    // ATUALIZAÇÃO BLINDADA NO FIREBASE
                     if (ex.hasCloudVideo !== isUpado) {
-                        const path = getDbPath();
-                        await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, ex.firestoreId), { hasCloudVideo: isUpado });
+                        try {
+                            const path = getDbPath();
+                            await window.fb.updateDoc(window.fb.doc(window.fb.db, ...path, ex.firestoreId), { hasCloudVideo: isUpado });
+                        } catch (dbErr) {
+                            console.error(`Erro ao gravar status do exercício ${ex.id} no Firebase:`, dbErr);
+                        }
                     }
 
                     checked++;
                     setAuditStats({ checked, found, missing });
                     setAuditProgress(Math.round((checked / exercises.length) * 100));
                     
-                    // Atraso intencional para não ativar bloqueio de requisições do navegador
-                    await new Promise(r => setTimeout(r, 50));
+                    // Pequeno respiro computacional para impedir o congelamento do navegador
+                    await new Promise(r => setTimeout(r, 30));
                 }
 
+                setAuditCurrentItem('');
                 setIsAuditing(false);
-                showToast("Varredura de nuvem finalizada!");
+                showToast("Varredura profunda da nuvem finalizada com sucesso!");
             };
 
             const handleLogin = async (e) => {
@@ -658,7 +685,6 @@
                     }
                 } catch (err) {
                     console.error("Erro de verificação na rede:", err);
-                    // A mesma lógica protetora do Auditoria: se caiu aqui e há internet, é um ficheiro em falta (404 com erro CORS).
                     if (navigator.onLine) {
                         showToast(`O vídeo "${ex.name}" ainda não está disponível em ${quality}.`, "error");
                     } else {
@@ -1097,7 +1123,7 @@
                                                     {isAuditing ? <Icon name="loader" className="animate-spin w-5 h-5" /> : <Icon name="cloud" className="w-5 h-5" />} 
                                                     {isAuditing ? 'VARRENDO NUVEM...' : `INICIAR VARREDURA (${exercises.length} itens)`}
                                                 </button>
-                                                {isAuditing && <span className="text-indigo-400 font-black text-[10px] uppercase tracking-widest">{auditProgress}% Concluído</span>}
+                                                {isAuditing && <span className="text-indigo-400 font-black text-[10px] uppercase tracking-widest">{auditProgress}% Concluído (ID: {auditCurrentItem})</span>}
                                             </div>
 
                                             {isAuditing && (
