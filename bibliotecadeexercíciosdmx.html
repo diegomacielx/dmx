@@ -544,6 +544,7 @@
                 }
             }, []);
 
+            // SINCRONIZAR PERFIL DO USUÁRIO E CONTROLE DE ACESSO
             useEffect(() => {
                 if (!isLoggedIn || !window.fb || !user) return;
                 
@@ -571,6 +572,7 @@
                 return () => unsubProfile();
             }, [isLoggedIn, user, isAdmin]);
 
+            // DUAL-LISTENER: Carrega Exercícios + Notificações
             useEffect(() => {
                 if (!isLoggedIn || !window.fb || !user) return;
                 
@@ -617,6 +619,7 @@
                 };
             }, [isLoggedIn, user]);
 
+            // LISTENERS DO ADMIN (Lista de Alunos + Configurações)
             useEffect(() => {
                 if (!isAdmin || !window.fb) return;
                 const appIdStr = window.app_id || 'dmx-exercicios-cloud';
@@ -639,6 +642,7 @@
                 }
             }, [isAdmin]);
 
+            // ARQUITETURA DO SILENT BACKGROUND WORKER (Auditoria Automática)
             useEffect(() => {
                 if (!isAdmin || exercises.length === 0 || !window.fb) return;
 
@@ -684,6 +688,7 @@
                 processQueue();
             }, [exercises, isAdmin]);
 
+            // LÓGICA DAS NOTIFICAÇÕES (Filtro por Timestamp Local)
             const visibleNotifications = useMemo(() => {
                 return notifications.filter(n => !clearedAt || n.createdAt > clearedAt);
             }, [notifications, clearedAt]);
@@ -971,6 +976,7 @@
 
                     const path = getDbPath();
                     
+                    // LÓGICA DE TRANSIÇÃO DE ESTADO (Automação de Notificação)
                     let shouldNotify = false;
                     const isCompleteNow = !isExerciseIncomplete(data.youtubeUrl);
 
@@ -1264,52 +1270,63 @@
 
                             <div className="flex items-center gap-3 sm:gap-4 justify-end">
                                 
-                                {/* O SINO DE NOTIFICAÇÕES 🔔 (AGORA ISOLADO NA EXTREMA DIREITA) */}
+                                {/* O SINO DE NOTIFICAÇÕES 🔔 */}
                                 <div className="relative" ref={notificationsRef}>
-                                    <button onClick={toggleNotifications} className="relative p-2 text-zinc-400 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl hover:border-red-600/50">
+                                    <button onClick={toggleNotifications} className="relative p-1.5 sm:p-2 text-zinc-400 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl hover:border-red-600/50">
                                         <Icon name="bell" className="w-5 h-5 sm:w-6 sm:h-6" />
                                         {unreadCount > 0 && (
                                             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-600 rounded-full border border-zinc-950 animate-pulse"></span>
                                         )}
                                     </button>
 
-                                    {/* MODAL DE NOTIFICAÇÕES: ANCORADO À DIREITA, EXPANDE PARA A ESQUERDA. À PROVA DE CORTES. */}
+                                    {/* MODAL DE NOTIFICAÇÕES: NOVA ARQUITETURA IOS NATIVE LOOK */}
                                     {showNotifications && (
-                                        <div className="absolute top-[calc(100%+0.75rem)] right-0 w-[calc(100vw-2rem)] max-w-[400px] bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.95)] z-[9999] overflow-hidden animate-fade-in origin-top-right flex flex-col">
-                                            <div className="p-4 border-b border-white/5 bg-zinc-950 flex justify-between items-center">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="text-[10px] font-black uppercase text-white tracking-widest">Notificações</h3>
-                                                    {unreadCount > 0 && <span className="text-[9px] text-red-500 font-bold bg-red-950/30 px-2 py-0.5 rounded-lg">{unreadCount} Novas</span>}
+                                        <>
+                                            {/* Backdrop invisível para o mobile fechar ao clicar fora */}
+                                            <div className="fixed inset-0 z-[9998] sm:hidden" onClick={() => setShowNotifications(false)}></div>
+                                            
+                                            {/* CAIXA MATEMATICAMENTE FIXA NO MOBILE (Bypass absoluto) */}
+                                            <div className="fixed sm:absolute top-[75px] sm:top-[calc(100%+0.75rem)] left-[4vw] sm:left-auto right-[4vw] sm:right-0 w-auto sm:w-[380px] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.9)] z-[9999] overflow-hidden animate-fade-in origin-top sm:origin-top-right flex flex-col">
+                                                
+                                                <div className="p-4 sm:p-5 flex justify-between items-center bg-black/20">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="text-[11px] font-black uppercase text-white tracking-widest">Notificações</h3>
+                                                        {unreadCount > 0 && <span className="text-[9px] text-white font-black bg-red-600 px-2 py-0.5 rounded-full">{unreadCount}</span>}
+                                                    </div>
+                                                    {visibleNotifications.length > 0 && (
+                                                        <button onClick={clearAllNotifications} className="text-[9px] text-zinc-500 hover:text-white uppercase font-black transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg">
+                                                            Limpar Todas
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                {visibleNotifications.length > 0 && (
-                                                    <button onClick={clearAllNotifications} className="text-[9px] text-zinc-500 hover:text-white uppercase font-bold transition-colors">
-                                                        Limpar Todas
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="max-h-[350px] overflow-y-auto no-scrollbar">
-                                                {visibleNotifications.length === 0 ? (
-                                                    <div className="p-6 text-center text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Nenhuma notificação recente.</div>
-                                                ) : (
-                                                    visibleNotifications.map(n => (
-                                                        <div 
-                                                            key={n.id} 
-                                                            onClick={() => handleNotificationClick(n.exerciseId)}
-                                                            className={`p-4 border-b border-white/5 transition-colors flex gap-4 cursor-pointer group ${!lastReadAt || n.createdAt > lastReadAt ? 'bg-red-950/10 border-l-2 border-l-red-600 hover:bg-red-900/20' : 'hover:bg-white/5'}`}
-                                                        >
-                                                            <img src={n.thumbnail || window.CUSTOM_LOGO_URL} className="w-14 h-14 rounded-xl object-cover border border-white/5 shrink-0 group-hover:scale-105 transition-transform" alt="Capa" />
-                                                            <div className="flex flex-col justify-center flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <span className={`text-[9px] font-black uppercase tracking-wider truncate ${!lastReadAt || n.createdAt > lastReadAt ? 'text-red-500' : 'text-zinc-500'}`}>{n.title}</span>
+                                                
+                                                <div className="p-2 sm:p-3 max-h-[400px] overflow-y-auto no-scrollbar flex flex-col gap-2">
+                                                    {visibleNotifications.length === 0 ? (
+                                                        <div className="p-8 text-center text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Nenhuma notificação recente.</div>
+                                                    ) : (
+                                                        visibleNotifications.map(n => (
+                                                            <div 
+                                                                key={n.id} 
+                                                                onClick={() => handleNotificationClick(n.exerciseId)}
+                                                                className={`p-3 rounded-2xl transition-all flex gap-3 cursor-pointer group ${!lastReadAt || n.createdAt > lastReadAt ? 'bg-[#1c1c1e] border border-red-500/30 shadow-[0_0_15px_rgba(220,38,38,0.1)]' : 'bg-[#111111] border border-white/5 hover:bg-[#1a1a1a]'}`}
+                                                            >
+                                                                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 relative">
+                                                                    <img src={n.thumbnail || window.CUSTOM_LOGO_URL} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Capa" />
+                                                                    {(!lastReadAt || n.createdAt > lastReadAt) && <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1c1c1e]"></div>}
                                                                 </div>
-                                                                <p className="text-[11px] text-zinc-200 leading-snug font-medium group-hover:text-white transition-colors line-clamp-2">{n.message}</p>
-                                                                <span className="text-[8px] text-zinc-600 font-bold mt-1.5 block">{new Date(n.createdAt).toLocaleDateString('pt-BR')} às {new Date(n.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</span>
+                                                                <div className="flex flex-col justify-center flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-red-500">{n.title}</span>
+                                                                    </div>
+                                                                    <p className="text-[11px] sm:text-xs text-white leading-snug font-medium group-hover:text-red-400 transition-colors line-clamp-2">{n.message}</p>
+                                                                    <span className="text-[8px] text-zinc-500 font-bold mt-1.5 block">{new Date(n.createdAt).toLocaleDateString('pt-BR')} às {new Date(n.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</span>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))
-                                                )}
+                                                        ))
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
+                                        </>
                                     )}
                                 </div>
 
