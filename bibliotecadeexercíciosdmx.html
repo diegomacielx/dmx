@@ -424,7 +424,7 @@
             // ESTADOS DE NOTIFICAÇÃO E INTEGRAÇÕES
             const [notifications, setNotifications] = useState([]);
             const [lastReadAt, setLastReadAt] = useState(null);
-            const [clearedAt, setClearedAt] = useState(null); // NOVO: Timestamp para ocultar limpas
+            const [clearedAt, setClearedAt] = useState(null); // Timestamp para ocultar limpas
             const [showNotifications, setShowNotifications] = useState(false);
             const [sendNotification, setSendNotification] = useState(true);
             const [sendEmail, setSendEmail] = useState(false);
@@ -581,7 +581,7 @@
                 const unsubUser = window.fb.onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         setLastReadAt(docSnap.data().lastReadAt);
-                        setClearedAt(docSnap.data().clearedAt || null); // Carrega a data em que o aluno limpou o painel
+                        setClearedAt(docSnap.data().clearedAt || null); 
                     } else {
                         const now = new Date().toISOString();
                         window.fb.setDoc(userDocRef, { lastReadAt: now, clearedAt: now }, { merge: true });
@@ -654,6 +654,23 @@
                     setShowNotifications(false);
                     showToast("Notificações limpas.");
                 } catch (e) { console.error("Erro ao limpar:", e); }
+            };
+
+            // NOVA FUNÇÃO: Lógica de Direcionamento ao clicar na Notificação
+            const handleNotificationClick = (exerciseId) => {
+                if (!exerciseId) return;
+                
+                // Força a categoria para "Todos" para garantir que o item não esteja oculto por filtros
+                setActiveCategory('Todos');
+                
+                // Define o termo de busca estritamente para o ID do exercício clicado
+                setSearchTerm(exerciseId);
+                
+                // Fecha o painel de notificações para o utilizador poder visualizar o resultado
+                setShowNotifications(false);
+                
+                // Rola suavemente para o topo onde os resultados da busca aparecem
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
             const toggleUserStatus = async (uid, currentStatus) => {
@@ -910,7 +927,6 @@
                         
                         // LÓGICA DE DISPARO DO SINO 🔔 (ACUMULATIVA E COM MINIATURA)
                         if (sendNotification) {
-                            // Extrai a foto do GitHub ou gera a capa do YouTube como backup
                             let notifThumb = data.thumbnail;
                             if (!notifThumb && data.youtubeUrl) {
                                 const ytId = getYouTubeId(data.youtubeUrl);
@@ -921,7 +937,7 @@
                             await window.fb.addDoc(window.fb.collection(window.fb.db, ...notifPath), {
                                 title: 'NOVO EXERCÍCIO',
                                 message: `"${data.name}" foi adicionado à biblioteca.`,
-                                thumbnail: notifThumb || '', // Grava o DNA da miniatura para carregar depois
+                                thumbnail: notifThumb || '', 
                                 type: 'new_exercise',
                                 exerciseId: targetId,
                                 createdAt: new Date().toISOString()
@@ -1179,7 +1195,7 @@
                                 <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     
-                                    {/* O SINO DE NOTIFICAÇÕES 🔔 (CORRIGIDO ALINHAMENTO E Z-INDEX) */}
+                                    {/* O SINO DE NOTIFICAÇÕES 🔔 */}
                                     <div className="relative" ref={notificationsRef}>
                                         <button onClick={toggleNotifications} className="relative p-1.5 sm:p-2 text-zinc-400 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl hover:border-red-600/50">
                                             <Icon name="bell" className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1189,7 +1205,7 @@
                                         </button>
 
                                         {showNotifications && (
-                                            <div className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[9999] overflow-hidden animate-fade-in origin-top-right">
+                                            <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-[280px] sm:w-[360px] bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[9999] overflow-hidden animate-fade-in origin-top-left sm:origin-top-right">
                                                 <div className="p-4 border-b border-white/5 bg-zinc-950 flex justify-between items-center">
                                                     <div className="flex items-center gap-2">
                                                         <h3 className="text-[10px] font-black uppercase text-white tracking-widest">Notificações</h3>
@@ -1206,13 +1222,17 @@
                                                         <div className="p-6 text-center text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Nenhuma notificação recente.</div>
                                                     ) : (
                                                         visibleNotifications.map(n => (
-                                                            <div key={n.id} className={`p-4 border-b border-white/5 transition-colors flex gap-3 ${!lastReadAt || n.createdAt > lastReadAt ? 'bg-red-950/10 border-l-2 border-l-red-600' : 'hover:bg-white/5'}`}>
-                                                                <img src={n.thumbnail || window.CUSTOM_LOGO_URL} className="w-12 h-12 rounded-xl object-cover border border-white/5 shrink-0" alt="Capa" />
-                                                                <div className="flex flex-col justify-center">
+                                                            <div 
+                                                                key={n.id} 
+                                                                onClick={() => handleNotificationClick(n.exerciseId)}
+                                                                className={`p-4 border-b border-white/5 transition-colors flex gap-3 cursor-pointer group ${!lastReadAt || n.createdAt > lastReadAt ? 'bg-red-950/10 border-l-2 border-l-red-600 hover:bg-red-900/20' : 'hover:bg-white/5'}`}
+                                                            >
+                                                                <img src={n.thumbnail || window.CUSTOM_LOGO_URL} className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border border-white/5 shrink-0 group-hover:scale-105 transition-transform" alt="Capa" />
+                                                                <div className="flex flex-col justify-center flex-1">
                                                                     <div className="flex items-center gap-2 mb-1">
                                                                         <span className={`text-[9px] font-black uppercase tracking-wider ${!lastReadAt || n.createdAt > lastReadAt ? 'text-red-500' : 'text-zinc-500'}`}>{n.title}</span>
                                                                     </div>
-                                                                    <p className="text-[10px] sm:text-xs text-zinc-200 leading-tight font-medium">{n.message}</p>
+                                                                    <p className="text-[10px] sm:text-xs text-zinc-200 leading-tight font-medium group-hover:text-white transition-colors">{n.message}</p>
                                                                     <span className="text-[8px] text-zinc-600 font-bold mt-1.5 block">{new Date(n.createdAt).toLocaleDateString('pt-BR')} às {new Date(n.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</span>
                                                                 </div>
                                                             </div>
