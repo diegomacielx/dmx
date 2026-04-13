@@ -20,8 +20,15 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             overflow-x: hidden;
-            /* BLOQUEIO DO PULL-TO-REFRESH E BOUNCE EFFECT (iOS/ANDROID) */
-            overscroll-behavior-y: none; 
+        }
+
+        /* PROTEÇÃO BIOMECÂNICA: Bloqueia o "Pull-to-Refresh" e o "Bounce" 
+           APENAS em telas touch (Mobile/Tablet), garantindo que o 
+           scroller (rodinha) do mouse nos PCs funcione na perfeição. */
+        @media (hover: none) and (pointer: coarse) {
+            body {
+                overscroll-behavior-y: none; 
+            }
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -1256,14 +1263,11 @@
                         </div>
                     )}
 
-                    {/* CABEÇALHO RECONSTRUÍDO: ARQUITETURA DE 2 ANDARES PARA BLINDAGEM DO SINO */}
-                    <header className="relative z-[100] max-w-7xl mx-auto w-full mb-8 pt-2 flex flex-col gap-6">
-                        
-                        {/* ANDAR 1: Logotipo (Esquerda) e Notificações/Usuário (Direita) */}
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-                                <img src={window.CUSTOM_LOGO_URL} className="h-10 w-10 sm:h-14 sm:w-14 object-contain" alt="DMX" />
-                                <h1 className="text-xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">
+                    <header className="relative z-[100] max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-6 mb-8 pt-2">
+                        <div className="flex items-center gap-4 self-start lg:self-center z-10">
+                            <img src={window.CUSTOM_LOGO_URL} className="h-12 w-12 sm:h-16 sm:w-16 object-contain" alt="DMX" />
+                            <div className="flex flex-col">
+                                <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">
                                     BIBLIOTECA <span className="text-red-600">DMX</span>
                                 </h1>
                             </div>
