@@ -1278,7 +1278,7 @@
                                 <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     
-                                    {/* O SINO DE NOTIFICAÇÕES 🔔 (CORREÇÃO DE MODAL NO MOBILE) */}
+                                    {/* O SINO DE NOTIFICAÇÕES 🔔 (CORREÇÃO DA ANCORAGEM - LEFT:0) */}
                                     <div className="relative" ref={notificationsRef}>
                                         <button onClick={toggleNotifications} className="relative p-1.5 sm:p-2 text-zinc-400 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl hover:border-red-600/50">
                                             <Icon name="bell" className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1288,9 +1288,11 @@
                                         </button>
 
                                         {showNotifications && (
-                                            // ALTERAÇÃO CRÍTICA: 'fixed' e 'w-[92vw]' no mobile forçam o balão a flutuar acima de todas as caixas.
-                                            // 'sm:absolute' e 'sm:w-[380px]' restauram o comportamento no PC.
-                                            <div className="fixed sm:absolute top-[80px] sm:top-full left-1/2 sm:left-auto right-auto sm:right-0 -translate-x-1/2 sm:translate-x-0 sm:mt-2 w-[92vw] sm:w-[380px] bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.9)] z-[9999] overflow-hidden animate-fade-in sm:origin-top-right">
+                                            // ALTERAÇÃO ARQUITETURAL: 
+                                            // 'left-0' âncora a caixa rigorosamente à esquerda do sino. 
+                                            // 'origin-top-left' garante a animação correta.
+                                            // Abandonamos o hack 'fixed' no mobile para manter o layout no fluxo do DOM.
+                                            <div className="absolute top-full left-0 mt-3 w-[300px] sm:w-[380px] max-w-[calc(100vw-2rem)] bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.9)] z-[9999] overflow-hidden animate-fade-in origin-top-left">
                                                 <div className="p-4 border-b border-white/5 bg-zinc-950 flex justify-between items-center">
                                                     <div className="flex items-center gap-2">
                                                         <h3 className="text-[10px] font-black uppercase text-white tracking-widest">Notificações</h3>
@@ -1443,7 +1445,6 @@
                             <div className="bg-zinc-950 w-full max-w-2xl rounded-[3.5rem] border border-white/5 p-6 sm:p-12 shadow-3xl relative my-auto animate-fade-in">
                                 <div className="flex items-start justify-between mb-8 pb-2 border-b border-white/10">
                                     <div className="flex-1 overflow-x-auto no-scrollbar">
-                                        {/* AQUI FOI CORRIGIDO O OVERFLOW COMPETITIVO DA ABA 'CONFIGURAÇÕES' */}
                                         <div className="flex gap-4 sm:gap-6 min-w-max pb-2 pr-4">
                                             <button onClick={() => !editingId && setAdminTab('single')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${adminTab === 'single' ? 'text-red-600 border-b-2 border-red-600 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}>{editingId ? 'EDITAR REGISTRO' : 'CADASTRO ÚNICO'}</button>
                                             {!editingId && <button onClick={() => setAdminTab('batch')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${adminTab === 'batch' ? 'text-red-600 border-b-2 border-red-600 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}>IMPORTAR LOTE</button>}
