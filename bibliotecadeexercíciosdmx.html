@@ -1191,14 +1191,14 @@
                         </div>
                     )}
 
-                    <header className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-6 mb-8 pt-2">
+                    <header className="relative z-[100] max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-6 mb-8 pt-2">
                         <div className="flex items-center gap-4 self-start lg:self-center z-10">
                             <img src={window.CUSTOM_LOGO_URL} className="h-12 w-12 sm:h-16 sm:w-16 object-contain" alt="DMX" />
                             <div className="flex flex-col">
                                 <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     
-                                    {/* O SINO DE NOTIFICAÇÕES 🔔 */}
+                                    {/* O SINO DE NOTIFICAÇÕES 🔔 (CORRIGIDO ALINHAMENTO E Z-INDEX) */}
                                     <div className="relative" ref={notificationsRef}>
                                         <button onClick={toggleNotifications} className="relative p-1.5 sm:p-2 text-zinc-400 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl hover:border-red-600/50">
                                             <Icon name="bell" className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1208,7 +1208,7 @@
                                         </button>
 
                                         {showNotifications && (
-                                            <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-[280px] sm:w-[360px] bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[9999] overflow-hidden animate-fade-in origin-top-left sm:origin-top-right">
+                                            <div className="absolute top-full left-0 mt-2 w-[280px] sm:w-[360px] bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] z-[9999] overflow-hidden animate-fade-in origin-top-left">
                                                 <div className="p-4 border-b border-white/5 bg-zinc-950 flex justify-between items-center">
                                                     <div className="flex items-center gap-2">
                                                         <h3 className="text-[10px] font-black uppercase text-white tracking-widest">Notificações</h3>
