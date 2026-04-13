@@ -121,8 +121,6 @@
         const isPreview = typeof __firebase_config !== 'undefined';
         
         // TÉCNICA DE OFUSCAÇÃO MATEMÁTICA (Anti-GitHub Scanner)
-        // A chave foi fracionada em blocos e colocada de trás para a frente no Array.
-        // Isto garante 100% de precisão ao remontar a chave, eliminando erros tipográficos.
         const _kParts = ["JyHM", "JAdRMVR", "sbpZvhL", "XnVhYcF", "B6L2Idp", "AIzaSyC"];
         
         const firebaseConfig = isPreview ? JSON.parse(__firebase_config) : {
@@ -145,7 +143,6 @@
             auth = getAuth(app);
             db = getFirestore(app);
             
-            // ⚡ ATIVAÇÃO DA CACHE OFFLINE PARA VELOCIDADE MÁXIMA
             enableIndexedDbPersistence(db).catch((err) => {
                 console.warn("Modo offline não suportado por este navegador.", err.code);
             });
@@ -165,7 +162,6 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // ⚠️ LISTA DE E-MAILS DE ADMINISTRADORES
         const ADMIN_EMAILS = ['diego.maciel.965@gmail.com']; 
 
         const getDbPath = () => {
@@ -434,7 +430,7 @@
             // ESTADOS DE NOTIFICAÇÃO E INTEGRAÇÕES
             const [notifications, setNotifications] = useState([]);
             const [lastReadAt, setLastReadAt] = useState(null);
-            const [clearedAt, setClearedAt] = useState(null); // Timestamp para ocultar limpas
+            const [clearedAt, setClearedAt] = useState(null); 
             const [showNotifications, setShowNotifications] = useState(false);
             const [sendNotification, setSendNotification] = useState(true);
             const [sendEmail, setSendEmail] = useState(false);
@@ -509,7 +505,6 @@
                 return () => document.removeEventListener("mousedown", handleClickOutside);
             }, [showNotifications]);
 
-            // LÓGICA DO BOTÃO ESC PARA FECHAR O PAINEL DE ADMINISTRAÇÃO
             const closeAdminPanel = () => {
                 setShowAdminPanel(false);
                 setEditingId(null);
@@ -549,7 +544,6 @@
                 }
             }, []);
 
-            // SINCRONIZAR PERFIL DO USUÁRIO E CONTROLE DE ACESSO
             useEffect(() => {
                 if (!isLoggedIn || !window.fb || !user) return;
                 
@@ -577,7 +571,6 @@
                 return () => unsubProfile();
             }, [isLoggedIn, user, isAdmin]);
 
-            // DUAL-LISTENER: Carrega Exercícios + Notificações
             useEffect(() => {
                 if (!isLoggedIn || !window.fb || !user) return;
                 
@@ -624,7 +617,6 @@
                 };
             }, [isLoggedIn, user]);
 
-            // LISTENERS DO ADMIN (Lista de Alunos + Configurações)
             useEffect(() => {
                 if (!isAdmin || !window.fb) return;
                 const appIdStr = window.app_id || 'dmx-exercicios-cloud';
@@ -647,7 +639,6 @@
                 }
             }, [isAdmin]);
 
-            // ARQUITETURA DO SILENT BACKGROUND WORKER (Auditoria Automática)
             useEffect(() => {
                 if (!isAdmin || exercises.length === 0 || !window.fb) return;
 
@@ -655,8 +646,6 @@
                     if (backgroundAuditRunning.current) return;
                     backgroundAuditRunning.current = true;
 
-                    // Filtra os exercícios completos que ainda não foram marcados como upados
-                    // e que não foram verificados nesta sessão em particular.
                     const needsCheck = exercises.filter(ex => 
                         !isExerciseIncomplete(ex.youtubeUrl) && 
                         ex.hasCloudVideo !== true &&
@@ -675,10 +664,9 @@
                                 isUpado = true;
                             }
                         } catch (error) {
-                            if (!navigator.onLine) break; // Interrompe silenciosamente se cair a rede
+                            if (!navigator.onLine) break; 
                         }
 
-                        // Atualiza a BD de forma invisível
                         if (isUpado !== ex.hasCloudVideo) {
                             const path = getDbPath();
                             const docRef = window.fb.doc(window.fb.db, ...path, ex.firestoreId);
@@ -687,7 +675,6 @@
                             } catch(e) {}
                         }
                         
-                        // Ritmo seguro de 4 segundos entre verificações para não alertar os firewalls do Google
                         await new Promise(r => setTimeout(r, 4000));
                     }
                     
@@ -697,7 +684,6 @@
                 processQueue();
             }, [exercises, isAdmin]);
 
-            // LÓGICA DAS NOTIFICAÇÕES (Filtro por Timestamp Local)
             const visibleNotifications = useMemo(() => {
                 return notifications.filter(n => !clearedAt || n.createdAt > clearedAt);
             }, [notifications, clearedAt]);
@@ -760,7 +746,6 @@
                 } catch(e) { showToast("Erro ao salvar", "error"); }
             };
 
-            // AUDITORIA MANUAL FORÇADA
             const runCloudAudit = async () => {
                 const exercisesToAudit = exercises.filter(ex => !isExerciseIncomplete(ex.youtubeUrl));
 
@@ -986,19 +971,16 @@
 
                     const path = getDbPath();
                     
-                    // LÓGICA DE TRANSIÇÃO DE ESTADO (Automação de Notificação)
                     let shouldNotify = false;
                     const isCompleteNow = !isExerciseIncomplete(data.youtubeUrl);
 
                     if (editingId) {
                         const existingEx = exercises.find(ex => ex.firestoreId === editingId);
                         const wasIncomplete = existingEx ? isExerciseIncomplete(existingEx.youtubeUrl) : true;
-                        // Notifica apenas se era incompleto e agora ficou completo
                         if (wasIncomplete && isCompleteNow) {
                             shouldNotify = true;
                         }
                     } else {
-                        // Novo registro: Notifica apenas se já for criado com o link válido
                         if (isCompleteNow) {
                             shouldNotify = true;
                         }
@@ -1012,27 +994,26 @@
                         showToast("Salvo! Pronto para adicionar o próximo.");
                     }
                     
-                    // DISPAROS AUTOMÁTICOS BASEADOS NA TRANSIÇÃO DE ESTADO
                     if (shouldNotify) {
-                        // 1. Sino 🔔
-                        let notifThumb = data.thumbnail;
-                        if (!notifThumb && data.youtubeUrl) {
-                            const ytId = getYouTubeId(data.youtubeUrl);
-                            if (ytId) notifThumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                        if (sendNotification) {
+                            let notifThumb = data.thumbnail;
+                            if (!notifThumb && data.youtubeUrl) {
+                                const ytId = getYouTubeId(data.youtubeUrl);
+                                if (ytId) notifThumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                            }
+
+                            const notifPath = getDbPath().slice(0, -1).concat(['notifications']);
+                            await window.fb.addDoc(window.fb.collection(window.fb.db, ...notifPath), {
+                                title: 'NOVO EXERCÍCIO LIBERADO',
+                                message: `"${data.name}" já está disponível na biblioteca.`,
+                                thumbnail: notifThumb || '', 
+                                type: 'new_exercise',
+                                exerciseId: targetId,
+                                createdAt: new Date().toISOString()
+                            });
                         }
 
-                        const notifPath = getDbPath().slice(0, -1).concat(['notifications']);
-                        await window.fb.addDoc(window.fb.collection(window.fb.db, ...notifPath), {
-                            title: 'NOVO EXERCÍCIO LIBERADO',
-                            message: `"${data.name}" já está disponível na biblioteca.`,
-                            thumbnail: notifThumb || '', 
-                            type: 'new_exercise',
-                            exerciseId: targetId,
-                            createdAt: new Date().toISOString()
-                        });
-
-                        // 2. Webhook (E-mail Zapier) ✉️
-                        if (appSettings.webhookUrl) {
+                        if (sendEmail && appSettings.webhookUrl) {
                             try {
                                 fetch(appSettings.webhookUrl, {
                                     method: 'POST',
@@ -1234,7 +1215,6 @@
                 );
             }
 
-            // TELA DE PENDÊNCIA (GATEKEEPER)
             if (!isAdmin && userProfile && userProfile.status !== 'approved') {
                 return (
                     <div className="min-h-screen bg-black flex items-center justify-center p-6 relative">
@@ -1270,87 +1250,96 @@
                         </div>
                     )}
 
-                    {/* RELATIVE Z-[100] ADICIONADO AO HEADER PARA GARANTIR QUE O SINO NUNCA FIQUE ABAIXO DOS VÍDEOS */}
-                    <header className="relative z-[100] max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-6 mb-8 pt-2">
-                        <div className="flex items-center gap-4 self-start lg:self-center z-10">
-                            <img src={window.CUSTOM_LOGO_URL} className="h-12 w-12 sm:h-16 sm:w-16 object-contain" alt="DMX" />
-                            <div className="flex flex-col">
-                                <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">BIBLIOTECA <span className="text-red-600">DMX</span></h1>
-                                <div className="flex items-center gap-2 mt-1">
-                                    
-                                    {/* O SINO DE NOTIFICAÇÕES 🔔 (CORREÇÃO DA ANCORAGEM - LEFT:0) */}
-                                    <div className="relative" ref={notificationsRef}>
-                                        <button onClick={toggleNotifications} className="relative p-1.5 sm:p-2 text-zinc-400 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl hover:border-red-600/50">
-                                            <Icon name="bell" className="w-4 h-4 sm:w-5 sm:h-5" />
-                                            {unreadCount > 0 && (
-                                                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-600 rounded-full border border-zinc-950 animate-pulse"></span>
-                                            )}
-                                        </button>
+                    {/* CABEÇALHO RECONSTRUÍDO: ARQUITETURA DE 2 ANDARES PARA BLINDAGEM DO SINO */}
+                    <header className="relative z-[100] max-w-7xl mx-auto w-full mb-8 pt-2 flex flex-col gap-6">
+                        
+                        {/* ANDAR 1: Logotipo (Esquerda) e Notificações/Usuário (Direita) */}
+                        <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                                <img src={window.CUSTOM_LOGO_URL} className="h-10 w-10 sm:h-14 sm:w-14 object-contain" alt="DMX" />
+                                <h1 className="text-xl sm:text-3xl font-black uppercase tracking-tighter leading-none italic">
+                                    BIBLIOTECA <span className="text-red-600">DMX</span>
+                                </h1>
+                            </div>
 
-                                        {showNotifications && (
-                                            // ALTERAÇÃO ARQUITETURAL: 
-                                            // 'left-0' âncora a caixa rigorosamente à esquerda do sino. 
-                                            // 'origin-top-left' garante a animação correta.
-                                            // Abandonamos o hack 'fixed' no mobile para manter o layout no fluxo do DOM.
-                                            <div className="absolute top-full left-0 mt-3 w-[300px] sm:w-[380px] max-w-[calc(100vw-2rem)] bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.9)] z-[9999] overflow-hidden animate-fade-in origin-top-left">
-                                                <div className="p-4 border-b border-white/5 bg-zinc-950 flex justify-between items-center">
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className="text-[10px] font-black uppercase text-white tracking-widest">Notificações</h3>
-                                                        {unreadCount > 0 && <span className="text-[9px] text-red-500 font-bold bg-red-950/30 px-2 py-0.5 rounded-lg">{unreadCount} Novas</span>}
-                                                    </div>
-                                                    {visibleNotifications.length > 0 && (
-                                                        <button onClick={clearAllNotifications} className="text-[9px] text-zinc-500 hover:text-white uppercase font-bold transition-colors">
-                                                            Limpar Todas
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                <div className="max-h-[350px] overflow-y-auto no-scrollbar">
-                                                    {visibleNotifications.length === 0 ? (
-                                                        <div className="p-6 text-center text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Nenhuma notificação recente.</div>
-                                                    ) : (
-                                                        visibleNotifications.map(n => (
-                                                            <div 
-                                                                key={n.id} 
-                                                                onClick={() => handleNotificationClick(n.exerciseId)}
-                                                                className={`p-4 border-b border-white/5 transition-colors flex gap-4 cursor-pointer group ${!lastReadAt || n.createdAt > lastReadAt ? 'bg-red-950/10 border-l-2 border-l-red-600 hover:bg-red-900/20' : 'hover:bg-white/5'}`}
-                                                            >
-                                                                <img src={n.thumbnail || window.CUSTOM_LOGO_URL} className="w-14 h-14 rounded-xl object-cover border border-white/5 shrink-0 group-hover:scale-105 transition-transform" alt="Capa" />
-                                                                <div className="flex flex-col justify-center flex-1 min-w-0">
-                                                                    <div className="flex items-center gap-2 mb-1">
-                                                                        <span className={`text-[9px] font-black uppercase tracking-wider truncate ${!lastReadAt || n.createdAt > lastReadAt ? 'text-red-500' : 'text-zinc-500'}`}>{n.title}</span>
-                                                                    </div>
-                                                                    <p className="text-[11px] text-zinc-200 leading-snug font-medium group-hover:text-white transition-colors line-clamp-2">{n.message}</p>
-                                                                    <span className="text-[8px] text-zinc-600 font-bold mt-1.5 block">{new Date(n.createdAt).toLocaleDateString('pt-BR')} às {new Date(n.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</span>
-                                                                </div>
-                                                            </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            </div>
+                            <div className="flex items-center gap-3 sm:gap-4 justify-end">
+                                
+                                {/* O SINO DE NOTIFICAÇÕES 🔔 (AGORA ISOLADO NA EXTREMA DIREITA) */}
+                                <div className="relative" ref={notificationsRef}>
+                                    <button onClick={toggleNotifications} className="relative p-2 text-zinc-400 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl hover:border-red-600/50">
+                                        <Icon name="bell" className="w-5 h-5 sm:w-6 sm:h-6" />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-600 rounded-full border border-zinc-950 animate-pulse"></span>
                                         )}
-                                    </div>
+                                    </button>
 
-                                    <span className="text-zinc-700 text-[10px] mx-0.5">|</span>
+                                    {/* MODAL DE NOTIFICAÇÕES: ANCORADO À DIREITA, EXPANDE PARA A ESQUERDA. À PROVA DE CORTES. */}
+                                    {showNotifications && (
+                                        <div className="absolute top-[calc(100%+0.75rem)] right-0 w-[calc(100vw-2rem)] max-w-[400px] bg-zinc-900 border border-white/10 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.95)] z-[9999] overflow-hidden animate-fade-in origin-top-right flex flex-col">
+                                            <div className="p-4 border-b border-white/5 bg-zinc-950 flex justify-between items-center">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="text-[10px] font-black uppercase text-white tracking-widest">Notificações</h3>
+                                                    {unreadCount > 0 && <span className="text-[9px] text-red-500 font-bold bg-red-950/30 px-2 py-0.5 rounded-lg">{unreadCount} Novas</span>}
+                                                </div>
+                                                {visibleNotifications.length > 0 && (
+                                                    <button onClick={clearAllNotifications} className="text-[9px] text-zinc-500 hover:text-white uppercase font-bold transition-colors">
+                                                        Limpar Todas
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="max-h-[350px] overflow-y-auto no-scrollbar">
+                                                {visibleNotifications.length === 0 ? (
+                                                    <div className="p-6 text-center text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Nenhuma notificação recente.</div>
+                                                ) : (
+                                                    visibleNotifications.map(n => (
+                                                        <div 
+                                                            key={n.id} 
+                                                            onClick={() => handleNotificationClick(n.exerciseId)}
+                                                            className={`p-4 border-b border-white/5 transition-colors flex gap-4 cursor-pointer group ${!lastReadAt || n.createdAt > lastReadAt ? 'bg-red-950/10 border-l-2 border-l-red-600 hover:bg-red-900/20' : 'hover:bg-white/5'}`}
+                                                        >
+                                                            <img src={n.thumbnail || window.CUSTOM_LOGO_URL} className="w-14 h-14 rounded-xl object-cover border border-white/5 shrink-0 group-hover:scale-105 transition-transform" alt="Capa" />
+                                                            <div className="flex flex-col justify-center flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className={`text-[9px] font-black uppercase tracking-wider truncate ${!lastReadAt || n.createdAt > lastReadAt ? 'text-red-500' : 'text-zinc-500'}`}>{n.title}</span>
+                                                                </div>
+                                                                <p className="text-[11px] text-zinc-200 leading-snug font-medium group-hover:text-white transition-colors line-clamp-2">{n.message}</p>
+                                                                <span className="text-[8px] text-zinc-600 font-bold mt-1.5 block">{new Date(n.createdAt).toLocaleDateString('pt-BR')} às {new Date(n.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
 
+                                <span className="hidden sm:block text-zinc-700 text-[10px]">|</span>
+
+                                {/* USUÁRIO E LOGOUT */}
+                                <div className="hidden sm:flex flex-col items-end">
                                     {user?.displayName && (
-                                        <span className="text-[10px] text-zinc-400 font-bold uppercase truncate max-w-[120px] sm:max-w-[200px]" title={user.displayName}>
+                                        <span className="text-[10px] text-zinc-400 font-bold uppercase truncate max-w-[150px]" title={user.displayName}>
                                             {user.displayName}
                                         </span>
                                     )}
-                                    {user?.displayName && <span className="text-zinc-600 text-[10px]">•</span>}
-                                    <button onClick={handleLogout} className="text-[9px] text-zinc-500 uppercase font-black flex items-center gap-1 hover:text-red-600 transition-colors">
-                                        <Icon name="logout" className="w-3 h-3" /> <span className="hidden sm:inline">Encerrar Sessão</span>
+                                    <button onClick={handleLogout} className="text-[9px] text-zinc-500 uppercase font-black hover:text-red-600 transition-colors flex items-center gap-1 mt-0.5">
+                                        Encerrar Sessão
                                     </button>
                                 </div>
+                                <button onClick={handleLogout} className="sm:hidden p-2 text-zinc-500 hover:text-red-600 transition-colors bg-[#111] border border-white/5 rounded-xl">
+                                    <Icon name="logout" className="w-5 h-5" />
+                                </button>
                             </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row w-full lg:flex-1 lg:max-w-3xl gap-4 z-10">
+                        {/* ANDAR 2: Barra de Pesquisa e Ferramentas Administrativas */}
+                        <div className="flex flex-col sm:flex-row w-full gap-4 z-10">
                             <div className="relative flex-1 flex items-center">
                                 <span className="absolute left-4 text-zinc-600"><Icon name="search" /></span>
                                 <input type="text" placeholder="Busca por Nome, ID, Músculo..." className="w-full h-14 pl-12 pr-12 rounded-2xl text-sm shadow-xl bg-[#111111] border border-white/10 text-white outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/20 transition-all" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                                 {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-4 p-1 text-zinc-500 hover:text-red-600 transition-colors bg-[#1a1a1a] rounded-full"><Icon name="x" className="w-4 h-4" /></button>}
                             </div>
+                            
                             {isAdmin && (
                                 <div className="flex items-center gap-2 shrink-0 h-14">
                                     <select 
