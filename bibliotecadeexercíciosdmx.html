@@ -22,9 +22,7 @@
             overflow-x: hidden;
         }
 
-        /* PROTEÇÃO BIOMECÂNICA: Bloqueia o "Pull-to-Refresh" e o "Bounce" 
-           APENAS em telas touch (Mobile/Tablet), garantindo que o 
-           scroller (rodinha) do mouse nos PCs funcione na perfeição. */
+        /* PROTEÇÃO BIOMECÂNICA */
         @media (hover: none) and (pointer: coarse) {
             body {
                 overscroll-behavior-y: none; 
@@ -74,7 +72,7 @@
             color: white;
             width: 36px;
             height: 36px;
-            border-radius: 50%; /* Garante o formato perfeitamente redondo */
+            border-radius: 50%; 
             display: flex;
             align-items: center;
             justify-content: center;
@@ -86,10 +84,7 @@
         .nav-arrow:hover { background: #dc2626; border-color: #dc2626; }
         .nav-arrow:active { transform: scale(0.9); }
 
-        /* Estilo do Tooltip Customizado */
-        .tooltip-container {
-            position: relative;
-        }
+        .tooltip-container { position: relative; }
         .tooltip-text {
             visibility: hidden;
             width: max-content;
@@ -119,7 +114,6 @@
 <body>
     <div id="root"></div>
 
-    <!-- Firebase SDK com Offline Persistence -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -127,7 +121,6 @@
 
         const isPreview = typeof __firebase_config !== 'undefined';
         
-        // TÉCNICA DE OFUSCAÇÃO MATEMÁTICA (Anti-GitHub Scanner)
         const _kParts = ["JyHM", "JAdRMVR", "sbpZvhL", "XnVhYcF", "B6L2Idp", "AIzaSyC"];
         
         const firebaseConfig = isPreview ? JSON.parse(__firebase_config) : {
@@ -165,7 +158,6 @@
         window.CUSTOM_LOGO_URL = CUSTOM_LOGO_URL;
     </script>
 
-    <!-- App Logic -->
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
@@ -216,7 +208,9 @@
                 users: <g><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></g>,
                 settings: <g><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></g>,
                 mail: <g><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></g>,
-                trash2: <g><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></g>
+                trash2: <g><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></g>,
+                lightbulb: <g><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></g>,
+                listtodo: <g><rect x="3" y="5" width="6" height="6" rx="1"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></g>
             };
             return (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ pointerEvents: 'none' }}>
@@ -441,6 +435,11 @@
             const [showNotifications, setShowNotifications] = useState(false);
             const [sendNotification, setSendNotification] = useState(true);
             const [sendEmail, setSendEmail] = useState(false);
+
+            // ESTADOS DE SUGESTÕES DE ALUNOS (USER-DRIVEN DEVELOPMENT)
+            const [showRequestModal, setShowRequestModal] = useState(false);
+            const [requestForm, setRequestForm] = useState({ name: '', details: '' });
+            const [exerciseRequests, setExerciseRequests] = useState([]);
             
             // ESTADOS ADMIN
             const [appUsers, setAppUsers] = useState([]);
@@ -626,7 +625,7 @@
                 };
             }, [isLoggedIn, user]);
 
-            // LISTENERS DO ADMIN (Lista de Alunos + Configurações)
+            // LISTENERS DO ADMIN (Lista de Alunos, Configurações e Pedidos)
             useEffect(() => {
                 if (!isAdmin || !window.fb) return;
                 const appIdStr = window.app_id || 'dmx-exercicios-cloud';
@@ -643,9 +642,17 @@
                     if (snap.exists()) setAppSettings(snap.data());
                 });
 
+                const reqRef = window.fb.collection(window.fb.db, 'artifacts', appIdStr, 'public', 'data', 'exercise_requests');
+                const unsubReqs = window.fb.onSnapshot(reqRef, (snap) => {
+                    const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    reqs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    setExerciseRequests(reqs);
+                });
+
                 return () => {
                     unsubUsers();
                     unsubSettings();
+                    unsubReqs();
                 }
             }, [isAdmin]);
 
@@ -826,6 +833,53 @@
                 setAuditCurrentItem('');
                 setIsAuditing(false);
                 showToast("Auditoria manual concluída com sucesso!");
+            };
+
+            // NOVA LÓGICA: Envio de Sugestão de Aluno
+            const handleRequestSubmit = async (e) => {
+                e.preventDefault();
+                if (!user || !requestForm.name.trim()) return;
+
+                try {
+                    const appIdStr = window.app_id || 'dmx-exercicios-cloud';
+                    const reqPath = ['artifacts', appIdStr, 'public', 'data', 'exercise_requests'];
+                    
+                    await window.fb.addDoc(window.fb.collection(window.fb.db, ...reqPath), {
+                        exerciseName: requestForm.name,
+                        details: requestForm.details,
+                        userId: user.uid,
+                        userName: userProfile?.name || user.displayName || 'Aluno',
+                        userEmail: userProfile?.email || user.email || '',
+                        status: 'pending',
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    showToast("Sugestão enviada com sucesso! Obrigado.");
+                    setShowRequestModal(false);
+                    setRequestForm({ name: '', details: '' });
+                } catch (err) {
+                    showToast("Erro ao enviar sugestão.", "error");
+                }
+            };
+
+            // Lógica para Admin atualizar o status do Pedido
+            const toggleRequestStatus = async (reqId, currentStatus) => {
+                const newStatus = currentStatus === 'pending' ? 'done' : 'pending';
+                try {
+                    const appIdStr = window.app_id || 'dmx-exercicios-cloud';
+                    const docRef = window.fb.doc(window.fb.db, 'artifacts', appIdStr, 'public', 'data', 'exercise_requests', reqId);
+                    await window.fb.updateDoc(docRef, { status: newStatus });
+                } catch(e) { showToast("Erro ao atualizar pedido.", "error"); }
+            };
+
+            const deleteRequest = async (reqId) => {
+                if(!confirm("Excluir esta sugestão?")) return;
+                try {
+                    const appIdStr = window.app_id || 'dmx-exercicios-cloud';
+                    const docRef = window.fb.doc(window.fb.db, 'artifacts', appIdStr, 'public', 'data', 'exercise_requests', reqId);
+                    await window.fb.deleteDoc(docRef);
+                    showToast("Sugestão excluída.");
+                } catch(e) { showToast("Erro ao excluir.", "error"); }
             };
 
             const handleLogin = async (e) => {
@@ -1228,7 +1282,6 @@
                 );
             }
 
-            // TELA DE PENDÊNCIA (GATEKEEPER)
             if (!isAdmin && userProfile && userProfile.status !== 'approved') {
                 return (
                     <div className="min-h-screen bg-black flex items-center justify-center p-6 relative">
@@ -1264,9 +1317,39 @@
                         </div>
                     )}
 
-                    <header className="relative z-[100] max-w-7xl mx-auto w-full mb-8 pt-2 flex flex-col gap-4 sm:gap-6">
-                        
-                        {/* ANDAR 1: Logotipo (Esquerda) e Notificações/Usuário (Direita) */}
+                    {/* MODAL DE SUGESTÃO DE EXERCÍCIOS PARA ALUNOS */}
+                    {showRequestModal && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={() => setShowRequestModal(false)}></div>
+                            <div className="bg-zinc-950 w-full max-w-lg rounded-[2.5rem] border border-white/10 p-8 shadow-2xl relative z-10 animate-fade-in">
+                                <button onClick={() => setShowRequestModal(false)} className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"><Icon name="x" className="w-6 h-6" /></button>
+                                <div className="mb-6 flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-red-600/10 rounded-2xl flex items-center justify-center text-red-500 border border-red-500/20">
+                                        <Icon name="lightbulb" className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-black uppercase text-white">Sugerir Exercício</h2>
+                                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">O que você quer ver na biblioteca?</p>
+                                    </div>
+                                </div>
+                                <form onSubmit={handleRequestSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="text-[9px] font-black uppercase text-zinc-500 ml-2 tracking-widest">Nome do Exercício</label>
+                                        <input required autoFocus placeholder="Ex: Agachamento Sumô" className="w-full p-4 mt-1 bg-[#111] border border-white/5 rounded-2xl text-sm outline-none focus:border-red-600 transition-all text-white" value={requestForm.name} onChange={e => setRequestForm({...requestForm, name: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] font-black uppercase text-zinc-500 ml-2 tracking-widest">Detalhes (Opcional)</label>
+                                        <textarea placeholder="Em qual máquina? Qual a variação exata? Deixe um comentário para o nosso time de gravação..." className="w-full p-4 mt-1 bg-[#111] border border-white/5 rounded-2xl text-sm outline-none focus:border-red-600 transition-all text-white min-h-[100px]" value={requestForm.details} onChange={e => setRequestForm({...requestForm, details: e.target.value})} />
+                                    </div>
+                                    <button type="submit" className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 hover:text-white transition-all mt-2">
+                                        Enviar Sugestão
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    <header className="relative z-[100] max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-6 mb-8 pt-2">
                         <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                                 <img src={window.CUSTOM_LOGO_URL} className="h-10 w-10 sm:h-14 sm:w-14 object-contain" alt="DMX" />
@@ -1276,6 +1359,11 @@
                             </div>
 
                             <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                                
+                                {/* BOTÃO SUGESTÃO (PROACTIVE) */}
+                                <button onClick={() => setShowRequestModal(true)} className="hidden sm:flex items-center gap-2 p-2 px-4 text-zinc-400 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl hover:border-red-600/50 text-[10px] font-black uppercase tracking-widest">
+                                    <Icon name="lightbulb" className="w-4 h-4" /> Sugerir
+                                </button>
                                 
                                 {/* O SINO DE NOTIFICAÇÕES 🔔 */}
                                 <div className="relative" ref={notificationsRef}>
@@ -1345,13 +1433,17 @@
                                         Encerrar Sessão
                                     </button>
                                 </div>
-                                <button onClick={handleLogout} className="sm:hidden p-2 text-zinc-500 hover:text-red-600 transition-colors bg-[#111] border border-white/5 rounded-xl">
-                                    <Icon name="logout" className="w-5 h-5" />
-                                </button>
+                                <div className="sm:hidden flex gap-2">
+                                    <button onClick={() => setShowRequestModal(true)} className="p-2 text-zinc-500 hover:text-white transition-colors bg-[#111] border border-white/5 rounded-xl">
+                                        <Icon name="lightbulb" className="w-5 h-5" />
+                                    </button>
+                                    <button onClick={handleLogout} className="p-2 text-zinc-500 hover:text-red-600 transition-colors bg-[#111] border border-white/5 rounded-xl">
+                                        <Icon name="logout" className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        {/* ANDAR 2: Barra de Pesquisa e Ferramentas Administrativas */}
                         <div className="flex flex-col sm:flex-row w-full gap-4 z-10">
                             <div className="relative flex-1 flex items-center">
                                 <span className="absolute left-4 text-zinc-600"><Icon name="search" /></span>
@@ -1381,7 +1473,6 @@
                         </div>
                     </header>
 
-                    {/* DASHBOARD DE ESTATÍSTICAS (SÓ PARA ADMIN) */}
                     {isAdmin && stats && (
                         <div className="max-w-7xl mx-auto w-full mb-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 z-10 relative animate-fade-in">
                             <div className="bg-zinc-950 border border-white/5 py-4 px-2 rounded-[2rem] flex flex-col items-center justify-center shadow-xl">
@@ -1423,6 +1514,26 @@
                                     <p className="text-[9px] text-red-500 uppercase font-black mt-4 animate-fade-in bg-red-900/20 px-4 py-2 rounded-xl">A conexão parece lenta. Aguarde...</p>
                                 )}
                             </div>
+                        ) : filteredExercises.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 px-4 animate-fade-in">
+                                <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mb-6 text-zinc-600">
+                                    <Icon name="search" className="w-10 h-10" />
+                                </div>
+                                <h3 className="text-xl font-black text-white mb-2 text-center uppercase italic">Nenhum resultado</h3>
+                                <p className="text-sm text-zinc-400 text-center max-w-md mb-8">
+                                    Não encontrámos nenhum exercício correspondente à sua busca.
+                                </p>
+                                {/* O EMPTY STATE INTELIGENTE (SMART PROMPT) */}
+                                {searchTerm.trim() && (
+                                    <button 
+                                        onClick={() => { setRequestForm({ name: searchTerm, details: '' }); setShowRequestModal(true); }}
+                                        className="bg-white text-black px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs hover:bg-red-600 hover:text-white transition-all shadow-xl flex items-center gap-2"
+                                    >
+                                        <Icon name="lightbulb" className="w-5 h-5" /> 
+                                        Sugerir a gravação de "{searchTerm}"
+                                    </button>
+                                )}
+                            </div>
                         ) : (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
                                 {filteredExercises.map((ex, index) => (
@@ -1456,7 +1567,8 @@
                                         <div className="flex gap-4 sm:gap-6 min-w-max pb-2 pr-4">
                                             <button onClick={() => !editingId && setAdminTab('single')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${adminTab === 'single' ? 'text-red-600 border-b-2 border-red-600 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}>{editingId ? 'EDITAR REGISTRO' : 'CADASTRO ÚNICO'}</button>
                                             {!editingId && <button onClick={() => setAdminTab('batch')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${adminTab === 'batch' ? 'text-red-600 border-b-2 border-red-600 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}>IMPORTAR LOTE</button>}
-                                            {!editingId && <button onClick={() => setAdminTab('audit')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 whitespace-nowrap ${adminTab === 'audit' ? 'text-indigo-500 border-b-2 border-indigo-500 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}>AUDITORIA (FORÇAR)</button>}
+                                            {!editingId && <button onClick={() => setAdminTab('requests')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 whitespace-nowrap ${adminTab === 'requests' ? 'text-blue-500 border-b-2 border-blue-500 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}><Icon name="listtodo" className="w-3 h-3" /> PEDIDOS DOS ALUNOS {exerciseRequests.filter(r => r.status === 'pending').length > 0 && <span className="bg-blue-500 text-white text-[8px] px-1.5 py-0.5 rounded-full">{exerciseRequests.filter(r => r.status === 'pending').length}</span>}</button>}
+                                            {!editingId && <button onClick={() => setAdminTab('audit')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 whitespace-nowrap ${adminTab === 'audit' ? 'text-indigo-500 border-b-2 border-indigo-500 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}>AUDITORIA NUVEM</button>}
                                             {!editingId && <button onClick={() => setAdminTab('users')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 whitespace-nowrap ${adminTab === 'users' ? 'text-emerald-500 border-b-2 border-emerald-500 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}><Icon name="users" className="w-3 h-3" /> GERIR ALUNOS</button>}
                                             {!editingId && <button onClick={() => setAdminTab('settings')} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 whitespace-nowrap ${adminTab === 'settings' ? 'text-amber-500 border-b-2 border-amber-500 pb-2' : 'text-zinc-600 border-transparent hover:text-white pb-2'}`}><Icon name="settings" className="w-3 h-3" /> CONFIGURAÇÕES</button>}
                                         </div>
@@ -1493,6 +1605,60 @@
 
                                         <button type="submit" className="sm:col-span-2 bg-red-600 py-5 rounded-3xl font-black uppercase tracking-[0.3em] text-xs shadow-2xl shadow-red-600/40 hover:bg-red-700 transition-all flex items-center justify-center gap-2 mt-4"><Icon name="save" className="w-5 h-5" /> {editingId ? 'SALVAR ALTERAÇÕES' : 'SALVAR NO ATLAS'}</button>
                                     </form>
+                                ) : adminTab === 'requests' ? (
+                                    <div className="flex flex-col gap-4 animate-fade-in">
+                                        <div className="flex items-center justify-between bg-blue-950/20 border border-blue-500/20 p-6 rounded-[2rem] mb-4">
+                                            <div>
+                                                <h3 className="text-white font-black text-lg flex items-center gap-2"><Icon name="listtodo" className="text-blue-500 w-5 h-5" /> Radar de Sugestões</h3>
+                                                <p className="text-zinc-400 text-[10px] mt-1">Aqui você vê exatamente o que os seus alunos mais querem na biblioteca para priorizar as suas gravações.</p>
+                                            </div>
+                                            <div className="bg-blue-500/20 text-blue-400 font-black text-2xl px-4 py-2 rounded-xl">{exerciseRequests.length}</div>
+                                        </div>
+                                        
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="border-b border-white/10">
+                                                        <th className="py-3 px-4 text-[9px] font-black uppercase text-zinc-500 tracking-widest">Pedido</th>
+                                                        <th className="py-3 px-4 text-[9px] font-black uppercase text-zinc-500 tracking-widest">Aluno</th>
+                                                        <th className="py-3 px-4 text-[9px] font-black uppercase text-zinc-500 tracking-widest text-center">Status</th>
+                                                        <th className="py-3 px-4 text-[9px] font-black uppercase text-zinc-500 tracking-widest text-right">Ação</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {exerciseRequests.length === 0 ? (
+                                                        <tr><td colSpan="4" className="py-8 text-center text-zinc-500 text-[10px] font-black uppercase tracking-widest">Nenhum pedido na fila.</td></tr>
+                                                    ) : exerciseRequests.map(r => (
+                                                        <tr key={r.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                                            <td className="py-4 px-4 w-1/3">
+                                                                <p className="text-sm font-bold text-white mb-1">{r.exerciseName}</p>
+                                                                {r.details && <p className="text-[10px] text-zinc-400 line-clamp-2 italic">"{r.details}"</p>}
+                                                            </td>
+                                                            <td className="py-4 px-4">
+                                                                <p className="text-[11px] font-bold text-zinc-300">{r.userName}</p>
+                                                                <p className="text-[9px] text-zinc-500">{new Date(r.createdAt).toLocaleDateString('pt-BR')}</p>
+                                                            </td>
+                                                            <td className="py-4 px-4 text-center">
+                                                                {r.status === 'done' ? (
+                                                                    <span className="bg-emerald-500/20 text-emerald-400 text-[9px] font-black px-2 py-1 rounded uppercase">Concluído</span>
+                                                                ) : (
+                                                                    <span className="bg-amber-500/20 text-amber-400 text-[9px] font-black px-2 py-1 rounded uppercase animate-pulse">Pendente</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-4 px-4 text-right">
+                                                                <div className="flex justify-end gap-2">
+                                                                    <button onClick={() => toggleRequestStatus(r.id, r.status)} className="bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-[9px] font-black px-3 py-2 rounded-lg uppercase transition-all text-white">
+                                                                        {r.status === 'done' ? 'Desmarcar' : 'Marcar Gravado'}
+                                                                    </button>
+                                                                    <button onClick={() => deleteRequest(r.id)} className="bg-red-950/40 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/30 p-2 rounded-lg transition-all"><Icon name="trash" className="w-4 h-4" /></button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 ) : adminTab === 'batch' ? (
                                     <div className="flex flex-col gap-6 animate-fade-in">
                                         <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">Cole abaixo o seu Array JSON. O sistema irá converter automaticamente as strings de <b>muscleGroups</b> e <b>keywords</b> em Arrays de busca e enviar para a nuvem via processo em lote (Batch).</p>
