@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Guia de Medidas - Consultoria Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap');
+        
+        :root {
+            --brand-color: #DC2626;
+            --brand-dark: #991B1B;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50%;
+            height: 4px;
+            background-color: var(--brand-color);
+        }
+
+        #mobile-menu {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Tabela Scroll Hint e Layout Inteligente */
+        .table-container {
+            position: relative;
+            background-color: white;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        .table-container::-webkit-scrollbar { height: 12px; }
+        .table-container::-webkit-scrollbar-track { background: #f8fafc; border-radius: 0 0 8px 8px; }
+        .table-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 8px; border: 3px solid #f8fafc; }
+        .table-container::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+
+        .measure-input {
+            width: 100%;
+            background: transparent;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            outline: none;
+            padding: 6px 4px;
+            font-size: 0.8rem;
+        }
+        .measure-input:focus { background-color: #FEF2F2; border-radius: 4px; }
+        .measure-input::placeholder { color: #D1D5DB; font-weight: 500; }
+
+        .sticky-col { position: sticky; left: 0; z-index: 20; box-shadow: 4px 0 10px -2px rgba(0,0,0,0.1); }
+        th.sticky-col { z-index: 30; box-shadow: 4px 0 10px -2px rgba(0,0,0,0.3); }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 50px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        /* WIZARD E MODAL ANIMATIONS */
+        .modal-enter {
+            animation: fadeInScale 0.2s ease-out forwards;
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .wizard-enter {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* WIZARD INPUT STYLES */
+        .wizard-input {
+            font-size: 2rem;
+            text-align: center;
+            font-weight: 900;
+            color: var(--brand-color);
+            background-color: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1rem;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .wizard-input:focus {
+            outline: none;
+            border-color: var(--brand-color);
+            background-color: #FEF2F2;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+        .wizard-input::placeholder {
+            color: #d1d5db;
+            font-weight: 400;
+        }
+
+        /* HERO BLOBS ANIMADOS */
+        @keyframes blob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-blob { animation: blob 12s infinite ease-in-out; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+
+        /* SCROLL REVEAL */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* COMPARADOR DE FOTOS */
+        .compare-container {
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+        .compare-after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        .compare-slider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: white;
+            cursor: ew-resize;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        .compare-slider::before {
+            content: '⇆';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--brand-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* DELTA BADGES */
+        .delta-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 2px;
+        }
+        .delta-up { background: #FEE2E2; color: #991B1B; }
+        .delta-down { background: #D1FAE5; color: #065F46; }
+        .delta-neutral { background: #F3F4F6; color: #6B7280; }
+
+        /* --- OTIMIZAÇÃO DE IMPRESSÃO --- */
+        @media print {
+            @page { size: landscape; margin: 10mm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-shadow: none !important; box-shadow: none !important; }
+            body { background-color: white !important; color: black !important; margin: 0; padding: 0; }
+            .no-print, #mobile-menu-btn, #mobile-menu, header nav, #clear-data-btn, .animate-bounce, .copy-btn, .scroll-hint-box, #wizard-modal, #confirm-modal, #config-panel, #chart-section, #compare-section, #qrcode-section, #whatsapp-float, .delta-badge { display: none !important; }
+            header { position: static !important; height: auto !important; padding: 15px 0 !important; background-color: #18181B !important; color: white !important; border-bottom: 2px solid var(--brand-color) !important; }
+            header .container { display: flex !important; justify-content: center !important; align-items: center !important; }
+            header .container > div.flex.items-center { display: none !important; }
+            header a.group { position: static !important; transform: none !important; margin: 0 auto !important; display: block !important; }
+            header a.group img { height: 50px !important; width: auto !important; position: static !important; transform: none !important; }
+            .table-container { border: 1px solid #e5e7eb !important; overflow: visible !important; }
+            #main-table { min-width: 100% !important; width: 100% !important; table-layout: fixed !important; }
+            #main-table th.min-w-\[160px\] { min-width: 0 !important; width: auto !important; }
+            #main-table th, #main-table td { padding: 4px 2px !important; font-size: 8px !important; border: 1px solid #e5e7eb !important; word-wrap: break-word; }
+            #main-table th.sticky-col, #main-table td.sticky-col { position: static !important; width: 70px !important; min-width: 70px !important; box-shadow: none !important; background-color: #f3f4f6 !important; }
+            .measure-input { font-size: 8px !important; padding: 1px !important; border: none !important; color: black !important; }
+            .measure-input::placeholder { font-size: 6px !important; color: #9ca3af !important; }
+            .grid > div, section, tr, li, .page-break-inside-avoid { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .max-w-6xl { max-width: 100% !important; border: 2px solid var(--brand-color) !important; box-shadow: none !important; }
+            .max-w-6xl img { max-height: 350px !important; width: auto !important; margin: 0 auto; object-fit: contain !important; }
+            .bg-red-600 { background-color: var(--brand-color) !important; color: white !important; }
+            .bg-zinc-800 { background-color: #27272A !important; color: white !important; }
+            .bg-red-50 { background-color: #FEF2F2 !important; }
+            .grid { display: grid !important; }
+            .grid-cols-1, .md\:grid-cols-2, .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
+            a[href*="instagram"] { display: inline-flex !important; background-color: var(--brand-color) !important; color: white !important; border-radius: 9999px !important; padding: 10px 20px !important; text-decoration: none !important; margin-bottom: 20px !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 overflow-x-hidden">
+
+    <!-- Toast Notification -->
+    <div id="toast">Ação realizada!</div>
+
+    <!-- MODAL DE CONFIRMAÇÃO DE LIMPEZA -->
+    <div id="confirm-modal" class="fixed inset-0 z-[110] bg-black/60 hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white p-6 md:p-8 rounded-3xl max-w-sm w-full shadow-2xl modal-enter border border-gray-100">
+            <div class="flex justify-center mb-4">
+                <div class="p-3 bg-red-100 rounded-full text-red-600">
+                    <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                </div>
+            </div>
+            <h3 class="text-xl md:text-2xl font-black text-center text-zinc-900 mb-2">Apagar todos os dados?</h3>
+            <p class="text-gray-500 text-center text-sm mb-8 leading-relaxed">
+                Esta ação não pode ser desfeita. Os registros dos 12 meses serão permanentemente apagados do seu dispositivo.
+            </p>
+            <div class="flex flex-col gap-3">
+                <button onclick="executeClearData()" class="w-full py-4 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition shadow-lg shadow-red-500/30 flex justify-center items-center gap-2">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i> SIM, APAGAR TUDO
+                </button>
+                <button onclick="closeConfirmModal()" class="w-full py-4 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition">
+                    CANCELAR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIZARD MODAL (FULLSCREEN) -->
+    <div id="wizard-modal" class="fixed inset-0 z-[100] bg-white hidden flex-col transition-opacity duration-300">
+        <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-100">
+            <div>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest" id="wizard-month-label">MÊS 1</span>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="w-24 md:w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div id="wizard-progress-bar" class="h-full bg-red-600 transition-all duration-300 w-0"></div>
+                    </div>
+                    <span id="wizard-progress-text" class="text-xs font-bold text-zinc-800">0/11</span>
+                </div>
+            </div>
+            <button onclick="closeWizard()" class="p-2 bg-gray-100 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors text-gray-500">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="flex-grow flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto wizard-enter" id="wizard-content">
+        </div>
+
+        <div class="p-4 md:p-6 bg-white border-t border-gray-100 flex justify-between items-center gap-4 pb-8">
+            <button id="btn-wizard-prev" onclick="wizardPrev()" class="flex-1 py-4 md:py-5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i> VOLTAR
+            </button>
+            <button id="btn-wizard-next" onclick="wizardNext()" class="flex-[2] py-4 md:py-5 rounded-xl font-black text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/30 transition-all transform active:scale-95 flex justify-center items-center gap-2 text-lg">
+                PRÓXIMO <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIGURAÇÃO DO PROFISSIONAL -->
+    <div id="config-panel" class="fixed inset-0 z-[120] bg-black/80 hidden items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl modal-enter p-6 md:p-10 my-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl md:text-3xl font-black text-zinc-900 flex items-center gap-2">
+                    <i data-lucide="settings" class="w-7 h-7 text-red-600"></i>
+                    Configurar Perfil Profissional
+                </h2>
+                <button onclick="closeConfigPanel()" class="p-2 hover:bg-gray-100 rounded-full">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <p class="text-gray-500 text-sm mb-6">Personalize este guia com seus dados. Um link único será gerado para você compartilhar com seus alunos.</p>
+            
+            <div class="space-y-4">
+                <label class="block">
+                    <span class="font-bold text-sm text-zinc-700 mb-2 block">Seu Nome / Marca</span>
+                    <input type="text" id="cfg-nome" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-red-600 focus:outline-none transition" placeholder="Prof. Diego Maciel">
+                </label>
+                
+                <label class="block">
+                    <span class="font-bold text-sm text-zinc-700 mb-2 block">Instagram</span>
+                    <input type="text" id="cfg-insta" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-red-600 focus:outline-none transition" placeholder="@seuinsta">
+                </label>
+                
+                <label class="block">
+                    <span class="font-bold text-sm text-zinc-700 mb-2 block">WhatsApp (com DDI e DDD, só números)</span>
+                    <input type="text" id="cfg-whats" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-red-600 focus:outline-none transition" placeholder="5511999999999">
+                </label>
+                
+                <label class="block">
+                    <span class="font-bold text-sm text-zinc-700 mb-2 block">Cor Principal da Marca</span>
+                    <div class="flex gap-3 items-center">
+                        <input type="color" id="cfg-cor" class="w-16 h-12 rounded-lg cursor-pointer border-2 border-gray-200" value="#DC2626">
+                        <input type="text" id="cfg-cor-text" class="flex-1 border-2 border-gray-200 rounded-xl p-3 font-mono focus:border-red-600 focus:outline-none" value="#DC2626">
+                    </div>
+                </label>
+            </div>
+            
+            <button onclick="generateConfigLink()" class="w-full mt-8 bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-black text-lg transition shadow-lg shadow-red-500/30 flex justify-center items-center gap-2">
+                <i data-lucide="link" class="w-5 h-5"></i> GERAR MEU LINK PERSONALIZADO
+            </button>
+            
+            <div id="generated-link-box" class="mt-6 hidden">
+                <p class="text-sm font-bold mb-2 text-green-700 flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i> Link gerado com sucesso!
+                </p>
+                <div class="bg-gray-100 p-4 rounded-xl break-all text-xs font-mono border border-gray-200" id="generated-link-text"></div>
+                <div class="flex gap-2 mt-4">
+                    <button onclick="copyConfigLink()" class="flex-1 bg-zinc-900 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                        <i data-lucide="copy" class="w-4 h-4"></i> Copiar Link
+                    </button>
+                    <button onclick="generateQRFromConfig()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                        <i data-lucide="qr-code" class="w-4 h-4"></i> Gerar QR Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Navbar / Header -->
+    <header class="bg-black text-white shadow-lg sticky top-0 z-50 transition-all duration-300" id="main-header">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center relative h-24">
+            <div class="flex items-center">
+                <button id="mobile-menu-btn" class="lg:hidden z-50 p-2 text-white focus:outline-none hover:bg-white/10 rounded-full transition" aria-label="Abrir Menu">
+                    <i data-lucide="menu" class="w-8 h-8"></i>
+                </button>
+                <nav class="hidden lg:flex gap-6 font-bold text-xs tracking-wider text-gray-300 no-print">
+                    <a href="#intro" class="hover:text-red-500 transition py-2">INÍCIO</a>
+                    <a href="#anamnese" class="hover:text-red-500 transition py-2">FICHA</a>
+                    <a href="#peso" class="hover:text-red-500 transition py-2">PESO</a>
+                    <a href="#medidas" class="hover:text-red-500 transition py-2">MEDIDAS</a>
+                    <a href="#tabela" class="hover:text-red-500 transition py-2">TABELA</a>
+                </nav>
+            </div>
+
+            <a href="#" class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group">
+                <span class="text-xs font-bold tracking-widest text-gray-400 prof-name">GUIA DE MEDIDAS</span>
+            </a>
+
+            <div class="flex items-center gap-2">
+                <button onclick="openConfigPanel()" class="bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold text-xs transition flex items-center justify-center no-print" aria-label="Configurar" title="Configurar perfil profissional">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                <button onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-2 rounded-full font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/30 no-print" aria-label="Imprimir">
+                    <i data-lucide="printer" class="w-5 h-5"></i> <span class="hidden md:inline">IMPRIMIR</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Fullscreen Menu -->
+    <div id="mobile-menu" class="fixed inset-0 bg-zinc-900 z-40 transform translate-x-full flex flex-col justify-center items-center text-center no-print">
+        <nav class="flex flex-col gap-8 text-2xl font-black text-white tracking-tighter">
+            <a href="#intro" class="mobile-link hover:text-red-500 transition">INÍCIO</a>
+            <a href="#anamnese" class="mobile-link hover:text-red-500 transition">FICHA</a>
+            <a href="#peso" class="mobile-link hover:text-red-500 transition">PESO</a>
+            <a href="#medidas" class="mobile-link hover:text-red-500 transition">MEDIDAS</a>
+            <a href="#tabela" class="mobile-link hover:text-red-500 transition">TABELA</a>
+        </nav>
+        <button onclick="window.print()" class="mt-12 bg-red-600 text-white px-8 py-3 rounded-full font-bold text-lg shadow-xl flex items-center gap-2 mobile-link">
+            <i data-lucide="printer" class="w-5 h-5"></i> IMPRIMIR GUIA
+        </button>
+    </div>
+
+    <!-- Hero / Cover Section -->
+    <section id="intro" class="relative bg-zinc-900 text-white py-16 md:py-24 overflow-hidden">
+        <!-- Blobs animados -->
+        <div class="absolute inset-0 opacity-40">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-red-600 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob"></div>
+            <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-red-800 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+            <div class="absolute bottom-1/4 left-1/3 w-96 h-96 bg-orange-600 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        </div>
+        <div class="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay"></div>
+        
+        <div class="container mx-auto px-4 relative z-10 text-center">
+            <div class="inline-block mb-4 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                <span class="text-red-400 font-bold tracking-[0.2em] text-xs md:text-sm uppercase prof-name">Prof. Personal</span>
+            </div>
+            <h1 class="text-4xl md:text-7xl font-black mb-4 leading-tight tracking-tight">
+                GUIA DE <br class="md:hidden"><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-800">MEDIDAS</span>
+            </h1>
+            <p class="text-base md:text-xl text-gray-300 max-w-2xl mx-auto font-light px-4 leading-relaxed">
+                O passo a passo completo para você avaliar a sua evolução e transformar seu corpo.
+            </p>
+            <div class="mt-8 flex justify-center gap-2 md:gap-4">
+                <div class="w-12 md:w-16 h-1 bg-red-600 rounded-full"></div>
+                <div class="w-3 md:w-4 h-1 bg-red-600 rounded-full"></div>
+                <div class="w-12 md:w-16 h-1 bg-red-600 rounded-full"></div>
+            </div>
+            <div class="mt-10 animate-bounce">
+                <a href="#anamnese" class="text-gray-400 hover:text-white transition">
+                    <i data-lucide="chevron-down" class="w-8 h-8 mx-auto"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ficha de Anamnese Rápida -->
+    <section id="anamnese" class="py-12 md:py-16 container mx-auto px-4 md:px-6 reveal">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2 section-title text-zinc-800 inline-block">FICHA DO ALUNO</h2>
+                <p class="text-gray-500 text-sm mt-4">Preencha seus dados básicos para personalizar seu acompanhamento</p>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-red-600">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nome Completo</label>
+                        <input type="text" id="ana-nome" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-red-600 focus:outline-none transition" placeholder="Seu nome">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Idade</label>
+                        <input type="number" id="ana-idade" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-red-600 focus:outline-none transition" placeholder="Ex: 28">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Altura (cm)</label>
+                        <input type="number" id="ana-altura" step="0.01" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-red-600 focus:outline-none transition" placeholder="Ex: 175">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Objetivo Principal</label>
+                        <select id="ana-objetivo" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-red-600 focus:outline-none transition bg-white">
+                            <option value="">Selecione...</option>
+                            <option>Emagrecimento</option>
+                            <option>Hipertrofia</option>
+                            <option>Definição Muscular</option>
+                            <option>Condicionamento Físico</option>
+                            <option>Saúde e Qualidade de Vida</option>
+                            <option>Reabilitação / Pós-lesão</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-xl border border-red-100 flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-white rounded-full shadow-sm">
+                            <i data-lucide="activity" class="w-5 h-5 text-red-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase">IMC Atual</p>
+                            <p class="text-lg font-black text-zinc-900" id="imc-result">Preencha peso e altura</p>
+                        </div>
+                    </div>
+                    <button onclick="calcularIMC()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full font-bold text-sm transition shadow-md">
+                        Calcular
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Peso Corporal Section -->
+    <section id="peso" class="py-10 md:py-20 container mx-auto px-4 md:px-6 reveal">
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
+            <div class="w-full lg:w-1/2">
+                <h2 class="text-2xl md:text-3xl font-bold mb-6 section-title">PESO CORPORAL</h2>
+                <p class="mb-6 text-gray-600 leading-relaxed text-sm md:text-base text-justify">
+                    A balança não é o melhor método para avaliar seus resultados porque ela apenas mede o peso total, e não diferencia entre massa magra (músculos, ossos, órgãos) e massa gorda (gordura corporal). Entretanto, é interessante ter conhecimento do seu peso para calcular suas necessidades nutricionais.
+                </p>
+                
+                <div class="bg-red-50 border-l-4 border-red-600 p-5 md:p-6 rounded-r-xl mb-8 shadow-sm">
+                    <h3 class="font-bold text-red-800 mb-4 flex items-center text-sm md:text-base">
+                        <i data-lucide="alert-circle" class="w-5 h-5 mr-2"></i> Fatores que influenciam o peso:
+                    </h3>
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs md:text-sm text-gray-700">
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Água ingerida recentemente</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Alimentos ingeridos</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Quantidade de sal (sódio)</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Consumo de carboidratos</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Período menstrual</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Medicamentos (corticoides)</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Volume de fezes/urina</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Roupas pesadas</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Horário da pesagem</li>
+                        <li class="flex items-start"><i data-lucide="check" class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0"></i> Balanças descalibradas</li>
+                    </ul>
+                </div>
+
+                <h3 class="font-bold text-base md:text-lg mb-3 text-zinc-800">Como diminuir erros:</h3>
+                <div class="bg-white rounded-lg shadow-md p-4 md:p-0 md:shadow-none">
+                    <ul class="space-y-3 text-gray-700 text-sm md:text-base">
+                        <li class="flex items-start">
+                            <span class="bg-zinc-900 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 text-xs mt-0.5 flex-shrink-0 shadow-md">1</span>
+                            Faça a pesagem sempre no mesmo dia da semana.
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-zinc-900 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 text-xs mt-0.5 flex-shrink-0 shadow-md">2</span>
+                            Use sempre a mesma balança.
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-zinc-900 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 text-xs mt-0.5 flex-shrink-0 shadow-md">3</span>
+                            Pese-se pela manhã, em jejum, depois de ir ao banheiro e com o mínimo de roupa.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="w-full lg:w-1/2 bg-white p-6 md:p-8 shadow-2xl rounded-2xl border-t-4 border-red-600 transform md:rotate-1 hover:rotate-0 transition duration-500">
+                <div class="text-center mb-8">
+                    <div class="inline-block p-4 rounded-full bg-red-50 text-red-600 mb-4 ring-4 ring-red-50">
+                        <i data-lucide="activity" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Protocolo de Avaliação</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-red-200 transition">
+                        <div class="text-3xl font-black text-gray-200 mr-4">01</div>
+                        <div>
+                            <h4 class="font-bold text-sm md:text-base">Circunferências</h4>
+                            <p class="text-xs md:text-sm text-gray-500">Uso de fita métrica para medir perímetros.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-red-200 transition">
+                        <div class="text-3xl font-black text-gray-200 mr-4">02</div>
+                        <div>
+                            <h4 class="font-bold text-sm md:text-base">Fotos Evolutivas</h4>
+                            <p class="text-xs md:text-sm text-gray-500">Comparativo visual mensal.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-red-50 rounded-xl border border-red-100 text-xs md:text-sm text-red-800 italic text-center">
+                        A melhor maneira de avaliar a composição corporal é com um profissional qualificado.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instruções de Medidas -->
+    <section id="medidas" class="bg-zinc-100 py-12 md:py-20 page-break reveal">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-10">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2 section-title text-zinc-800 inline-block">COMO MEDIR</h2>
+                
+                <div class="bg-white inline-block mt-6 mb-2 px-4 py-2 rounded-full shadow-sm border border-gray-200">
+                    <p class="text-gray-700 text-xs md:text-sm font-bold flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4 text-red-500"></i>
+                        Os exemplos servem para homens e mulheres.
+                    </p>
+                </div>
+                
+                <p class="text-gray-500 text-sm mt-2">Siga as instruções detalhadas abaixo.</p>
+            </div>
+
+            <!-- Grid de Cards de Medidas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 print-grid mb-12">
+                <!-- 1. Antebraço -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                        <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/9j5tS6G.png" loading="lazy" alt="Medida Antebraço" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Superior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">1. Antebraço</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência do antebraço.</p>
+                    </div>
+                </div>
+
+                <!-- 2. Braço Relaxado -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/JXNNlV0.png" loading="lazy" alt="Medida Braço Relaxado" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Superior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">2. Braço Relaxado</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência do braço relaxado.</p>
+                    </div>
+                </div>
+
+                <!-- 3. Braço Contraído -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/oEN8KqT.png" loading="lazy" alt="Medida Braço Contraído" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Superior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">3. Braço Contraído</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência do braço contraído.</p>
+                    </div>
+                </div>
+
+                <!-- 4. Ombro -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/ZR5a1Fg.png" loading="lazy" alt="Medida Ombro" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-zinc-200 text-zinc-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Tronco</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">4. Ombro</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Passe a fita métrica ao redor do corpo entre os pontos mais largos de cada ombro. É recomendável pedir ajuda a uma outra pessoa para tirar essa medida.</p>
+                    </div>
+                </div>
+
+                <!-- 5. Tórax -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/GVMiOPF.png" loading="lazy" alt="Medida Tórax" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-zinc-200 text-zinc-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Tronco</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">5. Tórax</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">
+                            Passe a fita métrica por debaixo das axilas, envolvendo a parte mais larga do seu tórax.<br>
+                            <strong>Homens:</strong> a fita deve ser posicionada na linha dos mamilos.<br>
+                            <strong>Mulheres:</strong> a fita deve ser posicionada 2 dedos acima da linha dos mamilos.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 6. Cintura -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/YcFu0nE.png" loading="lazy" alt="Medida Cintura" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-zinc-200 text-zinc-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Tronco</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">6. Cintura</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Passe a fita métrica na região entre a última costela e o osso ilíaco (aquele do quadril), geralmente ficando um ou dois dedos acima do umbigo.</p>
+                    </div>
+                </div>
+
+                <!-- 7. Abdômen -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/eVdePfT.png" loading="lazy" alt="Medida Abdômen" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-zinc-200 text-zinc-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Tronco</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">7. Abdômen</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Passe a fita métrica horizontalmente por cima do seu umbigo.</p>
+                    </div>
+                </div>
+
+                <!-- 8. Quadril -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/eYceyFN.png" loading="lazy" alt="Medida Quadril" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Inferior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">8. Quadril</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Geralmente localizado no meio do glúteo.</p>
+                    </div>
+                </div>
+
+                <!-- 9. Coxa -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/4SO5yjE.png" loading="lazy" alt="Medida Coxa" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Inferior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">9. Coxa</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência da coxa.</p>
+                    </div>
+                </div>
+
+                <!-- 10. Panturrilha -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border-b-4 border-red-600 group flex flex-col page-break-inside-avoid">
+                    <div class="h-64 md:h-80 overflow-hidden bg-zinc-50 p-2 flex items-center justify-center relative">
+                         <div class="absolute inset-0 bg-zinc-200 animate-pulse loading-placeholder -z-10"></div>
+                        <img src="https://i.imgur.com/HarZ9G3.png" loading="lazy" alt="Medida Panturrilha" class="w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    <div class="p-5 md:p-6 border-t border-gray-100 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Inferior</span>
+                            <h3 class="font-bold text-base md:text-lg text-zinc-800">10. Panturrilha</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed">Região de maior circunferência da panturrilha.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Instruções Gerais -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-green-500 page-break-inside-avoid">
+                    <h3 class="font-bold text-lg md:text-xl mb-6 text-center text-green-700 flex items-center justify-center gap-2">
+                        <i data-lucide="thumbs-up" class="w-5 h-5"></i> O que fazer?
+                    </h3>
+                    <ul class="space-y-4 text-gray-700 text-sm md:text-base">
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Posicione a fita métrica sempre na região de <strong>maior circunferência</strong> da parte que pretende medir;</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Fique o mais <strong>relaxado(a) e imóvel possível</strong> para assegurar a precisão dos resultados;</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Meça <strong>ambos os lados do corpo</strong> para verificar a simetria e proporcionalidade entre as partes;</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Mantenha registro das medições para acompanhar seu progresso e saber quais músculos estão evoluindo e quais precisarão de maior trabalho.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-zinc-800 text-white p-6 md:p-8 rounded-2xl shadow-lg border-t-4 border-red-600 page-break-inside-avoid">
+                    <h3 class="font-bold text-lg md:text-xl mb-6 text-center flex items-center justify-center text-red-500 gap-2">
+                        <i data-lucide="thumbs-down" class="w-5 h-5"></i> O que NÃO fazer?
+                    </h3>
+                    <ul class="space-y-4 text-gray-300 text-sm md:text-base">
+                        <li class="flex items-start">
+                            <i data-lucide="x-circle" class="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Evite se exercitar antes de realizar as medições, pois isso pode comprometer a precisão dos resultados devido ao inchaço muscular;</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="x-circle" class="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span>Não aperte e nem afrouxe a fita demasiadamente. Isso causará imprecisão na medição. Apenas deixe rente ao corpo de forma firme e confortável.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Tabela de Registro -->
+    <section id="tabela" class="py-12 md:py-20 container mx-auto px-4 page-break reveal">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl md:text-3xl font-bold section-title text-zinc-800">REGISTRO (12 MESES)</h2>
+            <p class="text-gray-500 mt-2 text-sm md:text-base">
+                Acompanhe sua evolução. <strong class="text-red-600">No celular, clique em "Preencher"</strong> para uma experiência otimizada.
+            </p>
+        </div>
+
+        <div class="flex justify-center items-center mb-4 text-red-600 animate-pulse scroll-hint-box font-bold text-sm bg-red-50 py-2 px-4 rounded-full max-w-xs mx-auto border border-red-100">
+            <i data-lucide="move-horizontal" class="w-5 h-5 mr-2"></i>
+            <span>Deslize a tabela para ver mais meses</span>
+        </div>
+
+        <div class="flex justify-center gap-4 mb-6 flex-wrap">
+            <button onclick="showConfirmModal()" class="text-xs text-red-500 hover:text-red-700 underline no-print cursor-pointer px-4 py-2">
+                Limpar todos os dados salvos
+            </button>
+            <span class="text-gray-300">|</span>
+            <button onclick="exportData()" class="text-xs text-green-600 hover:text-green-700 underline no-print cursor-pointer px-4 py-2 flex items-center gap-1">
+                <i data-lucide="download" class="w-3 h-3"></i> Backup dos dados
+            </button>
+            <span class="text-gray-300">|</span>
+            <label class="text-xs text-blue-600 hover:text-blue-700 underline no-print cursor-pointer px-4 py-2 flex items-center gap-1">
+                <i data-lucide="upload" class="w-3 h-3"></i> Restaurar backup
+                <input type="file" accept=".json" onchange="importData(event)" class="hidden">
+            </label>
+        </div>
+
+        <!-- Table Container -->
+        <div class="overflow-x-auto table-container rounded-lg shadow-xl">
+            <table id="main-table" class="w-full border-collapse bg-white text-xs md:text-sm text-center min-w-[2200px]">
+                <thead>
+                    <tr class="bg-zinc-900 text-white uppercase text-[10px] md:text-xs tracking-wider">
+                        <th class="p-3 md:p-4 text-left w-[200px] sticky-col bg-zinc-900 border-r border-zinc-700">Medida (cm)</th>
+                        
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-zinc-800' : 'bg-zinc-900';
+                                document.write(`
+                                    <th class="p-3 md:p-4 border-l border-zinc-700 min-w-[160px] ${bgClass}">
+                                        <div class="flex flex-col items-center gap-2">
+                                            <span class="font-bold text-sm">Mês ${i}</span>
+                                            <button onclick="openWizard(${i})" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 text-[10px] shadow-sm mb-1">
+                                                <i data-lucide="edit-3" class="w-3 h-3"></i> PREENCHER
+                                            </button>
+                                            <button onclick="copyMonthData(${i})" class="w-full bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 text-[10px] shadow-sm text-gray-300">
+                                                <i data-lucide="copy" class="w-3 h-3"></i> COPIAR
+                                            </button>
+                                        </div>
+                                    </th>
+                                `);
+                            }
+                        </script>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    
+                    <tr class="font-bold text-red-800">
+                        <td class="p-3 md:p-4 text-left sticky-col bg-red-50 border-r border-red-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Peso (kg)</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-red-100' : 'bg-red-50';
+                                document.write(`<td class="border-l border-red-200 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input text-base" data-id="peso-m${i}" data-label="Peso" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+                    
+                    <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Membros Superiores</td></tr>
+                    
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Antebraço</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-l-m${i}" data-label="Antebraço Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="ant-r-m${i}" data-label="Antebraço Dir" placeholder="Dir"></div></td>`);
+                            }
+                        </script>
+                    </tr>
+
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Braço Relaxado</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-l-m${i}" data-label="Braço Relaxado Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="brlx-r-m${i}" data-label="Braço Relaxado Dir" placeholder="Dir"></div></td>`);
+                            }
+                        </script>
+                    </tr>
+
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Braço Contraído</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-l-m${i}" data-label="Braço Contraído Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="bcon-r-m${i}" data-label="Braço Contraído Dir" placeholder="Dir"></div></td>`);
+                            }
+                        </script>
+                    </tr>
+
+                    <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Tronco</td></tr>
+                    
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Ombro</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="omb-m${i}" data-label="Ombro" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Tórax</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="tor-m${i}" data-label="Tórax" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Cintura</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="cin-m${i}" data-label="Cintura" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Abdômen</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="abd-m${i}" data-label="Abdômen" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+
+                    <tr><td colspan="13" class="p-2 text-left text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-4 sticky left-0 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">Membros Inferiores</td></tr>
+                    
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Quadril</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 px-2 ${bgClass}"><input type="text" inputmode="decimal" class="measure-input" data-id="qua-m${i}" data-label="Quadril" placeholder="-"></td>`);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Coxa</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-l-m${i}" data-label="Coxa Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="cox-r-m${i}" data-label="Coxa Dir" placeholder="Dir"></div></td>`);
+                            }
+                        </script>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-left text-gray-700 font-semibold sticky-col bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Panturrilha</td>
+                        <script>
+                            for(let i=1; i<=12; i++) {
+                                const bgClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                                document.write(`<td class="border-l border-gray-200 ${bgClass}"><div class="flex divide-x divide-gray-200"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-l-m${i}" data-label="Panturrilha Esq" placeholder="Esq"><input type="text" inputmode="decimal" class="measure-input placeholder:text-[10px] md:placeholder:text-xs" data-id="pan-r-m${i}" data-label="Panturrilha Dir" placeholder="Dir"></div></td>`);
+                            }
+                        </script>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <!-- Gráfico de Evolução -->
+    <section id="chart-section" class="py-12 md:py-16 container mx-auto px-4 reveal">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2 section-title text-zinc-800 inline-block">EVOLUÇÃO VISUAL</h2>
+                <p class="text-gray-500 text-sm mt-4">Veja sua jornada em gráficos</p>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-red-600">
+                <div class="flex flex-wrap gap-3 mb-6 items-center justify-between">
+                    <select id="chart-metric" class="px-4 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:border-red-600 bg-white">
+                        <option value="peso">⚖️ Peso (kg)</option>
+                        <option value="cin">📏 Cintura (cm)</option>
+                        <option value="abd">📏 Abdômen (cm)</option>
+                        <option value="qua">📏 Quadril (cm)</option>
+                        <option value="cox-r">🦵 Coxa Dir. (cm)</option>
+                        <option value="cox-l">🦵 Coxa Esq. (cm)</option>
+                        <option value="brlx-r">💪 Braço Relaxado Dir. (cm)</option>
+                        <option value="bcon-r">💪 Braço Contraído Dir. (cm)</option>
+                        <option value="tor">📏 Tórax (cm)</option>
+                        <option value="pan-r">🦵 Panturrilha Dir. (cm)</option>
+                    </select>
+                    <div class="flex gap-2">
+                        <button onclick="exportChartPNG()" class="bg-zinc-900 hover:bg-black text-white px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition">
+                            <i data-lucide="image" class="w-4 h-4"></i> PNG
+                        </button>
+                        <button onclick="exportPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-md">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> PDF
+                        </button>
+                    </div>
+                </div>
+                <canvas id="evolutionChart" height="100"></canvas>
+                <div id="chart-empty-state" class="hidden text-center py-12 text-gray-400">
+                    <i data-lucide="bar-chart-3" class="w-16 h-16 mx-auto mb-4 opacity-30"></i>
+                    <p class="font-bold">Preencha ao menos um mês para ver o gráfico</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparador de Fotos Antes/Depois -->
+    <section id="compare-section" class="py-12 md:py-16 bg-zinc-100 reveal">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2 section-title text-zinc-800 inline-block">ANTES & DEPOIS</h2>
+                <p class="text-gray-500 text-sm mt-4">Arraste o slider para comparar sua evolução</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-xl">
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <label class="cursor-pointer">
+                            <div class="border-2 border-dashed border-gray-300 hover:border-red-600 rounded-xl p-4 text-center transition bg-gray-50 hover:bg-red-50">
+                                <i data-lucide="upload-cloud" class="w-8 h-8 mx-auto text-gray-400 mb-2"></i>
+                                <p class="text-xs font-bold text-gray-600">Foto ANTES</p>
+                                <input type="file" accept="image/*" onchange="loadCompareImage(event, 'before')" class="hidden">
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <div class="border-2 border-dashed border-gray-300 hover:border-red-600 rounded-xl p-4 text-center transition bg-gray-50 hover:bg-red-50">
+                                <i data-lucide="upload-cloud" class="w-8 h-8 mx-auto text-gray-400 mb-2"></i>
+                                <p class="text-xs font-bold text-gray-600">Foto DEPOIS</p>
+                                <input type="file" accept="image/*" onchange="loadCompareImage(event, 'after')" class="hidden">
+                            </div>
+                        </label>
+                    </div>
+
+                    <div id="compare-wrapper" class="relative rounded-xl overflow-hidden bg-zinc-900" style="display:none;">
+                        <div class="compare-container" style="position: relative; max-width: 100%;">
+                            <img id="img-before" src="" class="w-full block" alt="Antes">
+                            <div class="compare-after" id="compare-after" style="width: 50%;">
+                                <img id="img-after" src="" class="absolute top-0 left-0 w-full h-full object-cover" style="min-width: 100%;" alt="Depois">
+                            </div>
+                            <div class="compare-slider" id="compare-slider" style="left: 50%;"></div>
+                            <div class="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-bold">ANTES</div>
+                            <div class="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">DEPOIS</div>
+                        </div>
+                    </div>
+
+                    <div id="compare-placeholder" class="text-center py-12 text-gray-400">
+                        <i data-lucide="image-plus" class="w-16 h-16 mx-auto mb-4 opacity-30"></i>
+                        <p class="font-bold">Envie duas fotos para começar a comparação</p>
+                        <p class="text-xs mt-2">Use a mesma posição, luz e distância para melhor resultado</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Fotos Section -->
+    <section class="bg-zinc-900 text-white py-16 md:py-24 page-break reveal">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 mb-12 page-break-inside-avoid">
+                <div class="w-full lg:w-1/3 text-center lg:text-right flex flex-col items-center lg:items-end">
+                    <h2 class="text-3xl md:text-5xl font-black text-red-600 mb-2 tracking-tighter">FOTOS</h2>
+                    <h3 class="text-xl md:text-3xl font-bold mb-4 text-white">EVOLUTIVAS</h3>
+                    <p class="text-gray-400 text-sm md:text-base max-w-xs lg:max-w-none">Acompanhe visualmente o que os números não mostram.</p>
+                </div>
+
+                <div class="w-full lg:w-2/3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left page-break-inside-avoid">
+                        <i data-lucide="camera" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
+                        <h4 class="font-bold mb-2 text-lg">Posição</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">De frente, costas e perfis. Mantenha a distância.</p>
+                    </div>
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left page-break-inside-avoid">
+                        <i data-lucide="sun" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
+                        <h4 class="font-bold mb-2 text-lg">Luz</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">Luz natural de frente. Evite sombras fortes.</p>
+                    </div>
+                    <div class="bg-zinc-800 p-6 rounded-2xl border border-zinc-700 hover:border-red-600 transition group flex flex-col items-center text-center sm:items-start sm:text-left page-break-inside-avoid">
+                        <i data-lucide="calendar" class="w-8 h-8 text-red-500 mb-3 group-hover:scale-110 transition"></i>
+                        <h4 class="font-bold mb-2 text-lg">Frequência</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">A cada 30 dias, preferencialmente em jejum.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center w-full page-break-inside-avoid">
+                <div class="relative w-full max-w-6xl rounded-lg overflow-hidden border-4 border-red-600 shadow-2xl">
+                    <img src="https://i.imgur.com/1aSuKzZ.png" loading="lazy" alt="Exemplo Foto Evolutiva" class="w-full h-auto object-cover">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QR Code + Compartilhamento -->
+    <section id="qrcode-section" class="py-12 md:py-16 container mx-auto px-4 reveal">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-gradient-to-br from-zinc-900 to-black text-white p-8 md:p-12 rounded-3xl shadow-2xl text-center">
+                <div class="inline-block p-3 bg-red-600 rounded-full mb-4">
+                    <i data-lucide="share-2" class="w-8 h-8"></i>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-black mb-3">COMPARTILHE ESTE GUIA</h2>
+                <p class="text-gray-400 mb-8 max-w-xl mx-auto">Escaneie o QR Code ou copie o link para acessar de qualquer dispositivo</p>
+
+                <div class="inline-block bg-white p-6 rounded-2xl mb-6">
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="copyCurrentLink()" class="bg-white text-zinc-900 hover:bg-gray-100 px-6 py-3 rounded-full font-bold flex items-center gap-2 transition">
+                        <i data-lucide="copy" class="w-4 h-4"></i> Copiar Link
+                    </button>
+                    <button onclick="shareWhatsApp()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition shadow-lg">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
+                    </button>
+                    <button onclick="openConfigPanel()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition shadow-lg">
+                        <i data-lucide="settings" class="w-4 h-4"></i> Personalizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-10 border-t-4 border-red-600">
+        <div class="container mx-auto px-4 text-center">
+            <div class="mb-4">
+                <p class="text-2xl font-black mb-1 prof-name">GUIA DE MEDIDAS</p>
+                <p class="text-gray-500 text-sm">Sua evolução, documentada.</p>
+            </div>
+            <div class="flex justify-center gap-4 mb-6 flex-wrap">
+                <a href="#" id="footer-insta" class="hidden bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:scale-105 transition">
+                    <i data-lucide="instagram" class="w-4 h-4"></i> <span id="footer-insta-text">@instagram</span>
+                </a>
+                <a href="#" id="footer-whats" class="hidden bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:scale-105 transition">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i> Falar no WhatsApp
+                </a>
+            </div>
+            <p class="text-gray-600 text-xs">
+                © 2026 • Feito com ❤️ para profissionais de Educação Física
+            </p>
+            <p class="text-gray-700 text-[10px] mt-2">
+                Os dados são armazenados apenas no seu dispositivo (localStorage). Nenhum dado é enviado para servidores.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Botão Flutuante WhatsApp -->
+    <a href="#" id="whatsapp-float" class="hidden fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center z-40 transition hover:scale-110 no-print">
+        <i data-lucide="message-circle" class="w-7 h-7"></i>
+    </a>
+    <script>
+        lucide.createIcons();
+
+        /* =========================================
+           PERSONALIZAÇÃO VIA URL
+           ========================================= */
+        const urlParams = new URLSearchParams(window.location.search);
+        const profName = urlParams.get('prof');
+        const profInsta = urlParams.get('insta');
+        const profWhats = urlParams.get('whatsapp');
+        const brandColor = urlParams.get('cor');
+
+        if (profName) {
+            document.querySelectorAll('.prof-name').forEach(el => el.textContent = profName);
+            document.title = `${profName} - Guia de Medidas`;
+        }
+
+        if (brandColor) {
+            const color = brandColor.startsWith('#') ? brandColor : `#${brandColor}`;
+            document.documentElement.style.setProperty('--brand-color', color);
+        }
+
+        if (profInsta) {
+            const instaLink = document.getElementById('footer-insta');
+            const instaText = document.getElementById('footer-insta-text');
+            if (instaLink) {
+                instaLink.href = `https://instagram.com/${profInsta.replace('@', '')}`;
+                instaLink.classList.remove('hidden');
+                instaLink.classList.add('inline-flex');
+                instaText.textContent = profInsta;
+            }
+        }
+
+        if (profWhats) {
+            const whatsFloat = document.getElementById('whatsapp-float');
+            const whatsFooter = document.getElementById('footer-whats');
+            if (whatsFloat) {
+                whatsFloat.href = `https://wa.me/${profWhats}?text=${encodeURIComponent('Olá! Vi seu guia de medidas e gostaria de saber mais sobre a consultoria.')}`;
+                whatsFloat.classList.remove('hidden');
+                whatsFloat.classList.add('inline-flex');
+            }
+            if (whatsFooter) {
+                whatsFooter.href = `https://wa.me/${profWhats}`;
+                whatsFooter.classList.remove('hidden');
+                whatsFooter.classList.add('inline-flex');
+            }
+        }
+
+        /* =========================================
+           MENU MOBILE
+           ========================================= */
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        const links = document.querySelectorAll('.mobile-link');
+        let isMenuOpen = false;
+
+        btn.addEventListener('click', () => {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                menu.classList.remove('translate-x-full');
+                btn.innerHTML = '<i data-lucide="x" class="w-8 h-8"></i>';
+                lucide.createIcons();
+                document.body.style.overflow = 'hidden'; 
+            } else {
+                menu.classList.add('translate-x-full');
+                btn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
+                lucide.createIcons();
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                isMenuOpen = false;
+                menu.classList.add('translate-x-full');
+                btn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
+                lucide.createIcons();
+                document.body.style.overflow = 'auto';
+            });
+        });
+
+        /* =========================================
+           SCROLL REVEAL ANIMATIONS
+           ========================================= */
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        /* =========================================
+           CARREGAR DADOS SALVOS + ANAMNESE
+           ========================================= */
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('.measure-input');
+                inputs.forEach(input => {
+                    const savedValue = localStorage.getItem(input.dataset.id);
+                    if (savedValue) { input.value = savedValue; }
+                    
+                    input.addEventListener('input', (e) => {
+                        localStorage.setItem(e.target.dataset.id, e.target.value);
+                        updateChart();
+                    });
+                });
+
+                // Carregar dados da anamnese
+                ['ana-nome', 'ana-idade', 'ana-altura', 'ana-objetivo'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        const saved = localStorage.getItem(id);
+                        if (saved) el.value = saved;
+                        el.addEventListener('input', () => localStorage.setItem(id, el.value));
+                        el.addEventListener('change', () => localStorage.setItem(id, el.value));
+                    }
+                });
+
+                // Gerar QR Code
+                generateQRCode();
+                updateChart();
+                loadSavedCompareImages();
+            }, 100);
+        });
+
+        /* =========================================
+           IMC
+           ========================================= */
+        function calcularIMC() {
+            const pesoInput = document.querySelector('[data-id^="peso-m"]');
+            const altura = parseFloat(document.getElementById('ana-altura')?.value) / 100;
+            const peso = parseFloat(pesoInput?.value);
+            
+            if (!peso || !altura) {
+                document.getElementById('imc-result').innerHTML = '<span class="text-gray-500">Preencha peso (na tabela) e altura acima</span>';
+                return;
+            }
+            
+            const imc = (peso / (altura * altura)).toFixed(1);
+            let categoria = '', cor = '';
+            if (imc < 18.5) { categoria = 'Abaixo do peso'; cor = 'text-blue-600'; }
+            else if (imc < 25) { categoria = '✅ Peso normal'; cor = 'text-green-600'; }
+            else if (imc < 30) { categoria = '⚠️ Sobrepeso'; cor = 'text-yellow-600'; }
+            else { categoria = '🔴 Obesidade'; cor = 'text-red-600'; }
+            
+            document.getElementById('imc-result').innerHTML = `<strong class="${cor}">${imc}</strong> <span class="text-sm ${cor}">- ${categoria}</span>`;
+        }
+
+        /* =========================================
+           LIMPAR DADOS
+           ========================================= */
+        function showConfirmModal() {
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            document.getElementById('confirm-modal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            document.getElementById('confirm-modal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        function executeClearData() {
+            // Preservar configurações de anamnese e perfil
+            const anaData = {};
+            ['ana-nome', 'ana-idade', 'ana-altura', 'ana-objetivo'].forEach(id => {
+                const val = localStorage.getItem(id);
+                if (val) anaData[id] = val;
+            });
+            
+            localStorage.clear();
+            
+            Object.entries(anaData).forEach(([k, v]) => localStorage.setItem(k, v));
+            location.reload();
+        }
+
+        /* =========================================
+           BACKUP / RESTAURAR
+           ========================================= */
+        function exportData() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `guia-medidas-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('✅ Backup baixado com sucesso!');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, v));
+                    showToast('✅ Dados restaurados! Recarregando...');
+                    setTimeout(() => location.reload(), 1000);
+                } catch (err) {
+                    showToast('❌ Arquivo inválido');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* =========================================
+           WIZARD
+           ========================================= */
+        let currentWizardMonth = 1;
+        let currentWizardStep = 0;
+
+        const wizardSteps = [
+            { id: 'peso', title: 'Peso Corporal', desc: 'Sua pesagem atual em jejum, se possível.', type: 'single', label: 'Peso (kg)', image: null },
+            { id: 'ant', title: 'Antebraço', desc: 'Região de maior circunferência do antebraço.', type: 'double', image: 'https://i.imgur.com/9j5tS6G.png' },
+            { id: 'brlx', title: 'Braço Relaxado', desc: 'Região de maior circunferência do braço relaxado.', type: 'double', image: 'https://i.imgur.com/JXNNlV0.png' },
+            { id: 'bcon', title: 'Braço Contraído', desc: 'Região de maior circunferência do braço contraído.', type: 'double', image: 'https://i.imgur.com/oEN8KqT.png' },
+            { id: 'omb', title: 'Ombro', desc: 'Passe a fita métrica ao redor do corpo entre os pontos mais largos de cada ombro.', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/ZR5a1Fg.png' },
+            { id: 'tor', title: 'Tórax', desc: 'Debaixo das axilas. Homens: na linha dos mamilos. Mulheres: 2 dedos acima.', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/GVMiOPF.png' },
+            { id: 'cin', title: 'Cintura', desc: 'Região entre a última costela e o osso ilíaco (geralmente 2 dedos acima do umbigo).', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/YcFu0nE.png' },
+            { id: 'abd', title: 'Abdômen', desc: 'Passe a fita métrica horizontalmente passando por cima do seu umbigo.', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/eVdePfT.png' },
+            { id: 'qua', title: 'Quadril', desc: 'Posicione a fita na região mais larga, geralmente no meio do glúteo.', type: 'single', label: 'Medida (cm)', image: 'https://i.imgur.com/eYceyFN.png' },
+            { id: 'cox', title: 'Coxa', desc: 'Região de maior circunferência da coxa.', type: 'double', image: 'https://i.imgur.com/4SO5yjE.png' },
+            { id: 'pan', title: 'Panturrilha', desc: 'Região de maior circunferência da panturrilha.', type: 'double', image: 'https://i.imgur.com/HarZ9G3.png' }
+        ];
+
+        function openWizard(monthIndex) {
+            currentWizardMonth = monthIndex;
+            currentWizardStep = 0;
+            
+            document.getElementById('wizard-month-label').innerText = `PREENCHENDO: MÊS ${monthIndex}`;
+            document.getElementById('wizard-modal').classList.remove('hidden');
+            document.getElementById('wizard-modal').classList.add('flex');
+            document.body.style.overflow = 'hidden'; 
+            
+            renderWizardStep();
+        }
+
+        function closeWizard() {
+            document.getElementById('wizard-modal').classList.add('hidden');
+            document.getElementById('wizard-modal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        function renderWizardStep() {
+            const step = wizardSteps[currentWizardStep];
+            const content = document.getElementById('wizard-content');
+            
+            content.classList.remove('wizard-enter');
+            void content.offsetWidth;
+            content.classList.add('wizard-enter');
+
+            const progress = ((currentWizardStep + 1) / wizardSteps.length) * 100;
+            document.getElementById('wizard-progress-bar').style.width = `${progress}%`;
+            document.getElementById('wizard-progress-text').innerText = `${currentWizardStep + 1}/${wizardSteps.length}`;
+
+            document.getElementById('btn-wizard-prev').disabled = currentWizardStep === 0;
+            
+            if (currentWizardStep === wizardSteps.length - 1) {
+                document.getElementById('btn-wizard-next').innerHTML = 'FINALIZAR <i data-lucide="check" class="w-5 h-5"></i>';
+                document.getElementById('btn-wizard-next').classList.replace('bg-red-600', 'bg-green-600');
+                document.getElementById('btn-wizard-next').classList.replace('hover:bg-red-700', 'hover:bg-green-700');
+            } else {
+                document.getElementById('btn-wizard-next').innerHTML = 'PRÓXIMO <i data-lucide="chevron-right" class="w-5 h-5"></i>';
+                try {
+                    document.getElementById('btn-wizard-next').classList.replace('bg-green-600', 'bg-red-600');
+                    document.getElementById('btn-wizard-next').classList.replace('hover:bg-green-700', 'hover:bg-red-700');
+                } catch(e) {}
+            }
+            lucide.createIcons();
+
+            let html = '';
+            
+            if (step.image) {
+                html += `
+                    <div class="mb-4 md:mb-6 w-full flex justify-center">
+                        <div class="h-40 md:h-56 w-full max-w-[200px] md:max-w-[250px] bg-white rounded-2xl p-3 flex items-center justify-center relative shadow-sm border border-gray-100">
+                            <img src="${step.image}" class="w-full h-full object-contain z-10" alt="Como medir ${step.title}">
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="text-center mb-6 md:mb-8">
+                    <h2 class="text-2xl md:text-4xl font-black text-zinc-900 mb-2 leading-tight">${step.title}</h2>
+                    <p class="text-gray-500 text-xs md:text-sm max-w-sm mx-auto px-4 leading-relaxed">${step.desc}</p>
+                </div>
+            `;
+
+            if (step.type === 'single') {
+                const inputId = `${step.id}-m${currentWizardMonth}`;
+                const savedVal = localStorage.getItem(inputId) || '';
+                
+                html += `
+                    <div class="w-full max-w-sm">
+                        <label class="block text-center font-bold text-gray-400 text-sm mb-3 uppercase tracking-wider">${step.label}</label>
+                        <input type="text" inputmode="decimal" id="wiz-input-single" class="wizard-input" placeholder="0.0" value="${savedVal}">
+                    </div>
+                `;
+            } else {
+                const idL = `${step.id}-l-m${currentWizardMonth}`;
+                const idR = `${step.id}-r-m${currentWizardMonth}`;
+                const savedValL = localStorage.getItem(idL) || '';
+                const savedValR = localStorage.getItem(idR) || '';
+
+                html += `
+                    <div class="w-full max-w-md grid grid-cols-2 gap-4 md:gap-6">
+                        <div>
+                            <label class="block text-center font-bold text-gray-400 text-xs md:text-sm mb-3 uppercase tracking-wider">Lado Esquerdo</label>
+                            <input type="text" inputmode="decimal" id="wiz-input-l" class="wizard-input" placeholder="Esq" value="${savedValL}">
+                        </div>
+                        <div>
+                            <label class="block text-center font-bold text-gray-400 text-xs md:text-sm mb-3 uppercase tracking-wider">Lado Direito</label>
+                            <input type="text" inputmode="decimal" id="wiz-input-r" class="wizard-input" placeholder="Dir" value="${savedValR}">
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+            
+            setTimeout(() => {
+                const wizInputs = document.querySelectorAll('.wizard-input');
+                wizInputs.forEach(input => {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            wizardNext();
+                        }
+                    });
+                });
+
+                const firstInput = document.getElementById(step.type === 'single' ? 'wiz-input-single' : 'wiz-input-l');
+                if(firstInput && window.innerWidth > 768) firstInput.focus();
+            }, 300);
+        }
+
+        function saveCurrentStep() {
+            const step = wizardSteps[currentWizardStep];
+            
+            if (step.type === 'single') {
+                const val = document.getElementById('wiz-input-single').value;
+                const id = `${step.id}-m${currentWizardMonth}`;
+                localStorage.setItem(id, val);
+                
+                const tableInput = document.querySelector(`[data-id="${id}"]`);
+                if(tableInput) tableInput.value = val;
+            } else {
+                const valL = document.getElementById('wiz-input-l').value;
+                const valR = document.getElementById('wiz-input-r').value;
+                const idL = `${step.id}-l-m${currentWizardMonth}`;
+                const idR = `${step.id}-r-m${currentWizardMonth}`;
+                
+                localStorage.setItem(idL, valL);
+                localStorage.setItem(idR, valR);
+                
+                const tableInputL = document.querySelector(`[data-id="${idL}"]`);
+                const tableInputR = document.querySelector(`[data-id="${idR}"]`);
+                if(tableInputL) tableInputL.value = valL;
+                if(tableInputR) tableInputR.value = valR;
+            }
+        }
+
+        function wizardNext() {
+            saveCurrentStep();
+            
+            if (currentWizardStep < wizardSteps.length - 1) {
+                currentWizardStep++;
+                renderWizardStep();
+            } else {
+                closeWizard();
+                updateChart();
+                
+                // Confetti!
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 150,
+                        spread: 90,
+                        origin: { y: 0.7 },
+                        colors: ['#DC2626', '#000000', '#FFFFFF']
+                    });
+                }
+                
+                showToast(`🎉 Dados do Mês ${currentWizardMonth} salvos!`);
+            }
+        }
+
+        function wizardPrev() {
+            saveCurrentStep();
+            if (currentWizardStep > 0) {
+                currentWizardStep--;
+                renderWizardStep();
+            }
+        }
+
+        /* =========================================
+           GRÁFICO DE EVOLUÇÃO
+           ========================================= */
+        let evolutionChart = null;
+
+        function updateChart() {
+            const metric = document.getElementById('chart-metric')?.value || 'peso';
+            const labels = Array.from({length: 12}, (_, i) => `Mês ${i+1}`);
+            const data = labels.map((_, i) => {
+                let id;
+                if (metric.includes('-')) {
+                    const parts = metric.split('-');
+                    id = `${parts[0]}-${parts[1]}-m${i+1}`;
+                } else {
+                    id = `${metric}-m${i+1}`;
+                }
+                const val = parseFloat(localStorage.getItem(id));
+                return isNaN(val) ? null : val;
+            });
+
+            const hasData = data.some(v => v !== null);
+            const canvas = document.getElementById('evolutionChart');
+            const emptyState = document.getElementById('chart-empty-state');
+            
+            if (!hasData) {
+                canvas.style.display = 'none';
+                emptyState.classList.remove('hidden');
+                if (evolutionChart) {
+                    evolutionChart.destroy();
+                    evolutionChart = null;
+                }
+                return;
+            }
+            
+            canvas.style.display = 'block';
+            emptyState.classList.add('hidden');
+
+            if (evolutionChart) evolutionChart.destroy();
+            const ctx = canvas.getContext('2d');
+            
+            const brandColor = getComputedStyle(document.documentElement).getPropertyValue('--brand-color').trim() || '#DC2626';
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, brandColor + '66');
+            gradient.addColorStop(1, brandColor + '00');
+
+            evolutionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: metric,
+                        data,
+                        borderColor: brandColor,
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: brandColor,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 9,
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#18181B',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: false, 
+                            grid: { color: '#f3f4f6' },
+                            ticks: { font: { weight: 'bold' } }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('chart-metric')?.addEventListener('change', updateChart);
+
+        function exportChartPNG() {
+            if (!evolutionChart) {
+                showToast('Preencha dados primeiro');
+                return;
+            }
+            const canvas = document.getElementById('evolutionChart');
+            const link = document.createElement('a');
+            link.download = `evolucao-${document.getElementById('chart-metric').value}-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showToast('📸 Gráfico salvo!');
+        }
+
+        /* =========================================
+           EXPORTAR PDF
+           ========================================= */
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const prof = profName || 'Profissional';
+            const aluno = document.getElementById('ana-nome')?.value || 'Aluno';
+            const data = new Date().toLocaleDateString('pt-BR');
+            
+            // Cabeçalho
+            doc.setFillColor(24, 24, 27);
+            doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('RELATÓRIO DE EVOLUÇÃO', 15, 15);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Profissional: ${prof}`, 15, 23);
+            doc.text(`Emitido em: ${data}`, 150, 23);
+            
+            // Dados do aluno
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('DADOS DO ALUNO', 15, 45);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            doc.text(`Nome: ${aluno}`, 15, 52);
+            doc.text(`Idade: ${document.getElementById('ana-idade')?.value || '-'}`, 15, 58);
+            doc.text(`Altura: ${document.getElementById('ana-altura')?.value || '-'} cm`, 15, 64);
+            doc.text(`Objetivo: ${document.getElementById('ana-objetivo')?.value || '-'}`, 15, 70);
+            
+            // Tabela de medidas
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.text('MEDIDAS REGISTRADAS', 15, 85);
+            
+            const tableData = [];
+            const allInputs = document.querySelectorAll('.measure-input');
+            const groups = {};
+            
+            allInputs.forEach(input => {
+                if (!input.value) return;
+                const label = input.dataset.label;
+                const val = input.value;
+                const id = input.dataset.id;
+                const monthMatch = id.match(/m(\d+)$/);
+                const month = monthMatch ? monthMatch[1] : '?';
+                
+                if (label.includes('Esq') || label.includes('Dir')) {
+                    const baseLabel = label.replace(' Esq', '').replace(' Dir', '');
+                    const side = label.includes('Esq') ? 'Esq' : 'Dir';
+                    if (!groups[baseLabel]) groups[baseLabel] = {};
+                    if (!groups[baseLabel][`m${month}`]) groups[baseLabel][`m${month}`] = {};
+                    groups[baseLabel][`m${month}`][side] = val;
+                } else {
+                    if (!groups[label]) groups[label] = {};
+                    groups[label][`m${month}`] = val;
+                }
+            });
+            
+            // Simplificado: última medida de cada tipo
+            Object.entries(groups).forEach(([name, months]) => {
+                const lastMonth = Object.keys(months).sort().pop();
+                const val = months[lastMonth];
+                if (typeof val === 'object') {
+                    tableData.push([name, `Esq: ${val.Esq || '-'} | Dir: ${val.Dir || '-'}`, `Mês ${lastMonth.replace('m','')}`]);
+                } else {
+                    tableData.push([name, val, `Mês ${lastMonth.replace('m','')}`]);
+                }
+            });
+            
+            if (tableData.length === 0) {
+                doc.text('Nenhuma medida registrada ainda.', 15, 95);
+            } else {
+                doc.autoTable({
+                    startY: 90,
+                    head: [['Medida', 'Valor', 'Período']],
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [220, 38, 38], textColor: 255, fontStyle: 'bold' },
+                    styles: { fontSize: 9, cellPadding: 3 }
+                });
+            }
+            
+            // Rodapé
+            const pageHeight = doc.internal.pageSize.height;
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text('Documento gerado automaticamente pelo Guia de Medidas Digital', 105, pageHeight - 10, { align: 'center' });
+            
+            doc.save(`relatorio-${aluno.replace(/\s/g, '-').toLowerCase()}-${Date.now()}.pdf`);
+            showToast('📄 PDF gerado!');
+        }
+
+        /* =========================================
+           COMPARADOR DE FOTOS
+           ========================================= */
+        function loadCompareImage(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                if (type === 'before') {
+                    document.getElementById('img-before').src = dataUrl;
+                    localStorage.setItem('compare-before', dataUrl);
+                } else {
+                    document.getElementById('img-after').src = dataUrl;
+                    localStorage.setItem('compare-after', dataUrl);
+                }
+                document.getElementById('compare-wrapper').style.display = 'block';
+                document.getElementById('compare-placeholder').style.display = 'none';
+                initCompareSlider();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function loadSavedCompareImages() {
+            const before = localStorage.getItem('compare-before');
+            const after = localStorage.getItem('compare-after');
+            if (before && after) {
+                document.getElementById('img-before').src = before;
+                document.getElementById('img-after').src = after;
+                document.getElementById('compare-wrapper').style.display = 'block';
+                document.getElementById('compare-placeholder').style.display = 'none';
+                initCompareSlider();
+            }
+        }
+
+        function initCompareSlider() {
+            const slider = document.getElementById('compare-slider');
+            const container = slider.parentElement;
+            const afterDiv = document.getElementById('compare-after');
+            
+            let isDragging = false;
+            
+            function updatePosition(x) {
+                const rect = container.getBoundingClientRect();
+                let pos = ((x - rect.left) / rect.width) * 100;
+                pos = Math.max(0, Math.min(100, pos));
+                slider.style.left = pos + '%';
+                afterDiv.style.width = pos + '%';
+            }
+            
+            slider.addEventListener('mousedown', () => isDragging = true);
+            slider.addEventListener('touchstart', () => isDragging = true);
+            
+            document.addEventListener('mouseup', () => isDragging = false);
+            document.addEventListener('touchend', () => isDragging = false);
+            
+            container.addEventListener('mousemove', (e) => {
+                if (isDragging) updatePosition(e.clientX);
+            });
+            container.addEventListener('touchmove', (e) => {
+                if (isDragging) updatePosition(e.touches[0].clientX);
+            });
+            
+            container.addEventListener('click', (e) => updatePosition(e.clientX));
+        }
+
+        /* =========================================
+           COPIAR / COMPARTILHAR
+           ========================================= */
+        function copyMonthData(monthIndex) {
+            const date = new Date().toLocaleDateString('pt-BR');
+            let report = `📊 *RELATÓRIO DE EVOLUÇÃO - MÊS ${monthIndex}*\n`;
+            report += `📅 Data: ${date}\n\n`;
+
+            const allInputs = document.querySelectorAll('.measure-input');
+            const groups = {};
+            let hasData = false;
+            
+            allInputs.forEach(input => {
+                const id = input.dataset.id; 
+                const idParts = id.split('-');
+                const monthPart = idParts[idParts.length - 1]; 
+                
+                if (monthPart === `m${monthIndex}`) {
+                    const label = input.dataset.label;
+                    const val = input.value || "∅";
+                    if(input.value) hasData = true;
+
+                    if (label.includes("Esq") || label.includes("Dir")) {
+                        const baseLabel = label.replace(" Esq", "").replace(" Dir", "");
+                        if (!groups[baseLabel]) groups[baseLabel] = { e: "∅", d: "∅" };
+                        
+                        if (label.includes("Esq")) groups[baseLabel].e = val;
+                        if (label.includes("Dir")) groups[baseLabel].d = val;
+                    } else {
+                        report += `*${label}:* ${val}\n`;
+                    }
+                }
+            });
+
+            for (const [name, measures] of Object.entries(groups)) {
+                report += `*${name}:* ${measures.e} | ${measures.d}\n`;
+            }
+
+            if(!hasData) {
+                showToast(`Nenhum dado preenchido no Mês ${monthIndex}.`);
+                return;
+            }
+
+            const el = document.createElement('textarea');
+            el.value = report;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast(`📋 Relatório do Mês ${monthIndex} copiado!`);
+        }
+
+        function copyCurrentLink() {
+            const url = window.location.href;
+            const el = document.createElement('textarea');
+            el.value = url;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast('🔗 Link copiado!');
+        }
+
+        function shareWhatsApp() {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent('Confere esse guia de medidas que estou usando pra acompanhar minha evolução! 💪');
+            window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+        }
+
+        /* =========================================
+           QR CODE
+           ========================================= */
+        function generateQRCode() {
+            const container = document.getElementById('qrcode');
+            if (!container) return;
+            container.innerHTML = '';
+            const brandColor = getComputedStyle(document.documentElement).getPropertyValue('--brand-color').trim() || '#DC2626';
+            new QRCode(container, {
+                text: window.location.href,
+                width: 180,
+                height: 180,
+                colorDark: brandColor,
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        /* =========================================
+           PAINEL DE CONFIGURAÇÃO
+           ========================================= */
+        function openConfigPanel() {
+            document.getElementById('config-panel').classList.remove('hidden');
+            document.getElementById('config-panel').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            
+            // Preencher com valores atuais
+            if (profName) document.getElementById('cfg-nome').value = profName;
+            if (profInsta) document.getElementById('cfg-insta').value = profInsta;
+            if (profWhats) document.getElementById('cfg-whats').value = profWhats;
+            if (brandColor) {
+                const color = brandColor.startsWith('#') ? brandColor : `#${brandColor}`;
+                document.getElementById('cfg-cor').value = color;
+                document.getElementById('cfg-cor-text').value = color;
+            }
+        }
+
+        function closeConfigPanel() {
+            document.getElementById('config-panel').classList.add('hidden');
+            document.getElementById('config-panel').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Sincronizar color picker com input de texto
+        document.getElementById('cfg-cor')?.addEventListener('input', (e) => {
+            document.getElementById('cfg-cor-text').value = e.target.value;
+        });
+        document.getElementById('cfg-cor-text')?.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (/^#[0-9A-F]{6}$/i.test(val)) {
+                document.getElementById('cfg-cor').value = val;
+            }
+        });
+
+        function generateConfigLink() {
+            const nome = document.getElementById('cfg-nome').value.trim();
+            const insta = document.getElementById('cfg-insta').value.trim();
+            const whats = document.getElementById('cfg-whats').value.trim();
+            const cor = document.getElementById('cfg-cor').value.replace('#', '');
+            
+            const baseUrl = window.location.origin + window.location.pathname;
+            const params = new URLSearchParams();
+            
+            if (nome) params.set('prof', nome);
+            if (insta) params.set('insta', insta.replace('@', ''));
+            if (whats) params.set('whatsapp', whats.replace(/\D/g, ''));
+            if (cor && cor !== 'DC2626') params.set('cor', cor);
+            
+            const finalUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+            
+            document.getElementById('generated-link-text').textContent = finalUrl;
+            document.getElementById('generated-link-box').classList.remove('hidden');
+            
+            // Salvar para uso posterior
+            window._generatedLink = finalUrl;
+            lucide.createIcons();
+        }
+
+        function copyConfigLink() {
+            const link = window._generatedLink || document.getElementById('generated-link-text').textContent;
+            const el = document.createElement('textarea');
+            el.value = link;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast('🔗 Link copiado!');
+        }
+
+        function generateQRFromConfig() {
+            const link = window._generatedLink || document.getElementById('generated-link-text').textContent;
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>QR Code - ${profName || 'Guia de Medidas'}</title>
+                    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
+                    <style>
+                        body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background: #f3f4f6; }
+                        .card { background: white; padding: 40px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+                        h1 { color: #DC2626; margin-bottom: 10px; }
+                        p { color: #6b7280; font-size: 14px; margin-bottom: 20px; word-break: break-all; max-width: 400px; }
+                        #qr { display: inline-block; padding: 20px; background: white; border-radius: 10px; }
+                        button { margin-top: 20px; padding: 12px 30px; background: #DC2626; color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 16px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h1>${profName || 'Guia de Medidas'}</h1>
+                        <p>${link}</p>
+                        <div id="qr"></div>
+                        <br>
+                        <button onclick="window.print()">🖨️ Imprimir Cartaz</button>
+                    </div>
+                    <script>
+                        new QRCode(document.getElementById("qr"), {
+                            text: "${link}",
+                            width: 250,
+                            height: 250,
+                            colorDark: "#DC2626",
+                            colorLight: "#ffffff"
+                        });
+                    <\/script>
+                </body>
+                </html>
+            `);
+        }
+
+        /* =========================================
+           TOAST
+           ========================================= */
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+    </script>
+</body>
+</html>
